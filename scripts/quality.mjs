@@ -2,6 +2,7 @@ import { mkdir,writeFile } from 'node:fs/promises'
 import { resolve,join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { packages } from './check-public.mjs'
+import {failedCheckNames} from './quality-diagnostics.mjs'
 import { sourceHash,candidateCommit } from './source-state.mjs'
 if(!process.env.EAOS_VERIFICATION_RUN)throw Error('Use bun run check for guarded verification')
 const root=resolve(import.meta.dirname,'..')
@@ -15,7 +16,11 @@ for(const name of checks) {
   const run=spawnSync('bun',['run',name],{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,env:{...process.env,NODE_OPTIONS:process.env.NODE_OPTIONS||'--max-old-space-size=8192'}})
   const log=join(root,'.verification/logs',name.replaceAll(':','-')+'.log')
   await writeFile(log,(run.stdout??'')+(run.stderr??''))
-  if(run.status!==0)throw Error(`${name} failed; inspect .verification/logs/${name.replaceAll(':','-')}.log`)
+  if(run.status!==0) {
+    const names=failedCheckNames((run.stdout??'')+'\n'+(run.stderr??''))
+    if(names.length)console.error('Failed checks:\n'+names.map(value=>'- '+value).join('\n'))
+    throw Error(`${name} failed; inspect .verification/logs/${name.replaceAll(':','-')}.log`)
+  }
 }
 if(await sourceHash(root)!==before)throw Error('Source changed during verification; rerun after edits finish')
 const outputs={}

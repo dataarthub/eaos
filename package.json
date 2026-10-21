@@ -16,7 +16,7 @@
     "check:public": "node scripts/check-public.mjs && node scripts/release-impact.mjs && node scripts/release.mjs notes",
     "lint": "biome lint .",
     "check": "node scripts/verified-run.mjs quality",
-    "test:tooling": "node --test scripts/release-workflow.test.mjs scripts/release-notes.test.mjs scripts/release-notes-binding.test.mjs scripts/release-handoff.test.mjs scripts/release-preflight.test.mjs scripts/plugin-packaging.test.mjs scripts/release.test.mjs scripts/verification-state.test.mjs scripts/release-impact.test.mjs scripts/contrast.test.mjs && bun test scripts/api-jsdoc.test.ts scripts/public-api-jsdoc.test.ts scripts/documentation.test.ts",
+    "test:tooling": "node --test scripts/quality-diagnostics.test.mjs scripts/release-workflow.test.mjs scripts/release-notes.test.mjs scripts/release-notes-binding.test.mjs scripts/release-handoff.test.mjs scripts/release-preflight.test.mjs scripts/plugin-packaging.test.mjs scripts/release.test.mjs scripts/verification-state.test.mjs scripts/release-impact.test.mjs scripts/contrast.test.mjs && bun test scripts/api-jsdoc.test.ts scripts/public-api-jsdoc.test.ts scripts/documentation.test.ts",
     "docs:api": "bun scripts/generate-public-api.ts",
     "docs:jsdoc": "bun scripts/public-api-jsdoc.ts --check",
     "docs:check": "bun run docs:readmes && bun run docs:generated && bun run docs:jsdoc && bun scripts/documentation.ts",
