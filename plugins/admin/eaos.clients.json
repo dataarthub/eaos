@@ -1,0 +1,1 @@
+{"web":[{"id":"journal","path":"/plugins/admin","module":"admin","export":"./client/web/journal"}]}

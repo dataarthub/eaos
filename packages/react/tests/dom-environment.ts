@@ -1,0 +1,4 @@
+import {Window} from 'happy-dom'
+export const dom=new Window({url:'http://localhost/'})
+for(const key of ['Element','Node','Document','DocumentFragment','ShadowRoot','HTMLFormElement','HTMLButtonElement','SVGElement','CustomEvent','NodeFilter','DOMRect','localStorage','sessionStorage','requestAnimationFrame','cancelAnimationFrame','window','document','navigator','HTMLElement','HTMLInputElement','HTMLTextAreaElement','HTMLSelectElement','Event','MouseEvent','FormData','MutationObserver','ResizeObserver','getComputedStyle'])Object.defineProperty(globalThis,key,{configurable:true,value:key==='window'?dom:typeof (dom as any)[key]==='function'&&['getComputedStyle','requestAnimationFrame','cancelAnimationFrame'].includes(key)?(dom as any)[key].bind(dom):(dom as any)[key]})
+Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true})

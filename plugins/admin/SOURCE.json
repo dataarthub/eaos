@@ -1,0 +1,11 @@
+{
+  "source": "framework working tree",
+  "snapshot": "2026-09-19",
+  "contractSurrogateExtraction": {
+    "date": "2026-09-19",
+    "files": {
+      "manifest.ts": "82ce969308bdf787e1f86c51da662fff0df48000a701747a0457e725dd97279c",
+      "src/index.ts": "8343c7c7d3ddd0c82e2ff4945bb1912266250ac1d834cbfde5f7dd1e3850fcf3"
+    }
+  }
+}

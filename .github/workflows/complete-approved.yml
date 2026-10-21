@@ -1,0 +1,48 @@
+name: Complete approved npm release
+on:
+  workflow_run:
+    workflows: [Stage and complete reviewed npm release]
+    types: [completed]
+permissions:
+  contents: read
+concurrency:
+  group: npm-approval-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+jobs:
+  observe:
+    if: >-
+      github.repository == 'dataarthub/eaos' &&
+      github.event.workflow_run.event == 'release' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Resolve original successful staging attempt and immutable artifact
+        id: source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: mkdir -p .verification && node scripts/publish/observe.mjs resolve
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ steps.source.outputs.artifact }}
+          run-id: ${{ steps.source.outputs.run }}
+          github-token: ${{ github.token }}
+          path: .verification/handoff
+          digest-mismatch: error
+      - name: Observe npm approval and request completion once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/publish/observe.mjs

@@ -1,0 +1,429 @@
+{
+  "id": "platform-records",
+  "version": "1.1.0",
+  "description": "Canonical platform-records storage schema; independent of feature activation.",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:eaos:data-contract:platform-records",
+    "type": "object",
+    "properties": {
+      "tenant_id": {
+        "type": "string",
+        "maxLength": 256
+      },
+      "id": {
+        "type": "string",
+        "maxLength": 256
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "payload": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "tenant_id",
+      "id",
+      "revision",
+      "payload"
+    ],
+    "additionalProperties": false,
+    "x-db": {
+      "tableName": "eaos_platform_records"
+    },
+    "description": "Logical tenant-scoped record envelope. Physical storage is owned by the declared foundation plugin; the namespace isolates this plugin on the shared table."
+  },
+  "migrations": [
+    {
+      "id": "001-platform_records",
+      "scope": "database",
+      "sql": {
+        "sqlite": [
+          "CREATE TABLE eaos_platform_records (tenant_id TEXT NOT NULL,id TEXT NOT NULL,revision INTEGER NOT NULL CHECK (revision > 0),payload TEXT NOT NULL,PRIMARY KEY (tenant_id,id))"
+        ],
+        "postgres": [
+          "CREATE TABLE eaos_platform_records (tenant_id VARCHAR(256) NOT NULL,id VARCHAR(256) NOT NULL,revision INTEGER NOT NULL CHECK (revision > 0),payload JSONB NOT NULL,PRIMARY KEY (tenant_id,id))"
+        ],
+        "oracle": [
+          "CREATE TABLE eaos_platform_records (tenant_id VARCHAR2(256) NOT NULL,id VARCHAR2(256) NOT NULL,revision NUMBER(10) NOT NULL CHECK (revision > 0),payload CLOB NOT NULL CHECK (payload IS JSON),PRIMARY KEY (tenant_id,id))"
+        ]
+      }
+    }
+  ],
+  "migrationIdentity": "approval",
+  "jsonDocuments": [
+    {
+      "id": "approval.state",
+      "version": "1.0.0",
+      "table": "eaos_platform_records",
+      "column": "payload",
+      "namespace": "approval",
+      "maxBytes": 4194304,
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "targetType": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "targetId": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
+          },
+          "requestedBy": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "stages": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 65536
+                },
+                "userIds": {
+                  "type": "array",
+                  "maxItems": 5000,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 65536
+                  }
+                },
+                "roles": {
+                  "type": "array",
+                  "maxItems": 5000,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 65536
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "allowSelfApproval": {
+            "type": "boolean"
+          },
+          "currentStage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "binding": {
+            "type": "object",
+            "properties": {
+              "tenantId": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              "requestedBy": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "operation": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "maxLength": 65536
+                  },
+                  "id": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 1
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "type",
+                  "id"
+                ],
+                "additionalProperties": false
+              },
+              "inputHash": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "contractHash": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "expiresAt": {
+                "type": "string",
+                "maxLength": 65536,
+                "format": "date-time"
+              },
+              "bindingHash": {
+                "type": "string",
+                "maxLength": 65536
+              }
+            },
+            "required": [
+              "tenantId",
+              "requestedBy",
+              "operation",
+              "inputHash",
+              "contractHash",
+              "bindingHash"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "withdrawn"
+            ]
+          },
+          "decisionReceipt": {
+            "type": "object",
+            "properties": {
+              "receiptId": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              "approvalId": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              "tenantId": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "approved",
+                  "rejected"
+                ]
+              },
+              "actorId": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              "actorRoles": {
+                "type": "array",
+                "maxItems": 5000,
+                "items": {
+                  "type": "string",
+                  "maxLength": 65536
+                }
+              },
+              "stageId": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              "decidedAt": {
+                "type": "string",
+                "maxLength": 65536,
+                "format": "date-time"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "bindingHash": {
+                "type": "string",
+                "maxLength": 65536
+              },
+              "comment": {
+                "type": "string",
+                "maxLength": 65536
+              }
+            },
+            "required": [
+              "receiptId",
+              "approvalId",
+              "tenantId",
+              "decision",
+              "actorId",
+              "actorRoles",
+              "stageId",
+              "decidedAt",
+              "revision"
+            ],
+            "additionalProperties": false
+          },
+          "history": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "approved",
+                    "rejected",
+                    "withdrawn",
+                    "submitted"
+                  ]
+                },
+                "actorId": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "stageId": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1
+                },
+                "comment": {
+                  "type": "string",
+                  "maxLength": 65536
+                },
+                "at": {
+                  "type": "string",
+                  "maxLength": 65536,
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "action",
+                "actorId",
+                "at"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "templateId",
+          "title",
+          "targetType",
+          "targetId",
+          "requestedBy",
+          "stages",
+          "allowSelfApproval",
+          "currentStage",
+          "status",
+          "history"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "field-customization.state",
+      "version": "1.0.0",
+      "table": "eaos_platform_records",
+      "column": "payload",
+      "namespace": "field_customization",
+      "maxBytes": 4194304,
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "display_label": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "placeholder": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "help_text": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "is_required": {
+                  "type": "boolean"
+                },
+                "is_hidden": {
+                  "type": "boolean"
+                },
+                "display_order": {
+                  "type": "integer",
+                  "minimum": -10000,
+                  "maximum": 10000
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                },
+                "enum": {
+                  "type": "array",
+                  "maxItems": 5000,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 65536
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "maxProperties": 100,
+            "propertyNames": {
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]{0,62}$",
+              "not": {
+                "enum": [
+                  "constructor",
+                  "prototype",
+                  "__proto__"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "fields"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

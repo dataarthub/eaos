@@ -1,0 +1,158 @@
+{
+  "apiVersion": 1,
+  "owner": "@alneas/eaos-plugins/field-customization",
+  "version": "0.1.0",
+  "lifecycleBundle": [
+    "field-customization"
+  ],
+  "functions": [],
+  "assets": [],
+  "plugins": [
+    {
+      "id": "field-customization",
+      "components": [
+        {
+          "id": "api",
+          "kind": "api",
+          "placement": "host",
+          "runtime": "bun/hono",
+          "assetPatterns": [
+            "src/index.js"
+          ]
+        },
+        {
+          "id": "frontend",
+          "kind": "frontend",
+          "placement": "host",
+          "runtime": "react",
+          "assetPatterns": [
+            "src/react.js"
+          ]
+        },
+        {
+          "id": "database",
+          "kind": "database",
+          "placement": "database",
+          "runtime": "host/sql",
+          "dataContracts": {
+            "platform-records": "^1.1.0"
+          }
+        }
+      ],
+      "tasks": [
+        {
+          "id": "build",
+          "componentIds": [
+            "api",
+            "frontend",
+            "database"
+          ],
+          "action": "build",
+          "scope": "artifact",
+          "required": true,
+          "dependsOn": [],
+          "executor": "plugin:field-customization:build",
+          "argv": [
+            "bun",
+            "run",
+            "build"
+          ]
+        },
+        {
+          "id": "test",
+          "componentIds": [
+            "api",
+            "frontend",
+            "database"
+          ],
+          "action": "test",
+          "scope": "artifact",
+          "required": true,
+          "dependsOn": [
+            "build"
+          ],
+          "executor": "plugin:field-customization:test",
+          "argv": [
+            "bun",
+            "test"
+          ]
+        },
+        {
+          "id": "migrate",
+          "componentIds": [
+            "database"
+          ],
+          "action": "migrate",
+          "scope": "environment",
+          "required": true,
+          "dependsOn": [
+            "test"
+          ],
+          "executor": "lifecycle:apply",
+          "instructions": "Resolve canonical schemaDependencies for the reviewed backend/database; apply only the current reviewed lifecycle plan."
+        },
+        {
+          "id": "configure",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "configure",
+          "scope": "environment",
+          "required": true,
+          "dependsOn": [
+            "migrate"
+          ],
+          "executor": "host:plugin-bindings",
+          "instructions": "Bind live principal, lifecycle admission, resource authorization, durable stores and required host adapters."
+        },
+        {
+          "id": "deploy",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "deploy",
+          "scope": "environment",
+          "required": true,
+          "dependsOn": [
+            "configure"
+          ],
+          "executor": "platform:deploy",
+          "instructions": "Deploy the host with this exact verified plugin artifact; restart/drain under the host upgrade procedure."
+        },
+        {
+          "id": "enable",
+          "componentIds": [
+            "api",
+            "frontend",
+            "database"
+          ],
+          "action": "enable",
+          "scope": "tenant",
+          "required": true,
+          "dependsOn": [
+            "deploy"
+          ],
+          "executor": "lifecycle:enable"
+        },
+        {
+          "id": "acceptance",
+          "componentIds": [
+            "api",
+            "frontend",
+            "database"
+          ],
+          "action": "verify",
+          "scope": "tenant",
+          "required": true,
+          "dependsOn": [
+            "enable"
+          ],
+          "executor": "host:plugin-acceptance",
+          "instructions": "Exercise a representative durable workflow, reload/restart, foreign-tenant denial, disabled admission and stale revision denial using the actual packed plugin."
+        }
+      ]
+    }
+  ]
+}

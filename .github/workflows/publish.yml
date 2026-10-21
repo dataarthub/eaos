@@ -1,0 +1,160 @@
+name: Stage and complete reviewed npm release
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Complete npm staging run {0}', inputs.staged_run) || format('Stage npm Release {0}', github.event.release.tag_name) }}
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      staged_run:
+        description: Original successful Release staging run ID after npm 2FA approval
+        required: true
+        type: string
+permissions:
+  contents: read
+env:
+  RELEASE_REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+# Serialize registry writes across all five packages. Never cancel a writer.
+concurrency:
+  group: eaos-npm-release
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: >-
+      github.event_name == 'release' &&
+      github.repository == 'dataarthub/eaos' &&
+      github.event.release.draft == false &&
+      github.event.release.prerelease == false &&
+      startsWith(github.event.release.tag_name, 'eaos-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      artifact: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Validate published package Release, source and selected version
+        id: select
+        run: node scripts/publish/context.mjs
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - run: bun install --frozen-lockfile --ignore-scripts --linker hoisted --registry=https://registry.npmjs.org
+      - run: bun run secrets:setup
+      - run: bun run check
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+      - run: bun run secrets:check -- --history
+      - run: bunx playwright install --with-deps chromium
+      - name: Prepare and test exact commit-bound release archives
+        run: |
+          node scripts/release.mjs prepare --final > .verification/candidate-path.txt
+          bun run test:consumer -- "$(cat .verification/candidate-path.txt)"
+          bun run release:verify -- "$(cat .verification/candidate-path.txt)"
+          node scripts/publish/bundle.mjs "$(cat .verification/candidate-path.txt)" .verification/handoff
+      - uses: actions/upload-artifact@v7
+        id: upload
+        with:
+          name: verified-npm-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .verification/handoff/release.json
+            .verification/handoff/*.tgz
+            .verification/handoff/*.notes.md
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+  stage:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.verify.outputs.artifact }}
+          path: .verification/handoff
+          digest-mismatch: error
+      # npm trust must allow staging; direct publish must be disabled.
+      - name: Submit exact verified archives for human npm approval
+        run: node scripts/publish/run.mjs stage
+  resolve:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'dataarthub/eaos' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      run: ${{ steps.original.outputs.run }}
+      artifact: ${{ steps.original.outputs.artifact }}
+    steps:
+      - name: Require trusted default branch
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Resolve original successful staging attempt and immutable artifact
+        id: original
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STAGED_RUN: ${{ inputs.staged_run }}
+        run: mkdir -p .verification && node scripts/publish/evidence.mjs
+  complete:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      deployments: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org
+      - name: Revalidate original run identity before handoff
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STAGED_RUN: ${{ inputs.staged_run }}
+        run: mkdir -p .verification && node scripts/publish/evidence.mjs
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.resolve.outputs.artifact }}
+          run-id: ${{ needs.resolve.outputs.run }}
+          github-token: ${{ github.token }}
+          path: .verification/handoff
+          digest-mismatch: error
+      # Human npm approval happens separately. No builds, installs of package dev
+      # dependencies, tests, staging retries or direct publication run here.
+      - name: Verify approved public bytes, repair channels and record original-SHA success
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STAGED_RUN: ${{ inputs.staged_run }}
+        run: node scripts/publish/run.mjs complete

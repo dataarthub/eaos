@@ -1,0 +1,119 @@
+[
+  {
+    "source": "README.md",
+    "output": "docs/index.md",
+    "title": "EAOS public monorepo",
+    "description": "Plugin and application authors use EAOS to compose authorized features across server and browser hosts.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "packages/cli/README.md",
+    "output": "packages/cli/docs/index.md",
+    "title": "CLI authoring and release tools",
+    "description": "Plugin and host developers use the CLI to generate, diagnose and verify EAOS packages.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "packages/core/README.md",
+    "output": "packages/core/docs/index.md",
+    "title": "Core contracts and plugin SDK",
+    "description": "Plugin authors use Core to declare portable features, data ownership and entitlement contracts.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "packages/react/README.md",
+    "output": "packages/react/docs/index.md",
+    "title": "React workspaces and browser clients",
+    "description": "Application authors use React workspaces and portable clients to bind authenticated product UI.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "packages/server/README.md",
+    "output": "packages/server/docs/index.md",
+    "title": "Server execution and persistence",
+    "description": "Host developers use Server to compose HTTP/MCP, lifecycle and durable data services.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "plugins/README.md",
+    "output": "plugins/docs/index.md",
+    "title": "Standard plugin collection",
+    "description": "EAOS host developers use this MIT collection to add approval, field customization and administration through explicitly selected feature modules.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "plugins"
+    ],
+    "order": 20
+  },
+  {
+    "source": "plugins/admin/README.md",
+    "output": "plugins/admin/docs/index.md",
+    "title": "@alneas/eaos-plugins/admin",
+    "description": "Administrators use the generic admin plugin to inspect explicitly exposed resources and audit history.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "plugins/approval/README.md",
+    "output": "plugins/approval/docs/index.md",
+    "title": "@alneas/eaos-plugins/approval",
+    "description": "Teams use the generic approval plugin to request and record explicit review decisions.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  },
+  {
+    "source": "plugins/field-customization/README.md",
+    "output": "plugins/field-customization/docs/index.md",
+    "title": "@alneas/eaos-plugins/field-customization",
+    "description": "Administrators use the generic field-customization plugin to configure permitted field presentation.",
+    "archetype": "explanation",
+    "project": "eaos-workspace",
+    "tags": [
+      "eaos",
+      "explanation"
+    ],
+    "order": 20
+  }
+]

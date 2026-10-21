@@ -1,0 +1,347 @@
+{
+  "name": "@alneas/eaos-server",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "EAOS server public package",
+  "exports": {
+    "./db/local-first-sqlite-adapter": {
+      "types": "./dist/db-package/db/local-first-sqlite-adapter.d.ts",
+      "import": "./dist/db-package/db/local-first-sqlite-adapter.js"
+    },
+    "./db": {
+      "types": "./dist/db-package/index.d.ts",
+      "import": "./dist/db-package/index.js"
+    },
+    "./db/migration/aggregator": {
+      "types": "./dist/db-package/migration/aggregator.d.ts",
+      "import": "./dist/db-package/migration/aggregator.js"
+    },
+    "./db/migration": {
+      "types": "./dist/db-package/migration/index.d.ts",
+      "import": "./dist/db-package/migration/index.js"
+    },
+    "./lifecycle-engine/backend-migration": {
+      "types": "./dist/lifecycle-engine/backend-migration.d.ts",
+      "import": "./dist/lifecycle-engine/backend-migration.js"
+    },
+    "./lifecycle-engine": {
+      "types": "./dist/lifecycle-engine/index.d.ts",
+      "import": "./dist/lifecycle-engine/index.js"
+    },
+    "./platform/artifacts": {
+      "types": "./dist/lifecycle-engine/platform/artifacts.d.ts",
+      "import": "./dist/lifecycle-engine/platform/artifacts.js"
+    },
+    "./platform/control-plane": {
+      "types": "./dist/lifecycle-engine/platform/control-plane.d.ts",
+      "import": "./dist/lifecycle-engine/platform/control-plane.js"
+    },
+    "./platform/database-router": {
+      "types": "./dist/lifecycle-engine/platform/database-router.d.ts",
+      "import": "./dist/lifecycle-engine/platform/database-router.js"
+    },
+    "./platform/deployment-placements": {
+      "types": "./dist/lifecycle-engine/platform/deployment-placements.d.ts",
+      "import": "./dist/lifecycle-engine/platform/deployment-placements.js"
+    },
+    "./platform/deployment": {
+      "types": "./dist/lifecycle-engine/platform/deployment.d.ts",
+      "import": "./dist/lifecycle-engine/platform/deployment.js"
+    },
+    "./platform": {
+      "types": "./dist/lifecycle-engine/platform/index.d.ts",
+      "import": "./dist/lifecycle-engine/platform/index.js"
+    },
+    "./platform/runtime": {
+      "types": "./dist/lifecycle-engine/platform/runtime.d.ts",
+      "import": "./dist/lifecycle-engine/platform/runtime.js"
+    },
+    "./platform/site-publication": {
+      "types": "./dist/lifecycle-engine/platform/site-publication.d.ts",
+      "import": "./dist/lifecycle-engine/platform/site-publication.js"
+    },
+    "./platform/user-directory": {
+      "types": "./dist/lifecycle-engine/platform/user-directory.d.ts",
+      "import": "./dist/lifecycle-engine/platform/user-directory.js"
+    },
+    "./lifecycle-engine/baseline": {
+      "types": "./dist/lifecycle-engine/baseline.d.ts",
+      "import": "./dist/lifecycle-engine/baseline.js"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "import": "./dist/storage/index.js"
+    },
+    "./storage/s3-compatible": {
+      "types": "./dist/storage/s3-compatible.d.ts",
+      "import": "./dist/storage/s3-compatible.js"
+    },
+    "./agentic/agent-jobs": {
+      "types": "./dist/agentic/agent-jobs.d.ts",
+      "import": "./dist/agentic/agent-jobs.js"
+    },
+    "./agentic/agent-node": {
+      "types": "./dist/agentic/agent-node.d.ts",
+      "import": "./dist/agentic/agent-node.js"
+    },
+    "./agentic/agent-runner": {
+      "types": "./dist/agentic/agent-runner.d.ts",
+      "import": "./dist/agentic/agent-runner.js"
+    },
+    "./agentic/ai-broker": {
+      "types": "./dist/agentic/ai-broker.d.ts",
+      "import": "./dist/agentic/ai-broker.js"
+    },
+    "./agentic/atomic-checkpointer": {
+      "types": "./dist/agentic/atomic-checkpointer.d.ts",
+      "import": "./dist/agentic/atomic-checkpointer.js"
+    },
+    "./agentic/autonomous-worker": {
+      "types": "./dist/agentic/autonomous-worker.d.ts",
+      "import": "./dist/agentic/autonomous-worker.js"
+    },
+    "./agentic/event-bridge": {
+      "types": "./dist/agentic/event-bridge.d.ts",
+      "import": "./dist/agentic/event-bridge.js"
+    },
+    "./agentic/executor": {
+      "types": "./dist/agentic/executor.d.ts",
+      "import": "./dist/agentic/executor.js"
+    },
+    "./agentic/graph-projection": {
+      "types": "./dist/agentic/graph-projection.d.ts",
+      "import": "./dist/agentic/graph-projection.js"
+    },
+    "./agentic/graph": {
+      "types": "./dist/agentic/graph.d.ts",
+      "import": "./dist/agentic/graph.js"
+    },
+    "./agentic": {
+      "types": "./dist/agentic/index.d.ts",
+      "import": "./dist/agentic/index.js"
+    },
+    "./agentic/local-runner": {
+      "types": "./dist/agentic/local-runner.d.ts",
+      "import": "./dist/agentic/local-runner.js"
+    },
+    "./agentic/remote-executor": {
+      "types": "./dist/agentic/remote-executor.d.ts",
+      "import": "./dist/agentic/remote-executor.js"
+    },
+    "./agentic/types": {
+      "types": "./dist/agentic/types.d.ts",
+      "import": "./dist/agentic/types.js"
+    },
+    "./agentic/workflow-catalog": {
+      "types": "./dist/agentic/workflow-catalog.d.ts",
+      "import": "./dist/agentic/workflow-catalog.js"
+    },
+    "./agentic/workflow-compiler": {
+      "types": "./dist/agentic/workflow-compiler.d.ts",
+      "import": "./dist/agentic/workflow-compiler.js"
+    },
+    "./agentic/workflow-coordinator": {
+      "types": "./dist/agentic/workflow-coordinator.d.ts",
+      "import": "./dist/agentic/workflow-coordinator.js"
+    },
+    "./agentic/workflow-manager": {
+      "types": "./dist/agentic/workflow-manager.d.ts",
+      "import": "./dist/agentic/workflow-manager.js"
+    },
+    "./agentic/workflow-registry": {
+      "types": "./dist/agentic/workflow-registry.d.ts",
+      "import": "./dist/agentic/workflow-registry.js"
+    },
+    "./auth-hooks/api-key": {
+      "types": "./dist/auth-hooks/api-key.d.ts",
+      "import": "./dist/auth-hooks/api-key.js"
+    },
+    "./auth-hooks": {
+      "types": "./dist/auth-hooks/index.d.ts",
+      "import": "./dist/auth-hooks/index.js"
+    },
+    "./browser-auth/account-memberships": {
+      "types": "./dist/browser-auth/account-memberships.d.ts",
+      "import": "./dist/browser-auth/account-memberships.js"
+    },
+    "./browser-auth": {
+      "types": "./dist/browser-auth/index.d.ts",
+      "import": "./dist/browser-auth/index.js"
+    },
+    "./browser-auth/kratos-session": {
+      "types": "./dist/browser-auth/kratos-session.d.ts",
+      "import": "./dist/browser-auth/kratos-session.js"
+    },
+    "./browser-auth/platform-session": {
+      "types": "./dist/browser-auth/platform-session.d.ts",
+      "import": "./dist/browser-auth/platform-session.js"
+    },
+    "./browser-auth/public-memberships": {
+      "types": "./dist/browser-auth/public-memberships.d.ts",
+      "import": "./dist/browser-auth/public-memberships.js"
+    },
+    "./cache": {
+      "types": "./dist/cache/index.d.ts",
+      "import": "./dist/cache/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "import": "./dist/engine.js"
+    },
+    "./execution": {
+      "types": "./dist/execution/index.d.ts",
+      "import": "./dist/execution/index.js"
+    },
+    "./extensions": {
+      "types": "./dist/extensions/index.d.ts",
+      "import": "./dist/extensions/index.js"
+    },
+    "./health": {
+      "types": "./dist/health/index.d.ts",
+      "import": "./dist/health/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./lifecycle": {
+      "types": "./dist/lifecycle/index.d.ts",
+      "import": "./dist/lifecycle/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
+    },
+    "./middleware/auth": {
+      "types": "./dist/middleware/auth.d.ts",
+      "import": "./dist/middleware/auth.js"
+    },
+    "./middleware/error-handler": {
+      "types": "./dist/middleware/error-handler.d.ts",
+      "import": "./dist/middleware/error-handler.js"
+    },
+    "./middleware/module-guard": {
+      "types": "./dist/middleware/module-guard.d.ts",
+      "import": "./dist/middleware/module-guard.js"
+    },
+    "./platform-admin": {
+      "types": "./dist/platform-admin/index.d.ts",
+      "import": "./dist/platform-admin/index.js"
+    },
+    "./platform-admin/store": {
+      "types": "./dist/platform-admin/store.d.ts",
+      "import": "./dist/platform-admin/store.js"
+    },
+    "./plugin-data/annotations": {
+      "types": "./dist/plugin-data/annotations.d.ts",
+      "import": "./dist/plugin-data/annotations.js"
+    },
+    "./plugin-data/atomic-context": {
+      "types": "./dist/plugin-data/atomic-context.d.ts",
+      "import": "./dist/plugin-data/atomic-context.js"
+    },
+    "./plugin-data/atomic": {
+      "types": "./dist/plugin-data/atomic.d.ts",
+      "import": "./dist/plugin-data/atomic.js"
+    },
+    "./plugin-data/audit": {
+      "types": "./dist/plugin-data/audit.d.ts",
+      "import": "./dist/plugin-data/audit.js"
+    },
+    "./plugin-data/commands": {
+      "types": "./dist/plugin-data/commands.d.ts",
+      "import": "./dist/plugin-data/commands.js"
+    },
+    "./plugin-data/composite": {
+      "types": "./dist/plugin-data/composite.d.ts",
+      "import": "./dist/plugin-data/composite.js"
+    },
+    "./plugin-data/delivery": {
+      "types": "./dist/plugin-data/delivery.d.ts",
+      "import": "./dist/plugin-data/delivery.js"
+    },
+    "./plugin-data": {
+      "types": "./dist/plugin-data/index.d.ts",
+      "import": "./dist/plugin-data/index.js"
+    },
+    "./plugin-data/json-documents": {
+      "types": "./dist/plugin-data/json-documents.d.ts",
+      "import": "./dist/plugin-data/json-documents.js"
+    },
+    "./plugin-data/outbox": {
+      "types": "./dist/plugin-data/outbox.d.ts",
+      "import": "./dist/plugin-data/outbox.js"
+    },
+    "./plugin-data/scoped-records": {
+      "types": "./dist/plugin-data/scoped-records.d.ts",
+      "import": "./dist/plugin-data/scoped-records.js"
+    },
+    "./sql-lifecycle": {
+      "types": "./dist/sql-lifecycle/index.d.ts",
+      "import": "./dist/sql-lifecycle/index.js"
+    },
+    "./tenant": {
+      "types": "./dist/tenant.d.ts",
+      "import": "./dist/tenant.js"
+    },
+    "./workspace-context": {
+      "types": "./dist/workspace-context.d.ts",
+      "import": "./dist/workspace-context.js"
+    },
+    "./entitlements": {
+      "types": "./dist/entitlements/index.d.ts",
+      "import": "./dist/entitlements/index.js"
+    },
+    "./plugin-sdk": {
+      "types": "./dist/plugin-sdk.d.ts",
+      "import": "./dist/plugin-sdk.js"
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "README.ja.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "bun test"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "@types/node": "^22.20.5",
+    "@types/semver": "^7.8.0",
+    "@alneas/appkit-core": "0.2.0"
+  },
+  "dependencies": {
+    "@alneas/eaos-core": "^0.1.0",
+    "semver": "^7.8.5",
+    "hono": "^4.13.13",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "@langchain/langgraph": "^1.5.0"
+  },
+  "peerDependencies": {
+    "@alneas/appkit-core": "0.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/eaos.git",
+    "directory": "packages/server"
+  },
+  "homepage": "https://tech-docs.alneas.com/eaos-workspace/",
+  "bugs": {
+    "url": "https://github.com/dataarthub/eaos/issues"
+  }
+}

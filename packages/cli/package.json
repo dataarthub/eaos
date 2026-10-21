@@ -1,0 +1,234 @@
+{
+  "name": "@alneas/eaos-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "EAOS cli public package",
+  "exports": {
+    "./commands/deployment": {
+      "types": "./dist/commands/deployment.d.ts",
+      "import": "./dist/commands/deployment.js"
+    },
+    "./commands/lifecycle": {
+      "types": "./dist/commands/lifecycle.d.ts",
+      "import": "./dist/commands/lifecycle.js"
+    },
+    "./commands/plugin": {
+      "types": "./dist/commands/plugin.d.ts",
+      "import": "./dist/commands/plugin.js"
+    },
+    "./commands/sync-routes": {
+      "types": "./dist/commands/sync-routes.d.ts",
+      "import": "./dist/commands/sync-routes.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./platform/deploy": {
+      "types": "./dist/platform/deploy.d.ts",
+      "import": "./dist/platform/deploy.js"
+    },
+    "./platform/deployment-placement-config": {
+      "types": "./dist/platform/deployment-placement-config.d.ts",
+      "import": "./dist/platform/deployment-placement-config.js"
+    },
+    "./platform/deployment-plan": {
+      "types": "./dist/platform/deployment-plan.d.ts",
+      "import": "./dist/platform/deployment-plan.js"
+    },
+    "./platform/deployment-status": {
+      "types": "./dist/platform/deployment-status.d.ts",
+      "import": "./dist/platform/deployment-status.js"
+    },
+    "./platform": {
+      "types": "./dist/platform/index.d.ts",
+      "import": "./dist/platform/index.js"
+    },
+    "./platform/kamal-secrets": {
+      "types": "./dist/platform/kamal-secrets.d.ts",
+      "import": "./dist/platform/kamal-secrets.js"
+    },
+    "./platform/kamal": {
+      "types": "./dist/platform/kamal.d.ts",
+      "import": "./dist/platform/kamal.js"
+    },
+    "./platform/packages": {
+      "types": "./dist/platform/packages.d.ts",
+      "import": "./dist/platform/packages.js"
+    },
+    "./platform/render": {
+      "types": "./dist/platform/render.d.ts",
+      "import": "./dist/platform/render.js"
+    },
+    "./plugin-tools/commands/check-contracts": {
+      "types": "./dist/plugin-tools/commands/check-contracts.d.ts",
+      "import": "./dist/plugin-tools/commands/check-contracts.js"
+    },
+    "./plugin-tools/commands/detect-secrets": {
+      "types": "./dist/plugin-tools/commands/detect-secrets.d.ts",
+      "import": "./dist/plugin-tools/commands/detect-secrets.js"
+    },
+    "./plugin-tools/commands/diagnose-plugin": {
+      "types": "./dist/plugin-tools/commands/diagnose-plugin.d.ts",
+      "import": "./dist/plugin-tools/commands/diagnose-plugin.js"
+    },
+    "./plugin-tools/commands/generate-mcp-tools": {
+      "types": "./dist/plugin-tools/commands/generate-mcp-tools.d.ts",
+      "import": "./dist/plugin-tools/commands/generate-mcp-tools.js"
+    },
+    "./plugin-tools/commands/generate-plugin": {
+      "types": "./dist/plugin-tools/commands/generate-plugin.d.ts",
+      "import": "./dist/plugin-tools/commands/generate-plugin.js"
+    },
+    "./plugin-tools/commands/infer-contracts": {
+      "types": "./dist/plugin-tools/commands/infer-contracts.d.ts",
+      "import": "./dist/plugin-tools/commands/infer-contracts.js"
+    },
+    "./plugin-tools/commands/sync-agents-md": {
+      "types": "./dist/plugin-tools/commands/sync-agents-md.d.ts",
+      "import": "./dist/plugin-tools/commands/sync-agents-md.js"
+    },
+    "./plugin-tools": {
+      "types": "./dist/plugin-tools/index.d.ts",
+      "import": "./dist/plugin-tools/index.js"
+    },
+    "./plugin-tools/inspect": {
+      "types": "./dist/plugin-tools/inspect.d.ts",
+      "import": "./dist/plugin-tools/inspect.js"
+    },
+    "./plugin-tools/utils": {
+      "types": "./dist/plugin-tools/utils.d.ts",
+      "import": "./dist/plugin-tools/utils.js"
+    },
+    "./site": {
+      "types": "./dist/site/index.d.ts",
+      "import": "./dist/site/index.js"
+    },
+    "./version": {
+      "types": "./dist/version.d.ts",
+      "import": "./dist/version.js"
+    },
+    "./baseline": {
+      "types": "./dist/baseline.d.ts",
+      "import": "./dist/baseline.js"
+    },
+    "./dev": {
+      "types": "./dist/dev.d.ts",
+      "import": "./dist/dev.js"
+    },
+    "./commands/architecture": {
+      "types": "./dist/commands/architecture.d.ts",
+      "import": "./dist/commands/architecture.js"
+    },
+    "./presets/oci-adb": {
+      "types": "./dist/presets/oci-adb/index.d.ts",
+      "import": "./dist/presets/oci-adb/index.js"
+    },
+    "./presets/oci-adb/infra": {
+      "types": "./dist/presets/oci-adb/infra/index.d.ts",
+      "import": "./dist/presets/oci-adb/infra/index.js"
+    },
+    "./presets/oci-adb/infra/access": {
+      "types": "./dist/presets/oci-adb/infra/access.d.ts",
+      "import": "./dist/presets/oci-adb/infra/access.js"
+    },
+    "./presets/oci-adb/infra/database": {
+      "types": "./dist/presets/oci-adb/infra/database.d.ts",
+      "import": "./dist/presets/oci-adb/infra/database.js"
+    },
+    "./presets/oci-adb/infra/vault": {
+      "types": "./dist/presets/oci-adb/infra/vault.d.ts",
+      "import": "./dist/presets/oci-adb/infra/vault.js"
+    },
+    "./presets/oci-adb/infra/lookups": {
+      "types": "./dist/presets/oci-adb/infra/lookups.d.ts",
+      "import": "./dist/presets/oci-adb/infra/lookups.js"
+    },
+    "./platform/preset": {
+      "types": "./dist/platform/preset.d.ts",
+      "import": "./dist/platform/preset.js"
+    },
+    "./platform/operations": {
+      "types": "./dist/platform/operations.d.ts",
+      "import": "./dist/platform/operations.js"
+    },
+    "./presets/oci-adb/template": {
+      "types": "./dist/presets/oci-adb/template.d.ts",
+      "import": "./dist/presets/oci-adb/template.js"
+    },
+    "./platform/deployment-assets": {
+      "types": "./dist/platform/deployment-assets.d.ts",
+      "import": "./dist/platform/deployment-assets.js"
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "README.ja.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "bun test"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "@types/node": "^22.20.5",
+    "@types/semver": "^7.8.0"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "@alneas/eaos-server": "^0.1.0",
+    "@alneas/eaos-core": "^0.1.0",
+    "typescript": "^6.0.3",
+    "hono": "^4.13.13",
+    "@alneas/appkit-core": "0.2.0"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0",
+    "@pulumi/pulumi": "^3.268.0",
+    "@pulumi/oci": "^5.3.1",
+    "react-dom": "^18.3.0 || ^19.0.0",
+    "@alneas/eaos-react": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "@pulumi/pulumi": {
+      "optional": true
+    },
+    "@pulumi/oci": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "@alneas/eaos-react": {
+      "optional": true
+    }
+  },
+  "bin": {
+    "eaos": "./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/eaos.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://tech-docs.alneas.com/eaos-workspace/",
+  "bugs": {
+    "url": "https://github.com/dataarthub/eaos/issues"
+  }
+}

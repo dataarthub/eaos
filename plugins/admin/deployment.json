@@ -1,0 +1,131 @@
+{
+  "apiVersion": 1,
+  "owner": "@alneas/eaos-plugins/admin",
+  "version": "0.1.0",
+  "lifecycleBundle": [
+    "admin"
+  ],
+  "functions": [],
+  "assets": [],
+  "plugins": [
+    {
+      "id": "admin",
+      "components": [
+        {
+          "id": "api",
+          "kind": "api",
+          "placement": "host",
+          "runtime": "bun/hono",
+          "assetPatterns": [
+            "src/index.js"
+          ]
+        },
+        {
+          "id": "frontend",
+          "kind": "frontend",
+          "placement": "host",
+          "runtime": "react",
+          "assetPatterns": [
+            "src/journal-workspace.js"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "build",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "build",
+          "scope": "artifact",
+          "required": true,
+          "dependsOn": [],
+          "executor": "plugin:admin:build",
+          "argv": [
+            "bun",
+            "run",
+            "build"
+          ]
+        },
+        {
+          "id": "test",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "test",
+          "scope": "artifact",
+          "required": true,
+          "dependsOn": [
+            "build"
+          ],
+          "executor": "plugin:admin:test",
+          "argv": [
+            "bun",
+            "test"
+          ]
+        },
+        {
+          "id": "configure",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "configure",
+          "scope": "environment",
+          "required": true,
+          "dependsOn": [
+            "test"
+          ],
+          "executor": "host:plugin-bindings",
+          "instructions": "Bind live principal, lifecycle admission, resource authorization, durable stores and required host adapters."
+        },
+        {
+          "id": "deploy",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "deploy",
+          "scope": "environment",
+          "required": true,
+          "dependsOn": [
+            "configure"
+          ],
+          "executor": "platform:deploy",
+          "instructions": "Deploy the host with this exact verified plugin artifact; restart/drain under the host upgrade procedure."
+        },
+        {
+          "id": "enable",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "enable",
+          "scope": "tenant",
+          "required": true,
+          "dependsOn": [
+            "deploy"
+          ],
+          "executor": "lifecycle:enable"
+        },
+        {
+          "id": "acceptance",
+          "componentIds": [
+            "api",
+            "frontend"
+          ],
+          "action": "verify",
+          "scope": "tenant",
+          "required": true,
+          "dependsOn": [
+            "enable"
+          ],
+          "executor": "host:plugin-acceptance",
+          "instructions": "Exercise a representative durable workflow, reload/restart, foreign-tenant denial, disabled admission and stale revision denial using the actual packed plugin."
+        }
+      ]
+    }
+  ]
+}
