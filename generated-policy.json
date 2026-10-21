@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "jobs": [
+    {
+      "name": "readme-landings",
+      "command": [
+        "node",
+        "scripts/prepare-readme-landings.mjs",
+        "--output-dir",
+        "{outputDir}"
+      ],
+      "outputs": [
+        "docs/index.md",
+        "packages/cli/docs/index.md",
+        "packages/core/docs/index.md",
+        "packages/react/docs/index.md",
+        "packages/server/docs/index.md",
+        "plugins/docs/index.md",
+        "plugins/admin/docs/index.md",
+        "plugins/approval/docs/index.md",
+        "plugins/field-customization/docs/index.md"
+      ]
+    },
+    {
+      "name": "public-api",
+      "command": [
+        "bun",
+        "scripts/generate-public-api.ts",
+        "--output-dir",
+        "{outputDir}"
+      ],
+      "outputs": [
+        "docs/api.md",
+        "packages/cli/docs/api.md",
+        "packages/core/docs/api.md",
+        "packages/react/docs/api.md",
+        "packages/react/docs/client/docs/api.md",
+        "packages/server/docs/api.md",
+        "packages/server/docs/db/docs/api.md",
+        "packages/server/docs/lifecycle/docs/api.md",
+        "packages/server/docs/storage/docs/api.md",
+        "plugins/admin/docs/api.md",
+        "plugins/approval/docs/api.md",
+        "plugins/field-customization/docs/api.md",
+        "plugins/docs/api.md"
+      ]
+    }
+  ]
+}

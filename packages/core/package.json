@@ -1,0 +1,319 @@
+{
+  "name": "@alneas/eaos-core",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "EAOS core public package",
+  "exports": {
+    "./adapters": {
+      "types": "./dist/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js"
+    },
+    "./adapters/platform-context": {
+      "types": "./dist/adapters/platform-context.d.ts",
+      "import": "./dist/adapters/platform-context.js"
+    },
+    "./adapters/tenant-adapter": {
+      "types": "./dist/adapters/tenant-adapter.d.ts",
+      "import": "./dist/adapters/tenant-adapter.js"
+    },
+    "./adapters/types": {
+      "types": "./dist/adapters/types.d.ts",
+      "import": "./dist/adapters/types.js"
+    },
+    "./agent/approved-execution": {
+      "types": "./dist/agent/approved-execution.d.ts",
+      "import": "./dist/agent/approved-execution.js"
+    },
+    "./agent/cache-manager": {
+      "types": "./dist/agent/cache-manager.d.ts",
+      "import": "./dist/agent/cache-manager.js"
+    },
+    "./agent/circuit-breaker": {
+      "types": "./dist/agent/circuit-breaker.d.ts",
+      "import": "./dist/agent/circuit-breaker.js"
+    },
+    "./agent/workflow-effects": {
+      "types": "./dist/agent/workflow-effects.d.ts",
+      "import": "./dist/agent/workflow-effects.js"
+    },
+    "./agentic/execution-sandbox": {
+      "types": "./dist/agentic/execution-sandbox.d.ts",
+      "import": "./dist/agentic/execution-sandbox.js"
+    },
+    "./agentic": {
+      "types": "./dist/agentic/index.d.ts",
+      "import": "./dist/agentic/index.js"
+    },
+    "./agentic/instinct-engine": {
+      "types": "./dist/agentic/instinct-engine.d.ts",
+      "import": "./dist/agentic/instinct-engine.js"
+    },
+    "./agentic/model-routing-gateway": {
+      "types": "./dist/agentic/model-routing-gateway.d.ts",
+      "import": "./dist/agentic/model-routing-gateway.js"
+    },
+    "./agentic/runtime-policy": {
+      "types": "./dist/agentic/runtime-policy.d.ts",
+      "import": "./dist/agentic/runtime-policy.js"
+    },
+    "./agentic/runtime": {
+      "types": "./dist/agentic/runtime.d.ts",
+      "import": "./dist/agentic/runtime.js"
+    },
+    "./agentic/skill-gate-bridge": {
+      "types": "./dist/agentic/skill-gate-bridge.d.ts",
+      "import": "./dist/agentic/skill-gate-bridge.js"
+    },
+    "./agentic/structured-tool-call-adapter": {
+      "types": "./dist/agentic/structured-tool-call-adapter.d.ts",
+      "import": "./dist/agentic/structured-tool-call-adapter.js"
+    },
+    "./agentic/types": {
+      "types": "./dist/agentic/types.d.ts",
+      "import": "./dist/agentic/types.js"
+    },
+    "./ai/anomaly": {
+      "types": "./dist/ai/anomaly.d.ts",
+      "import": "./dist/ai/anomaly.js"
+    },
+    "./ai/execution-broker": {
+      "types": "./dist/ai/execution-broker.d.ts",
+      "import": "./dist/ai/execution-broker.js"
+    },
+    "./ai/governance": {
+      "types": "./dist/ai/governance.d.ts",
+      "import": "./dist/ai/governance.js"
+    },
+    "./ai/host-adapters": {
+      "types": "./dist/ai/host-adapters.d.ts",
+      "import": "./dist/ai/host-adapters.js"
+    },
+    "./ai": {
+      "types": "./dist/ai/index.d.ts",
+      "import": "./dist/ai/index.js"
+    },
+    "./ai/model-registry": {
+      "types": "./dist/ai/model-registry.d.ts",
+      "import": "./dist/ai/model-registry.js"
+    },
+    "./ai/proposal-ui": {
+      "types": "./dist/ai/proposal-ui.d.ts",
+      "import": "./dist/ai/proposal-ui.js"
+    },
+    "./ai/resilience": {
+      "types": "./dist/ai/resilience.d.ts",
+      "import": "./dist/ai/resilience.js"
+    },
+    "./ai/skills": {
+      "types": "./dist/ai/skills.d.ts",
+      "import": "./dist/ai/skills.js"
+    },
+    "./db/adapter": {
+      "types": "./dist/db/adapter.d.ts",
+      "import": "./dist/db/adapter.js"
+    },
+    "./events/outbox": {
+      "types": "./dist/events/outbox.d.ts",
+      "import": "./dist/events/outbox.js"
+    },
+    "./health": {
+      "types": "./dist/health/index.d.ts",
+      "import": "./dist/health/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./platform/config": {
+      "types": "./dist/platform/config/index.d.ts",
+      "import": "./dist/platform/config/index.js"
+    },
+    "./plugin-bundles": {
+      "types": "./dist/plugin-bundles.d.ts",
+      "import": "./dist/plugin-bundles.js"
+    },
+    "./plugin-sdk/contract-compatibility": {
+      "types": "./dist/plugin-sdk/contract-compatibility.d.ts",
+      "import": "./dist/plugin-sdk/contract-compatibility.js"
+    },
+    "./plugin-sdk/data-standards": {
+      "types": "./dist/plugin-sdk/data-standards.d.ts",
+      "import": "./dist/plugin-sdk/data-standards.js"
+    },
+    "./plugin-sdk/decimal-values": {
+      "types": "./dist/plugin-sdk/decimal-values.d.ts",
+      "import": "./dist/plugin-sdk/decimal-values.js"
+    },
+    "./plugin-sdk/eligibility": {
+      "types": "./dist/plugin-sdk/eligibility.d.ts",
+      "import": "./dist/plugin-sdk/eligibility.js"
+    },
+    "./plugin-sdk/event-bus": {
+      "types": "./dist/plugin-sdk/event-bus.d.ts",
+      "import": "./dist/plugin-sdk/event-bus.js"
+    },
+    "./plugin-sdk": {
+      "types": "./dist/plugin-sdk/index.d.ts",
+      "import": "./dist/plugin-sdk/index.js"
+    },
+    "./plugin-sdk/procedure": {
+      "types": "./dist/plugin-sdk/procedure.d.ts",
+      "import": "./dist/plugin-sdk/procedure.js"
+    },
+    "./plugin-sdk/registry": {
+      "types": "./dist/plugin-sdk/registry.d.ts",
+      "import": "./dist/plugin-sdk/registry.js"
+    },
+    "./plugin-sdk/storage-policy": {
+      "types": "./dist/plugin-sdk/storage-policy.d.ts",
+      "import": "./dist/plugin-sdk/storage-policy.js"
+    },
+    "./plugin-sdk/tenant-strategy-registry": {
+      "types": "./dist/plugin-sdk/tenant-strategy-registry.d.ts",
+      "import": "./dist/plugin-sdk/tenant-strategy-registry.js"
+    },
+    "./plugin-sdk/types": {
+      "types": "./dist/plugin-sdk/types.d.ts",
+      "import": "./dist/plugin-sdk/types.js"
+    },
+    "./secrets/secret-resolver": {
+      "types": "./dist/secrets/secret-resolver.d.ts",
+      "import": "./dist/secrets/secret-resolver.js"
+    },
+    "./security/audit-sink": {
+      "types": "./dist/security/audit-sink.d.ts",
+      "import": "./dist/security/audit-sink.js"
+    },
+    "./security/gatekeeper": {
+      "types": "./dist/security/gatekeeper.d.ts",
+      "import": "./dist/security/gatekeeper.js"
+    },
+    "./security/platform-security": {
+      "types": "./dist/security/platform-security.d.ts",
+      "import": "./dist/security/platform-security.js"
+    },
+    "./serialization": {
+      "types": "./dist/serialization/index.d.ts",
+      "import": "./dist/serialization/index.js"
+    },
+    "./serialization/json": {
+      "types": "./dist/serialization/json.d.ts",
+      "import": "./dist/serialization/json.js"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "import": "./dist/storage/index.js"
+    },
+    "./types/env": {
+      "types": "./dist/types/env.d.ts",
+      "import": "./dist/types/env.js"
+    },
+    "./vector": {
+      "types": "./dist/vector/index.d.ts",
+      "import": "./dist/vector/index.js"
+    },
+    "./webhook/delivery": {
+      "types": "./dist/webhook/delivery.d.ts",
+      "import": "./dist/webhook/delivery.js"
+    },
+    "./webhook": {
+      "types": "./dist/webhook/index.d.ts",
+      "import": "./dist/webhook/index.js"
+    },
+    "./workflow-contracts": {
+      "types": "./dist/workflow-contracts.d.ts",
+      "import": "./dist/workflow-contracts.js"
+    },
+    "./workflow-definition": {
+      "types": "./dist/workflow-definition.d.ts",
+      "import": "./dist/workflow-definition.js"
+    },
+    "./workflow-runtime": {
+      "types": "./dist/workflow-runtime.d.ts",
+      "import": "./dist/workflow-runtime.js"
+    },
+    "./workflow-visualization": {
+      "types": "./dist/workflow-visualization.d.ts",
+      "import": "./dist/workflow-visualization.js"
+    },
+    "./db": {
+      "types": "./dist/db/adapter.d.ts",
+      "import": "./dist/db/adapter.js"
+    },
+    "./entitlements": {
+      "types": "./dist/plugin-sdk/entitlements.d.ts",
+      "import": "./dist/plugin-sdk/entitlements.js"
+    },
+    "./plugin-sdk/define-plugin": {
+      "types": "./dist/plugin-sdk/define-plugin.d.ts",
+      "import": "./dist/plugin-sdk/define-plugin.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    },
+    "./contracts/data-contracts": {
+      "types": "./dist/contracts/data-contracts.d.ts",
+      "import": "./dist/contracts/data-contracts.js"
+    },
+    "./contracts/json-documents": {
+      "types": "./dist/contracts/json-documents.d.ts",
+      "import": "./dist/contracts/json-documents.js"
+    },
+    "./migration-types": {
+      "types": "./dist/migration-types.d.ts",
+      "import": "./dist/migration-types.js"
+    },
+    "./data-contracts": {
+      "types": "./dist/contracts/data-contracts.d.ts",
+      "import": "./dist/contracts/data-contracts.js"
+    },
+    "./contracts/platform-records": {
+      "types": "./dist/contracts/platform-records.d.ts",
+      "import": "./dist/contracts/platform-records.js"
+    },
+    "./contracts/platform-records.json": "./schemas/platform-records.json"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "schemas",
+    "CHANGELOG.md",
+    "README.ja.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "bun test"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "@types/node": "^22.20.5",
+    "@types/semver": "^7.8.0"
+  },
+  "peerDependencies": {
+    "@alneas/appkit-core": "0.2.0"
+  },
+  "dependencies": {
+    "semver": "^7.8.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/eaos.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://tech-docs.alneas.com/eaos-workspace/",
+  "bugs": {
+    "url": "https://github.com/dataarthub/eaos/issues"
+  }
+}

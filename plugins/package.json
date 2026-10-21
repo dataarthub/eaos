@@ -1,0 +1,204 @@
+{
+  "name": "@alneas/eaos-plugins",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "react": "^19.2.3",
+    "@alneas/eaos-core": "^0.1.0",
+    "@alneas/eaos-server": "^0.1.0",
+    "hono": "^4.13.13",
+    "@alneas/appkit-react": "0.2.0",
+    "@alneas/eaos-react": "^0.1.0",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "react": "^19.3.1",
+    "@types/react": "^19.3.0",
+    "@alneas/eaos-core": "^0.1.0",
+    "@alneas/eaos-server": "^0.1.0",
+    "hono": "^4.13.13",
+    "@alneas/appkit-react": "0.2.0",
+    "@alneas/eaos-react": "^0.1.0",
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "@types/node": "^22.20.5",
+    "@alneas/eaos-cli": "^0.1.0",
+    "react-dom": "^19.3.1"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "@alneas/appkit-react": {
+      "optional": true
+    },
+    "@alneas/eaos-react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataarthub/eaos.git",
+    "directory": "plugins"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@alneas/eaos-core": "^0.1.0",
+    "@alneas/eaos-server": "^0.1.0",
+    "hono": "^4.13.13"
+  },
+  "homepage": "https://tech-docs.alneas.com/eaos-workspace/",
+  "bugs": {
+    "url": "https://github.com/dataarthub/eaos/issues"
+  },
+  "exports": {
+    "./catalog.json": "./catalog.json",
+    "./approval/lifecycle": {
+      "types": "./dist/approval/src/lifecycle.d.ts",
+      "import": "./dist/approval/src/lifecycle.js"
+    },
+    "./approval/react": {
+      "types": "./dist/approval/src/react.d.ts",
+      "import": "./dist/approval/src/react.js"
+    },
+    "./approval/workspace": {
+      "types": "./dist/approval/src/workspace.d.ts",
+      "import": "./dist/approval/src/workspace.js"
+    },
+    "./approval/rules": {
+      "types": "./dist/approval/src/rules.d.ts",
+      "import": "./dist/approval/src/rules.js"
+    },
+    "./approval/user-help": {
+      "types": "./dist/approval/src/user-help.d.ts",
+      "import": "./dist/approval/src/user-help.js"
+    },
+    "./approval": {
+      "types": "./dist/approval/src/index.d.ts",
+      "import": "./dist/approval/src/index.js"
+    },
+    "./approval/service": {
+      "types": "./dist/approval/src/service.d.ts",
+      "import": "./dist/approval/src/service.js"
+    },
+    "./approval/manifest": {
+      "types": "./dist/approval/manifest.d.ts",
+      "import": "./dist/approval/manifest.js"
+    },
+    "./approval/user-guide.json": "./dist/approval/src/user-guide.json",
+    "./approval/deployment.json": "./dist/approval/deployment.json",
+    "./approval/runtime": {
+      "types": "./dist/approval/src/runtime.d.ts",
+      "import": "./dist/approval/src/runtime.js"
+    },
+    "./field-customization/schema": {
+      "types": "./dist/field-customization/src/schema.d.ts",
+      "import": "./dist/field-customization/src/schema.js"
+    },
+    "./field-customization/lifecycle": {
+      "types": "./dist/field-customization/src/lifecycle.d.ts",
+      "import": "./dist/field-customization/src/lifecycle.js"
+    },
+    "./field-customization/react": {
+      "types": "./dist/field-customization/src/react.d.ts",
+      "import": "./dist/field-customization/src/react.js"
+    },
+    "./field-customization/workspace": {
+      "types": "./dist/field-customization/src/workspace.d.ts",
+      "import": "./dist/field-customization/src/workspace.js"
+    },
+    "./field-customization/user-help": {
+      "types": "./dist/field-customization/src/user-help.d.ts",
+      "import": "./dist/field-customization/src/user-help.js"
+    },
+    "./field-customization": {
+      "types": "./dist/field-customization/src/index.d.ts",
+      "import": "./dist/field-customization/src/index.js"
+    },
+    "./field-customization/service": {
+      "types": "./dist/field-customization/src/service.d.ts",
+      "import": "./dist/field-customization/src/service.js"
+    },
+    "./field-customization/manifest": {
+      "types": "./dist/field-customization/manifest.d.ts",
+      "import": "./dist/field-customization/manifest.js"
+    },
+    "./field-customization/user-guide.json": "./dist/field-customization/src/user-guide.json",
+    "./field-customization/deployment.json": "./dist/field-customization/deployment.json",
+    "./field-customization/runtime": {
+      "types": "./dist/field-customization/src/runtime.d.ts",
+      "import": "./dist/field-customization/src/runtime.js"
+    },
+    "./admin/journal-workspace": {
+      "types": "./dist/admin/src/journal-workspace.d.ts",
+      "import": "./dist/admin/src/journal-workspace.js"
+    },
+    "./admin/user-help": {
+      "types": "./dist/admin/src/user-help.d.ts",
+      "import": "./dist/admin/src/user-help.js"
+    },
+    "./admin": {
+      "types": "./dist/admin/src/index.d.ts",
+      "import": "./dist/admin/src/index.js"
+    },
+    "./admin/manifest": {
+      "types": "./dist/admin/manifest.d.ts",
+      "import": "./dist/admin/manifest.js"
+    },
+    "./admin/user-guide.json": "./dist/admin/src/user-guide.json",
+    "./admin/deployment.json": "./dist/admin/deployment.json",
+    "./admin/client/web/journal": {
+      "types": "./dist/admin/src/journal-workspace.d.ts",
+      "import": "./dist/admin/src/journal-workspace.js"
+    },
+    "./admin/eaos.clients.json": "./dist/admin/eaos.clients.json",
+    "./admin/runtime": {
+      "types": "./dist/admin/src/runtime.d.ts",
+      "import": "./dist/admin/src/runtime.js"
+    },
+    "./admin/react": {
+      "types": "./dist/admin/src/journal-workspace.d.ts",
+      "import": "./dist/admin/src/journal-workspace.js"
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "catalog.json",
+    "approval/docs",
+    "approval/README.md",
+    "approval/src/user-guide.json",
+    "approval/skills",
+    "approval/CHANGELOG.md",
+    "field-customization/docs",
+    "field-customization/README.md",
+    "field-customization/src/user-guide.json",
+    "field-customization/CHANGELOG.md",
+    "admin/docs",
+    "admin/README.md",
+    "admin/src/user-guide.json",
+    "admin/eaos.clients.json",
+    "admin/CHANGELOG.md",
+    "approval/LICENSE",
+    "field-customization/LICENSE",
+    "admin/LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup && bun build.ts",
+    "test": "bun test approval field-customization admin"
+  },
+  "description": "Standard EAOS approval, field customization and administration modules"
+}

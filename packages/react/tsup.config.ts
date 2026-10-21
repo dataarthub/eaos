@@ -1,0 +1,4 @@
+import {readFileSync} from 'node:fs'
+const version=JSON.parse(readFileSync(new URL('./package.json',import.meta.url),'utf8')).version
+import { defineConfig } from 'tsup'
+export default defineConfig({entry:["src/client/browser-auth.ts", "src/client/client-routes.ts", "src/client/index.ts", "src/client/liff.ts", "src/client/plugin-execution.ts", "src/client/compute.ts", "src/command-workspace.tsx", "src/index.ts", "src/record-workspace.tsx", "src/user-guide.tsx", "src/workspace-layout.tsx", "src/workspace-login.tsx", "src/workspace-shell.tsx", "src/snapshot-workspace.tsx", "src/workspace-fields.tsx", "src/plugin-gate.tsx", "src/plugin-runtime.tsx"],format:['esm'],removeNodeProtocol:false,dts:true,splitting:true,sourcemap:true,clean:true,target:'node24',external:[/^@alneas\//,/^@langchain\//,'react','react/jsx-runtime','react-dom','hono','hono/*'],define:{__EAOS_VERSION__:JSON.stringify(version),__EAOS_FRAMEWORK_VERSION__:JSON.stringify(version)}})

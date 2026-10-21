@@ -1,0 +1,53 @@
+{
+  "name": "eaos",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.3",
+  "workspaces": [
+    "packages/*",
+    "plugins"
+  ],
+  "scripts": {
+    "build": "bun run --cwd packages/core build && bun run --cwd packages/server build && bun run --cwd packages/react build && bun run --cwd packages/cli build && bun run --cwd plugins build",
+    "test": "bun run --cwd packages/core test && bun run --cwd packages/server test && bun run --cwd packages/react test && bun run --cwd packages/cli test && bun run --cwd plugins test",
+    "docs:readmes": "node --test scripts/check-readmes.test.mjs && node scripts/check-readmes.mjs",
+    "docs:readmes:prepare": "node scripts/prepare-readme-landings.mjs",
+    "docs:generated": "node --test scripts/check-generated.test.mjs scripts/generated-integration.test.mjs && node scripts/check-generated.mjs",
+    "check:public": "node scripts/check-public.mjs && node scripts/release-impact.mjs && node scripts/release.mjs notes",
+    "lint": "biome lint .",
+    "check": "node scripts/verified-run.mjs quality",
+    "test:tooling": "node --test scripts/release-workflow.test.mjs scripts/release-notes.test.mjs scripts/release-notes-binding.test.mjs scripts/release-handoff.test.mjs scripts/release-preflight.test.mjs scripts/plugin-packaging.test.mjs scripts/release.test.mjs scripts/verification-state.test.mjs scripts/release-impact.test.mjs scripts/contrast.test.mjs && bun test scripts/api-jsdoc.test.ts scripts/public-api-jsdoc.test.ts scripts/documentation.test.ts",
+    "docs:api": "bun scripts/generate-public-api.ts",
+    "docs:jsdoc": "bun scripts/public-api-jsdoc.ts --check",
+    "docs:check": "bun run docs:readmes && bun run docs:generated && bun run docs:jsdoc && bun scripts/documentation.ts",
+    "secrets:setup": "node scripts/setup-gitleaks.mjs",
+    "secrets:check": "node scripts/check-secrets.mjs",
+    "changeset": "changeset",
+    "version:packages": "changeset version",
+    "release:plan": "node scripts/release.mjs plan",
+    "release:prepare": "node scripts/release.mjs prepare",
+    "release:verify": "node scripts/release.mjs verify",
+    "test:consumer": "node scripts/verified-run.mjs consumer",
+    "check:release-impact": "node scripts/release-impact.mjs",
+    "release:notes": "node scripts/release.mjs notes",
+    "release:preflight": "node scripts/release.mjs preflight"
+  },
+  "devDependencies": {
+    "@alneas/appkit-core": "0.2.0",
+    "@alneas/appkit-react": "0.2.0",
+    "react": "^19.3.1",
+    "lucide-react": "^1.57.0",
+    "@pulumi/pulumi": "^3.268.0",
+    "@pulumi/oci": "^5.3.1",
+    "@changesets/cli": "^3.0.3",
+    "semver": "^7.8.5",
+    "typescript": "^6.0.3",
+    "@biomejs/biome": "2.5.15",
+    "esbuild": "0.28.2",
+    "@playwright/test": "1.64.1",
+    "@axe-core/playwright": "4.14.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

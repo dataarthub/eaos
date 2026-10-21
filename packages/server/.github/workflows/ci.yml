@@ -1,0 +1,21 @@
+name: Verify package
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      # Publish dependency packages in topological order before enabling registry CI.
+      # Pre-publication verification uses the workspace's pinned tarball runner.
+      - run: bun install --ignore-scripts
+      - run: bun run build
+      - run: bun test --coverage
+      - run: bun pm pack --ignore-scripts --filename package.tgz

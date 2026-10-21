@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:eaos:field-customization",
+  "$ref": "urn:eaos:data-contract:platform-records",
+  "x-data-contract": {
+    "contractId": "platform-records",
+    "version": "^1.1.0",
+    "table": "eaos_platform_records",
+    "namespace": "field_customization"
+  }
+}

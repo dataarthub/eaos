@@ -1,0 +1,438 @@
+{
+  "projectId": "eaos-workspace",
+  "displayName": "EAOS",
+  "description": "Public MIT foundations and generic plugins; private code and operator evidence are excluded.",
+  "schemaVersion": 1,
+  "defaultLocale": "en",
+  "translationFallback": "en",
+  "documents": [
+    {
+      "title": "EAOS public monorepo",
+      "slug": "index",
+      "source": "docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Compose EAOS packages",
+      "slug": "architecture",
+      "source": "docs/architecture.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Author and package a plugin",
+      "slug": "guides/plugin-authoring",
+      "source": "docs/plugin-authoring.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Verify package and host adoption",
+      "slug": "guides/testing",
+      "source": "docs/testing.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "CLI authoring and release tools",
+      "slug": "cli/index",
+      "source": "packages/cli/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-cli API",
+      "slug": "cli/api",
+      "source": "packages/cli/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Generate a verified multi-dialect baseline",
+      "slug": "cli/guides/baseline",
+      "source": "packages/cli/docs/baseline.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "CLI boundaries",
+      "slug": "cli/architecture",
+      "source": "packages/cli/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Configure and verify an OCI release",
+      "slug": "cli/guides/oci-release",
+      "source": "packages/cli/docs/oci-release.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Run the local plugin sandbox",
+      "slug": "cli/guides/plugin-dev",
+      "source": "packages/cli/docs/plugin-dev.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Plugin tiers and generation",
+      "slug": "cli/guides/plugin-tiers",
+      "source": "packages/cli/docs/plugin-tiers.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Core contracts and plugin SDK",
+      "slug": "core/index",
+      "source": "packages/core/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-core API",
+      "slug": "core/api",
+      "source": "packages/core/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Pure contracts and SDK",
+      "slug": "core/architecture",
+      "source": "packages/core/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Declarative plugin SDK",
+      "slug": "core/plugin-sdk",
+      "source": "packages/core/docs/plugin-sdk.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "React workspaces and browser clients",
+      "slug": "react/index",
+      "source": "packages/react/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-react API",
+      "slug": "react/api",
+      "source": "packages/react/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Client capability",
+      "slug": "react/client/index",
+      "source": "packages/react/docs/client/README.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-react API",
+      "slug": "react/client/api",
+      "source": "packages/react/docs/client/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Client computation",
+      "slug": "react/client/compute",
+      "source": "packages/react/docs/client/docs/compute.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Portable browser client boundaries",
+      "slug": "react/client/architecture",
+      "source": "packages/react/docs/client/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "React and browser boundaries",
+      "slug": "react/architecture",
+      "source": "packages/react/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Plugin access and execution",
+      "slug": "react/plugin-runtime",
+      "source": "packages/react/docs/plugin-runtime.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Use the workspace",
+      "slug": "react/user-guides/guides/workspace",
+      "source": "packages/react/docs/user-guides/workspace.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Server execution and persistence",
+      "slug": "server/index",
+      "source": "packages/server/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-server API",
+      "slug": "server/api",
+      "source": "packages/server/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Db capability",
+      "slug": "server/db/index",
+      "source": "packages/server/docs/db/README.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-server API",
+      "slug": "server/db/api",
+      "source": "packages/server/docs/db/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Db ownership and host boundaries",
+      "slug": "server/db/architecture",
+      "source": "packages/server/docs/db/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Live plugin contracts and metering",
+      "slug": "server/entitlements",
+      "source": "packages/server/docs/entitlements.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Server boundaries",
+      "slug": "server/architecture",
+      "source": "packages/server/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Lifecycle capability",
+      "slug": "server/lifecycle/index",
+      "source": "packages/server/docs/lifecycle/README.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-server API",
+      "slug": "server/lifecycle/api",
+      "source": "packages/server/docs/lifecycle/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Data Contract baselines",
+      "slug": "server/lifecycle/baseline",
+      "source": "packages/server/docs/lifecycle/docs/baseline.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Lifecycle ownership and host boundaries",
+      "slug": "server/lifecycle/architecture",
+      "source": "packages/server/docs/lifecycle/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Storage capability",
+      "slug": "server/storage/index",
+      "source": "packages/server/docs/storage/README.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-server API",
+      "slug": "server/storage/api",
+      "source": "packages/server/docs/storage/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Storage ownership and host boundaries",
+      "slug": "server/storage/architecture",
+      "source": "packages/server/docs/storage/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Standard plugin collection",
+      "slug": "plugins/index",
+      "source": "plugins/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-plugins API",
+      "slug": "plugins/api",
+      "source": "plugins/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "Standard plugin collection architecture",
+      "slug": "plugins/architecture",
+      "source": "plugins/docs/architecture.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-plugins/admin",
+      "slug": "plugins/admin/index",
+      "source": "plugins/admin/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-plugins/admin API",
+      "slug": "plugins/admin/api",
+      "source": "plugins/admin/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "admin host boundaries",
+      "slug": "plugins/admin/architecture",
+      "source": "plugins/admin/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Host integration",
+      "slug": "plugins/admin/guides/maintainer-guide",
+      "source": "plugins/admin/docs/maintainer-guide.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Inspect an operation audit",
+      "slug": "plugins/admin/guides/user-guide",
+      "source": "plugins/admin/docs/user-guide.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "@alneas/eaos-plugins/approval",
+      "slug": "plugins/approval/index",
+      "source": "plugins/approval/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-plugins/approval API",
+      "slug": "plugins/approval/api",
+      "source": "plugins/approval/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "approval host boundaries",
+      "slug": "plugins/approval/architecture",
+      "source": "plugins/approval/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Host integration",
+      "slug": "plugins/approval/guides/maintainer-guide",
+      "source": "plugins/approval/docs/maintainer-guide.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Request and decide an approval",
+      "slug": "plugins/approval/guides/user-guide",
+      "source": "plugins/approval/docs/user-guide.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "@alneas/eaos-plugins/field-customization",
+      "slug": "plugins/field-customization/index",
+      "source": "plugins/field-customization/docs/index.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "@alneas/eaos-plugins/field-customization API",
+      "slug": "plugins/field-customization/api",
+      "source": "plugins/field-customization/docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "field-customization host boundaries",
+      "slug": "plugins/field-customization/architecture",
+      "source": "plugins/field-customization/docs/guide.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Host integration",
+      "slug": "plugins/field-customization/guides/maintainer-guide",
+      "source": "plugins/field-customization/docs/maintainer-guide.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Configure additional field presentation",
+      "slug": "plugins/field-customization/guides/user-guide",
+      "source": "plugins/field-customization/docs/user-guide.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Maintain public EAOS documentation",
+      "slug": "guides/documentation",
+      "source": "docs/documentation.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "EAOS public API catalog",
+      "slug": "api",
+      "source": "docs/api.md",
+      "visibility": "public",
+      "archetype": "reference"
+    },
+    {
+      "title": "npm package boundaries and public subpaths",
+      "slug": "packaging",
+      "source": "docs/npm-packaging.md",
+      "visibility": "public",
+      "archetype": "explanation"
+    },
+    {
+      "title": "Contribute to EAOS",
+      "slug": "guides/contributing",
+      "source": "CONTRIBUTING.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    },
+    {
+      "title": "Prepare and release EAOS packages",
+      "slug": "guides/releasing",
+      "source": "RELEASING.md",
+      "visibility": "public",
+      "archetype": "how-to"
+    }
+  ],
+  "$schema": "https://tech-docs.alneas.com/schemas/docs-manifest.v1.json"
+}
