@@ -1,8 +1,11 @@
 import {readFileSync,existsSync,mkdirSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {join,dirname,resolve,relative,isAbsolute} from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
-const environment=()=>Object.fromEntries(Object.entries(process.env).filter(([k])=>!k.startsWith('GIT_')));
+// Real gates retain the caller's index; fixture launchers clear their own Git context.
+const environment=()=>({...process.env});
 function execute(root,file,args){return spawnSync(file,args,{cwd:root,env:environment(),encoding:'utf8',timeout:120000,maxBuffer:32*1024**2});}
 function git(root,args){const r=execute(root,'git',args);if(r.status!==0)throw Error('Cannot inspect indexed verification inputs');return r.stdout;}
 function config(root,name){if(!existsSync(join(root,name)))throw Error('Missing required indexed configuration: '+name);const indexed=git(root,['show',':'+name]);if(indexed!==readFileSync(join(root,name),'utf8'))throw Error('Working verification configuration differs from index: '+name);return indexed;}
@@ -14,3 +17,5 @@ export async function verifyStaged(root,{lintOnly=false}={}){root=resolve(root);
  }finally{if(temporary)rmSync(temporary,{recursive:true,force:true});}return {scanner:lintOnly?'not-selected':'executed-fresh',linted:names.length,index:'read-only'};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){try{const mode=process.argv[2]??'commit';if(!['commit','lint'].includes(mode))throw Error('Use commit or lint');console.log(JSON.stringify(await verifyStaged(process.cwd(),{lintOnly:mode==='lint'})));}catch(error){console.error(error.message);process.exitCode=1;}}
+
+export async function currentTools(root){const tools=await import(pathToFileURL(join(root,'scripts/quality-tools.mjs')).href),scanner=tools.qualityTool?tools.qualityTool(root,'gitleaks'):tools.localGitleaks,version=tools.gitleaksVersion??tools.toolSpec('gitleaks').version;const scan=execute(root,scanner,['version']);if(scan.status!==0||scan.stdout.trim()!==version)throw Error('Current pinned scanner prerequisite unavailable');const wrapper=join(root,'node_modules/.bin/biome'),biome=tools.qualityTool?tools.qualityTool(root,'biome'):createRequire(join(root,'package.json')).resolve(`@biomejs/cli-${process.platform}-${process.arch}/biome${process.platform==='win32'?'.exe':''}`),lint=execute(root,biome,['--version']);if(lint.status!==0)throw Error('Current lint prerequisite unavailable');const digest=p=>createHash('sha256').update(readFileSync(p)).digest('hex');return {scanner:digest(scanner),scannerVersion:version,biome:digest(biome),biomeVersion:lint.stdout.trim(),...(!tools.qualityTool?{wrapper:digest(wrapper)}:{})};}

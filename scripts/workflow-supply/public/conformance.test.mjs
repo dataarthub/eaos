@@ -4,11 +4,12 @@ test('mandatory outcomes have shared implementations, automated checks and expli
  const seen=new Set();for(const r of catalog.requirements){assert(!seen.has(r.id));seen.add(r.id);assert(r.result&&r.owner&&r.implementation&&r.behaviorTest);if(r.level==='required')assert(r.staticCheck&&r.staticCheck!=='none');}
  assert.equal(catalog.requirements.find(r=>r.id==='hooks.manager').level,'recommended');
 });
-import {writeFileSync,mkdirSync,symlinkSync,existsSync} from 'node:fs';import {join} from 'node:path';import {execFileSync} from 'node:child_process';
+import {writeFileSync,mkdirSync,symlinkSync,existsSync,copyFileSync} from 'node:fs';import {join} from 'node:path';import {execFileSync} from 'node:child_process';
 import {fixture} from './fixtures.mjs';import {install,generate} from './supply.mjs';import {checkProject,verifyProject} from './conformance.mjs';
 const source=new URL('../',import.meta.url).pathname;
 function configured(work){return fixture((root,project)=>{
  execFileSync('git',['init','-q'],{cwd:root});writeFileSync(join(root,'.gitignore'),'.cache/\n.verification/\nnode_modules\n');if(existsSync(join(process.env.PUBLIC_POLICY_TEST_TOOLS??process.cwd(),'node_modules')))symlinkSync(join(process.env.PUBLIC_POLICY_TEST_TOOLS??process.cwd(),'node_modules'),join(root,'node_modules'));
+ const owner=process.env.PUBLIC_POLICY_TEST_TOOLS??process.cwd();for(const file of ['scripts/quality-tools.mjs','biome.json','.gitleaks.toml']){mkdirSync(join(root,file,'..'),{recursive:true});copyFileSync(join(owner,file),join(root,file));}mkdirSync(join(root,'.verification'));symlinkSync(join(owner,'.verification/tools'),join(root,'.verification/tools'));
  const packagePath=join(root,'package.json'),p=JSON.parse(readFileSync(packagePath));
  Object.assign(p.scripts??={}, { 'quality:commit':'node staged.mjs','quality:push':'node scripts/workflow-supply/public/quality.mjs push','quality:ci':'node scripts/workflow-supply/public/quality.mjs ci','workflow:generate':'node scripts/workflow-supply/public/supply.mjs generate','workflow:check':'node scripts/workflow-supply/public/supply.mjs check','test:workflow':'node --test scripts/workflow-supply/public/*.test.mjs','conformance:check':'node scripts/workflow-supply/public/conformance.mjs check','conformance:verify':'node scripts/workflow-supply/public/conformance.mjs verify','test:gate':'node gate.test.mjs'});
  writeFileSync(packagePath,JSON.stringify(p));project.conformance={behaviorCommands:[['bun','run','test:gate']]};for(const name of ['verify','stage','complete'])project.publish.jobs[name].steps.push({run:'node scripts/workflow-supply/public/quality.mjs require-source'});

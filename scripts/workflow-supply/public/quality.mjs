@@ -28,7 +28,8 @@ export async function runTask(root,task,{identity,run=(argv)=>{const r=spawnSync
  const lock=join(root,'.cache/public-quality/locks',task.id);mkdirSync(resolve(lock,'..'),{recursive:true});try{mkdirSync(lock);}catch(error){if(error.code==='EEXIST')throw Error('Task already running; inspect lock before removing: '+task.id);throw error;}
  try{
  const environment=taskEnvironment(process.env,secretAliases(root));
- const hash=inputHash(root),key=digest(JSON.stringify({hash,identity,task,environment})),file=join(root,'.cache/public-quality/tasks',task.id+'.json');
+ const toolIdentity=task.command.some(value=>typeof value==='string'&&value.endsWith('/policy-commit-probe.mjs'))?await (await import('./staged-gate.mjs')).currentTools(root):undefined;
+ const hash=inputHash(root),key=digest(JSON.stringify({hash,identity,task,environment,toolIdentity})),file=join(root,'.cache/public-quality/tasks',task.id+'.json');
  const outputs=()=>Object.fromEntries((task.outputs??[]).map(p=>{assert(!relative(root,resolve(root,p)).startsWith('..'));return [p,tree(join(root,p))];}));
  if(task.cache!==false&&existsSync(file)){let cached;try{cached=JSON.parse(readFileSync(file));}catch{cached={};}const actual=outputs();if(cached.status==='passed'&&cached.key===key&&Object.values(actual).every(v=>v!==null)&&JSON.stringify(cached.outputs)===JSON.stringify(actual))return {id:task.id,outcome:'reused',key};}
  // Clear a former success before starting, so failure cannot preserve a valid receipt.

@@ -1,3 +1,6 @@
+import process from 'node:process';
+import console from 'node:console';
+import {URL} from 'node:url';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
