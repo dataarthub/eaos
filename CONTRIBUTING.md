@@ -140,3 +140,7 @@ On Linux, install Chromium system dependencies with
 
 See [RELEASING.md](RELEASING.md) before versioning or publishing. A local check
 never authorizes a commit, push, tag, registry write or deployment.
+
+## Generated workflow maintenance
+
+See [workflow supply and local quality](docs/workflow-supply.md) for `quality:commit`, `quality:push`, generated workflow checks and the actual selection/reuse limits.

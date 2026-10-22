@@ -432,6 +432,13 @@
       "source": "RELEASING.md",
       "visibility": "public",
       "archetype": "how-to"
+    },
+    {
+      "title": "Workflow supply and local quality",
+      "slug": "guides/workflow-supply",
+      "source": "docs/workflow-supply.md",
+      "archetype": "how-to",
+      "visibility": "public"
     }
   ],
   "$schema": "https://tech-docs.alneas.com/schemas/docs-manifest.v1.json"

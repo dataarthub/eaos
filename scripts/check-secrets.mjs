@@ -11,7 +11,7 @@ if(version.status!==0 || version.stdout.trim()!==gitleaksVersion)throw Error(`Ve
 await mkdir(join(root,'.verification/logs'),{recursive:true})
 const temporary=await mkdtemp(join(tmpdir(),'eaos-secret-scan-'))
 try {
-  await cp(root,temporary,{recursive:true,filter:path=>!path.slice(root.length).split(/[\\/]/).some(x=>['node_modules','.git','.verification','dist','artifacts','.DS_Store'].includes(x))})
+  await cp(root,temporary,{recursive:true,filter:path=>{const parts=path.slice(root.length).split(/[\\/]/);return !parts.some(x=>['node_modules','.git','.verification','dist','artifacts','.DS_Store'].includes(x))&&!parts.some((part,index)=>part==='.cache'&&parts[index+1]==='public-quality')}})
   const args=process.argv.includes('--history')?['git','--log-opts=--all',root]:['dir',temporary]
   const scan=spawnSync(binary,[...args,'--redact=100','--no-banner','--config',join(root,'.gitleaks.toml'),'--report-format=json','--report-path',join(root,'.verification/logs/secrets.json')],{stdio:'inherit'})
   if(scan.status!==0)process.exitCode=scan.status??2

@@ -1,48 +1,58 @@
-name: Complete approved npm release
+# Generated: github-docs/public/templates/private-actions/public; reviewed base ec4ae8b46d5f9df5e2e196a8a753b9457813e4f6 (local-reviewed).
+# Bundle SHA-256: 8c36f617e0b10cc15e3bf514e3bb6fb12b6da91d3da5d8e1b8f20c4bd546ef13
+# Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
+# Run workflow:generate explicitly; workflow:check never repairs output.
+name: "Complete approved npm release"
 on:
   workflow_run:
-    workflows: [Stage and complete reviewed npm release]
-    types: [completed]
+    workflows:
+      - "Publish npm packages"
+    types:
+      - "completed"
 permissions:
-  contents: read
+  contents: "read"
 concurrency:
-  group: npm-approval-${{ github.event.workflow_run.id }}
+  group: "npm-approval-${{ github.event.workflow_run.id }}"
   cancel-in-progress: false
 jobs:
   observe:
-    if: >-
-      github.repository == 'dataarthub/eaos' &&
-      github.event.workflow_run.event == 'release' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
-    runs-on: ubuntu-latest
+    if: "github.repository == 'dataarthub/eaos' && github.event.workflow_run.event == 'release' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository"
+    runs-on: "ubuntu-latest"
     timeout-minutes: 35
     permissions:
-      contents: read
-      actions: write
+      contents: "read"
+      actions: "write"
     steps:
-      - uses: actions/checkout@v6
+      -
+        uses: "actions/checkout@v6"
         with:
-          ref: main
+          ref: "main"
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v6
+        name: "Shared: actions/checkout@v6"
+      -
+        uses: "actions/setup-node@v6"
         with:
           node-version: 24
           package-manager-cache: false
-      - name: Resolve original successful staging attempt and immutable artifact
-        id: source
+        name: "Shared: actions/setup-node@v6"
+      -
+        name: "Project: Resolve original successful staging attempt and immutable artifact"
+        id: "source"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: mkdir -p .verification && node scripts/publish/observe.mjs resolve
-      - uses: actions/download-artifact@v8
+          GITHUB_TOKEN: "${{ github.token }}"
+        run: "mkdir -p .verification && node scripts/publish/observe.mjs resolve"
+      -
+        uses: "actions/download-artifact@v8"
         with:
-          artifact-ids: ${{ steps.source.outputs.artifact }}
-          run-id: ${{ steps.source.outputs.run }}
-          github-token: ${{ github.token }}
-          path: .verification/handoff
-          digest-mismatch: error
-      - name: Observe npm approval and request completion once
+          artifact-ids: "${{ steps.source.outputs.artifact }}"
+          run-id: "${{ steps.source.outputs.run }}"
+          github-token: "${{ github.token }}"
+          path: ".verification/handoff"
+          digest-mismatch: "error"
+        name: "Shared: actions/download-artifact@v8"
+      -
+        name: "Project: Observe npm approval and request completion once"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/publish/observe.mjs
+          GITHUB_TOKEN: "${{ github.token }}"
+        run: "node scripts/publish/observe.mjs"

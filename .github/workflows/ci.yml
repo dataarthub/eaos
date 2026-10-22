@@ -1,0 +1,20 @@
+# Generated: github-docs/public/templates/private-actions/public; reviewed base ec4ae8b46d5f9df5e2e196a8a753b9457813e4f6 (local-reviewed).
+# Bundle SHA-256: 8c36f617e0b10cc15e3bf514e3bb6fb12b6da91d3da5d8e1b8f20c4bd546ef13
+# Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
+# Run workflow:generate explicitly; workflow:check never repairs output.
+name: "Source quality"
+on:
+  push:
+    branches:
+      - "main"
+  pull_request: null
+  workflow_dispatch: null
+permissions:
+  contents: "read"
+  actions: "read"
+concurrency:
+  group: "source-quality-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+jobs:
+  verify:
+    uses: "./.github/workflows/package-quality.yml"
