@@ -1,0 +1,3138 @@
+{
+  "schemaVersion": 1,
+  "scope": "Full reviewed development-policy clause inventory; descriptive evidence mapping, never an execution profile or waiver",
+  "policy": {
+    "url": "https://tech-docs.alneas.com/policies/development-policy.md",
+    "repository": "github-docs",
+    "path": "governance/development-policy.md",
+    "reviewedCommit": "64273b86c640b838d18ba660db2ea86faf913772",
+    "sha256": "0adcf6c121f55e9c87c1b8b71ebd378219430337f00bb6ab92f81fad59913ace"
+  },
+  "clauses": [
+    {
+      "id": "development.alneas-development-policy.1",
+      "source": {
+        "anchor": "alneas-development-policy",
+        "line": 13
+      },
+      "sourceHash": "f2fb6478619d442fe1428a125692175a1e072a443bfd47e3b9bdb74ba7f0f1d0",
+      "outcome": "Status: Active Baseline Standard, 2026-10-21. Scope: Development of ALNEAS libraries, applications and tooling. Package-specific clauses apply only to distributed packages.",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.1",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 18
+      },
+      "sourceHash": "50005ce9b73b071d4e7fdd87bba94844235e71d17ce69f6acf12af1976a7811f",
+      "outcome": "To prevent ambiguity between human authors, automated checkers, and AI agents, the following terms are used with precise meanings across all ALNEAS policies:",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.2",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 20
+      },
+      "sourceHash": "efcbdf26dd0d56b3d9d937888ca76811bee3e5a4355f4520b0bd9286e99d8bc6",
+      "outcome": "Check vs. Gate vs. Verification:",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.3",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 21
+      },
+      "sourceHash": "db94f8560e99854da7d216170a44cab98c927eaca4ea113f2c4cd152ee39699a",
+      "outcome": "Check: An individual atomic inspection or test suite (e.g. `biome lint`, unit tests, secret scan).",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.4",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 22
+      },
+      "sourceHash": "bf3dea444e9c8ea7c0ce9ca9fa592b089aa2f7c2e3e1d692a1fc4f9bf7033a97",
+      "outcome": "Gate: An aggregate enforcement barrier before a lifecycle transition (e.g. pre-commit hook, pre-push gate, CI PR gate, release readiness gate).",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.5",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 23
+      },
+      "sourceHash": "aae04d5c606d7e11d07a41223490cf7b3ecbee379d641d0a1cd3c325dadd534d",
+      "outcome": "Verification: The overall process or resulting evidence demonstrating that a change satisfies required contracts.",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.6",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 24
+      },
+      "sourceHash": "5cb6c9e4cbbc4808f448b3d867070e075e927f853825cce7a60faa0f65a1a2fa",
+      "outcome": "Artifact vs. Archive vs. Tarball vs. Bundle:",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.7",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 25
+      },
+      "sourceHash": "f721cef8a72ab4765c5307a1bb7a3fa641105979dd809dcdb2e308e3121a62d5",
+      "outcome": "Artifact: Any persistent output produced by a build or verification process (e.g. build output files, logs, metadata manifests).",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.8",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 26
+      },
+      "sourceHash": "07b416dc0b97d776c88b6a37dacbe87b2489ff918eafe6525141b8da89d19c36",
+      "outcome": "Archive / Tarball (`.tgz`): A packaged, distributable file prepared for package registries (npm/GitHub Packages).",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.9",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 27
+      },
+      "sourceHash": "8fe9ce068eaa93520314b0d5362b61c0424cdc0a9f652f2a99590932f5062e66",
+      "outcome": "Bundle: A finalized collection of commit-bound release assets and detached verification evidence passed between stages.",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.10",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 28
+      },
+      "sourceHash": "57906438d10c5227b7588f7678243c55988bc6f6bf13372110d35b039914c372",
+      "outcome": "Public vs. Internal / Private:",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.11",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 29
+      },
+      "sourceHash": "ef5b0f33674ec56be4acfc4e15e38e5a99f12888563bb9c44f35bacb0fca80ae",
+      "outcome": "Public: Intended for external distribution, public documentation portals, and open registries.",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.glossary-and-terminology-conventions.12",
+      "source": {
+        "anchor": "glossary-and-terminology-conventions",
+        "line": 30
+      },
+      "sourceHash": "2ea9a51a59536523eb37fa12c4148f70f43caf52fa146f219ad3424c4794f212",
+      "outcome": "Internal / Private: Restricted to proprietary repositories, internal runbooks, and authenticated environments.",
+      "level": "guidance",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.common-rules-and-implementation-references.1",
+      "source": {
+        "anchor": "common-rules-and-implementation-references",
+        "line": 34
+      },
+      "sourceHash": "480b9d3b4375562d460872292121281b9df3517628fe4cd8b11df0edfef981d0",
+      "outcome": "`github-docs` owns this shared policy and its development skill. The rules below are the common baseline, not a menu to configure independently in each project. Projects own their implementations. Link to existing manifests, scripts and workflows …",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.common-rules-and-implementation-references.2",
+      "source": {
+        "anchor": "common-rules-and-implementation-references",
+        "line": 36
+      },
+      "sourceHash": "d89d06e2aa0b1bba879a590c6061806e0a8d300cd6efddd9ffb22d841c957564",
+      "outcome": "Apply rules according to the observable work: a shipped package needs packed-consumer verification; a changed browser interaction needs browser checks. This applicability comes from the implementation, not a per-project switch. Record an exception…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.common-rules-and-implementation-references.3",
+      "source": {
+        "anchor": "common-rules-and-implementation-references",
+        "line": 38
+      },
+      "sourceHash": "6d82fa4f73d397790bcb87e4d94cd70095dc10c5a66388cd831dece865c0763b",
+      "outcome": "Read applicable agent instructions and inspect the current worktree before editing. Preserve unrelated edits. Change the canonical owning implementation; keep generated files and compatibility adapters aligned through their maintained sources and …",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.1",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 42
+      },
+      "sourceHash": "07e324f213f2067bab7e31949caacc18aef7ccdd85cfcdee74f09b4a174ebc2c",
+      "outcome": "Establish explicit repository boundaries and directory structures. A public/private separation protects intellectual property, customer data and internal infrastructure while allowing open collaboration on shared foundations:",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.2",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 44
+      },
+      "sourceHash": "776c9d5c3e816a701d93bffba3d13b8f601d0b621e93eaac8449bae783bb88de",
+      "outcome": "Repository and directory naming:",
+      "level": "guidance",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.3",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 45
+      },
+      "sourceHash": "5b0fa78c61d0a38db349d7381b0396f7c05d99fcfd7067450da554e236132564",
+      "outcome": "Distinguish public and private repositories clearly (e.g. `appkit` for public open-source foundations vs `appkit-private` for proprietary extensions/integrations).",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.4",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 46
+      },
+      "sourceHash": "4b8f7594885c6c30025a86e0d63ce6b5205d4d21d50383dd08c99f05651a1808",
+      "outcome": "Directory structures within repositories must be standardized and predictable:",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.5",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 47
+      },
+      "sourceHash": "698dde9ae6b6e8cb44fafa45237d3a4360c82bd822cfdea5b8810611b1a018fb",
+      "outcome": "Root configuration (`package.json`, toolchain lockfiles, engine declarations, workspace config).",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.6",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 48
+      },
+      "sourceHash": "f7b5018cef0874fd702b8c48cd01131e5a014faf29a5a957cea93dbb45024897",
+      "outcome": "Monorepo package directories located under `packages/<package-name>` with consistent internal layout (`src/`, `tests/`, `dist/`, `package.json`, `README.md`, `LICENSE`, `tsconfig.json`).",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.7",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 49
+      },
+      "sourceHash": "5d6f345b5de76b63363c9c0d45731696d900f7702139ac32b7e17cafe91081b4",
+      "outcome": "Monorepo application directories located under `apps/<app-name>`.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.8",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 50
+      },
+      "sourceHash": "11713199b2f8fdc98a8c2c8459248b09258469bab5cd1af01d9818a22edefab6",
+      "outcome": "Centralized operational tooling under `scripts/`.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.9",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 51
+      },
+      "sourceHash": "da7c0de1e17d76a9655af9a37f0e348844c35eb5d393e945183e78eb8ef6df0a",
+      "outcome": "Centralized project guidance and canonical specs under `docs/` or `governance/`.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.10",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 52
+      },
+      "sourceHash": "98107207a99ee6e0d866579d11582a1a867657dd15bbfb14d1103750039bb7b8",
+      "outcome": "Ephemeral, test, or verification artifacts segregated under `.verification/` (with subdirectories such as `tmp/` for fixtures and `logs/` for receipts, fully gitignored).",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.11",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 53
+      },
+      "sourceHash": "4a524717af78ca722cf25d937c5a8337ddeb902d6639dc4a45c8ebb08bef4efe",
+      "outcome": "Public must never depend on Private:",
+      "level": "guidance",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "boundary.public"
+        ],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.12",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 54
+      },
+      "sourceHash": "86e055d5d9222cde635ce5122f989d5522cb9598c2225144059a81e920ed9f78",
+      "outcome": "Public packages and repositories must never depend on private packages, repositories, internal registries, internal endpoints or unreleased private code. This applies to production dependencies (`dependencies`), optional dependencies (`optionalDep…",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "boundary.public"
+        ],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.13",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 55
+      },
+      "sourceHash": "b320b04aa0ff6a7a1bdc28e96d4a175d28413ca58364437c77dcc8b9c6c9ffca",
+      "outcome": "Public code, public build scripts, documentation and tests must remain completely functional and self-contained without access to private assets, tokens or private repository checkouts.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "boundary.public"
+        ],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.14",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 56
+      },
+      "sourceHash": "ee2f0a3a4a2ea55b1d380d6aa134eb16e25e5268d2033bbc9e69bdf22fc042d7",
+      "outcome": "Never introduce workspace links (`workspace:*`), local path links (`file:../private`), git submodules or production source aliases that point from a public repository into a private repository.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "boundary.public"
+        ],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.15",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 57
+      },
+      "sourceHash": "a5ed1ad33aa9ed0c307ca63936c2ffcc3e5d7dc9b3800845b6092abe0393e34c",
+      "outcome": "Private may consume Public only via explicit versions:",
+      "level": "guidance",
+      "domain": "boundaries",
+      "scope": "private-consumption",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.16",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 58
+      },
+      "sourceHash": "1ef0b66f2e54b2c20e9ff8691c032799d4d38eb0d904841a8e28f6fa394fc994",
+      "outcome": "Private packages may consume public packages, but must do so through standard package registry scopes and exact published version constraints (e.g. `@alneas/appkit-core: \"0.1.0\"`).",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "private-consumption",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.17",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 59
+      },
+      "sourceHash": "0e9d11f5fa76bf38c8de7c8e285071ad524ea5f006b9fcd17f8a7151dbf42ce3",
+      "outcome": "Production internal dependencies must not rely on local file overrides, ad-hoc symlinks, or cross-repository workspace configurations in production manifests. Cross-repository workspace linking is strictly forbidden.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "private-consumption",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.18",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 60
+      },
+      "sourceHash": "62cb7e22c2eccc1dd2a07e49c5715e021ed9e1436c04a208966fc9fc80207d25",
+      "outcome": "Only disposable, temporary verification fixtures may opt in to testing unreleased public tarball archives in isolated environments, and such temporary overrides must never be committed to repository manifests or lockfiles.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.19",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 61
+      },
+      "sourceHash": "eea8e8059e57a9a9b29fcb93f9d915f700f246091d107d98e2b21a4ce196ff7c",
+      "outcome": "Strict barrier against leaking private source and history:",
+      "level": "guidance",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.20",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 62
+      },
+      "sourceHash": "fec21273d865e758128d1df1e4852355833e70819e5b357cfab7bfcc94b30c6b",
+      "outcome": "A public/private split does not authorize copying, syncing or moving private source code, git history, commit messages, PR discussions, internal credentials or operational receipts into a public repository.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.21",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 63
+      },
+      "sourceHash": "6694b7923de0d97e38aefbfe12ae4a2cb32c70a9d46b0ef59dbfb09e82568cae",
+      "outcome": "Keep independent repositories on separate git remotes, worktrees and lockfiles.",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.22",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 65
+      },
+      "sourceHash": "52fa95ef9219f5434a7c593e27ba8d7d0817a186a285b183066494f3958194ba",
+      "outcome": "Changes to exported paths, types, defaults, peers, styles and runtime behavior are compatibility changes. Use existing API baselines and migration/versioning mechanisms. Update a baseline explicitly after reviewing the intended API change; a norma…",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.repository-topology-directory-naming-and-public-private-boundaries.23",
+      "source": {
+        "anchor": "repository-topology-directory-naming-and-public-private-boundaries",
+        "line": 67
+      },
+      "sourceHash": "d2a3602b4766de3f70f35cf2910ed95b2fd6d793ef238d4305112b9bb855c2c6",
+      "outcome": "For release-impacting work, include a reviewed change fragment or equivalent record in the introducing PR, with affected targets, version impact and a consumer-oriented explanation. Maintainer-only work records a no-release reason. Follow the rele…",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.1",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 75
+      },
+      "sourceHash": "7a31e613a1d8e5348421d6e6e652127a91c903117a01ba4be77683f3d1fd4d1b",
+      "outcome": "Choose checks from observable changes. Targeted checks shorten iteration; they do not waive mandatory pre-push, CI or release checks. The table supplies shared selection rules; projects need not maintain duplicate selection tables.",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.2",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 79
+      },
+      "sourceHash": "04d741bca23202c39b725407ecbb751842a685ce00bf631f87709ba344e1047f",
+      "outcome": "Runtime behavior: Focused regression/unit checks, affected build and types",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.3",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 80
+      },
+      "sourceHash": "12cedfcb02372735f93e69570d0980c494dfb619767cbcf418d2e681aac4d64f",
+      "outcome": "Public exports, dependency or package boundary: Actual packed consumer, supported entry loading and declaration checks",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.4",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 81
+      },
+      "sourceHash": "e408e54752f1ec387fe42c33d9632a46f3b5cda0d1abe1a269d7b56b19e6bdf6",
+      "outcome": "UI behavior, DOM, layout or styles: Affected browser/render checks; manual visual review when automated assertions do not cover the change",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.5",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 82
+      },
+      "sourceHash": "50d0668a44c8fded37793be93baf0a5ce497e0b039d2abd51430743e8b400be8",
+      "outcome": "Database, authentication or service adapter: Affected integration checks with the project's supported environment",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.6",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 83
+      },
+      "sourceHash": "4343aa301d38bea668c08d661d7173953f8e708e1a865960583c78a4cbd9718b",
+      "outcome": "Build, packing, notices or included assets: Actual archive inspection and distribution/audit checks",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.7",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 84
+      },
+      "sourceHash": "3fbefbdfd1f48b100b27126a00a4e0b861ae04ae55cad8a531a061fc4365c6f5",
+      "outcome": "Guides, JSDoc, README or generated metadata: Documentation checks and generated-output freshness; executable examples when their behavior changes",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.8",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 85
+      },
+      "sourceHash": "2110d7ea03a669491ba769ff489d24528630a4c17102f080f3da0c95e95fb8ee",
+      "outcome": "Hooks, CI, cache or verifier implementation: Tooling tests and relevant gate execution, including the failure behavior being changed",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.verification-follows-changed-inputs.9",
+      "source": {
+        "anchor": "verification-follows-changed-inputs",
+        "line": 87
+      },
+      "sourceHash": "3d439d517063214403c0ceccd1de3637e5cfb686ce4edd0818ebd7fbfd063e30",
+      "outcome": "For a bug, capture the observed failure in a regression check when practical. Test observable contracts rather than duplicating implementation. Do not run unrelated browser, database or live-model suites solely because prose changed. Do run them w…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.impact-selection-and-metadata-only-changes.1",
+      "source": {
+        "anchor": "impact-selection-and-metadata-only-changes",
+        "line": 91
+      },
+      "sourceHash": "939eadf783efb1cc4fdd0c4c82d4dfa1c8cdc36f2f39c478869f621f1263cf7b",
+      "outcome": "Classify contents and dependency edges, not filenames or commit titles. Version-only manifest changes and lockfile workspace-version updates may reuse unchanged runtime results only when dependency constraints/resolutions, exports, build inputs an…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.impact-selection-and-metadata-only-changes.2",
+      "source": {
+        "anchor": "impact-selection-and-metadata-only-changes",
+        "line": 97
+      },
+      "sourceHash": "8333d41ca10465de1028646284ea31af16c77d4d609a19bd2cb0a4f904314696",
+      "outcome": "For cross-package changes, trace actual runtime dependencies to affected UI tests; type-erased imports belong to type checks. Include shared preview/setup modules, assets, generated inputs and supported source/module resolution. Unknown imports or…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.impact-selection-and-metadata-only-changes.3",
+      "source": {
+        "anchor": "impact-selection-and-metadata-only-changes",
+        "line": 104
+      },
+      "sourceHash": "f8dfb8df685593be52bd147aac48a48ae65e84b0481b4c771dbf68e13acc08dc",
+      "outcome": "Incremental CI must include every outstanding change since a trusted passing ancestor, including changes from intervening failed or cancelled runs. Do not use only the last push or let a failed run advance the baseline. If usable history or eviden…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.resource-limits-and-cleanup-for-automated-verification.1",
+      "source": {
+        "anchor": "resource-limits-and-cleanup-for-automated-verification",
+        "line": 113
+      },
+      "sourceHash": "c894a7be5875896aa923aa0b5be275467178ca46cae9086f9a46cda7431c0a39",
+      "outcome": "Browser and service verification must remain bounded on developer machines and CI runners. Before a large run, choose explicit concurrency, process-tree memory and elapsed-time limits appropriate to the available resources. For Storybook, run them…",
+      "level": "required",
+      "domain": "resources",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing guard tests establish selected process behavior; complete invocation coverage and service cleanup need review."
+      }
+    },
+    {
+      "id": "development.resource-limits-and-cleanup-for-automated-verification.2",
+      "source": {
+        "anchor": "resource-limits-and-cleanup-for-automated-verification",
+        "line": 115
+      },
+      "sourceHash": "3c48ae70ba3f96581cfbd2123ebcb347a7a7aece39a9978932f4a1c97e136fae",
+      "outcome": "Monitor the aggregate resident memory of the runner and all of its descendants, including browser renderers; the parent Node heap limit alone is insufficient. Restrict monitoring and termination to the invocation's own process tree/group. Stop tha…",
+      "level": "required",
+      "domain": "resources",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing guard tests establish selected process behavior; complete invocation coverage and service cleanup need review."
+      }
+    },
+    {
+      "id": "development.resource-limits-and-cleanup-for-automated-verification.3",
+      "source": {
+        "anchor": "resource-limits-and-cleanup-for-automated-verification",
+        "line": 117
+      },
+      "sourceHash": "55984e08cf3ee46834d45737a4b7068789231a209b7f357bdff806ec25f140ac",
+      "outcome": "Do not increase limits, skip tests, reduce the state/theme/viewport matrix, disable accessibility rules or weaken assertions to turn a resource-limit failure into a pass. First reduce concurrency or batch size and release processes between batches…",
+      "level": "required",
+      "domain": "resources",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing guard tests establish selected process behavior; complete invocation coverage and service cleanup need review."
+      }
+    },
+    {
+      "id": "development.resource-limits-and-cleanup-for-automated-verification.4",
+      "source": {
+        "anchor": "resource-limits-and-cleanup-for-automated-verification",
+        "line": 119
+      },
+      "sourceHash": "be705361516f553a1e449312e9c3886ea7bdef2e88bd4734b108f79de5366dce",
+      "outcome": "*(Reference implementation and regression checks: `templates/testing/guarded-process.mjs` and `templates/testing/guarded-process.test.mjs`.)*",
+      "level": "guidance",
+      "domain": "resources",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing guard tests establish selected process behavior; complete invocation coverage and service cleanup need review."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.1",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 123
+      },
+      "sourceHash": "f747a07e745d656ee6e6b43a6a6651356b03c6eba18bbc767b62a1dc0270096b",
+      "outcome": "Where projects include interactive user interfaces, client-side state, or network services, tests should verify functional behaviors at appropriate boundaries rather than relying solely on manual inspection.",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.2",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 125
+      },
+      "sourceHash": "99a39275c9213251749f22a220fdf37ce8d5c32b974a7e9a095a2f5f757d851c",
+      "outcome": "Key testing properties:",
+      "level": "guidance",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.3",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 126
+      },
+      "sourceHash": "edbc6fbabb1db5b708668501af7566463d72511619e73564839de08bd0b6bd51",
+      "outcome": "Network-boundary simulation: Simulate HTTP/network requests at the transport boundary rather than mocking internal client classes. Unhandled external requests should trigger test failures to prevent silent leakage. Mocks should align with the real…",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.4",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 127
+      },
+      "sourceHash": "b755c54617829a4fab64cc70e0cb6e1b4aae7a37a755fda3131013f1e4af4a3a",
+      "outcome": "Role and state matrix: For components managing data lifecycles, test across states (loading, success, empty, error, unauthorized).",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.5",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 128
+      },
+      "sourceHash": "5f0e03e69afefde3a4bac1b260a391419a8fdd7ad4dbaf55e9681faa54380750",
+      "outcome": "Accessibility verification: Include automated accessibility checks (e.g. standard axe assertions) on rendered components where supported. Run the owning global stylesheet/build plugins so computed styles are real. Cover light and dark mode plus ev…",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.6",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 129
+      },
+      "sourceHash": "e3e958aa01b6ad95988ccbf6bd52e604383f9be2a225b701a7791e3c32a6b9ce",
+      "outcome": "Realistic execution: Use lightweight simulated environments (jsdom) for fast unit logic, and real-browser automated tests where layout, focus, real events, or browser APIs are being verified. Automated tests reduce routine manual checking, but do …",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.7",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 130
+      },
+      "sourceHash": "7aeb9345a5ae89c928aed287c6019939733f174cb8ca69e8444a31825309015b",
+      "outcome": "States as stories: Where Storybook is used, define the state matrix as CSF3 stories and run each story as a real-browser test with accessibility violations set to fail. Network handlers and the authentication session are set per story.",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.8",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 131
+      },
+      "sourceHash": "b3d181b74116c7da7ce29b247c589f9acd34d21fb86b2b69000991f58849f818",
+      "outcome": "Authentication simulation: Simulate authentication at the network layer against the real auth provider (for Ory Kratos, `/sessions/whoami`). Never automate third-party identity provider pages such as Google sign-in; end-to-end tests create session…",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.9",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 132
+      },
+      "sourceHash": "b63a818069c03d95e9d33233f84a630093c97353545153988829d94485f1d8bf",
+      "outcome": "Clickability and layout: Use real `userEvent`/`locator.click()` so actionability checks catch covered, hidden or disabled targets. Do not use `force: true` or `dispatchEvent` to make a click pass. Assert horizontal overflow, viewport containment, …",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.10",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 133
+      },
+      "sourceHash": "1615e28ee03a2a1189e5f5d7bd3b132ab97e6f2637fe345443d659100127520c",
+      "outcome": "Runtime-specific mocking: Node MSW works only in jsdom; browser runtimes use the browser MSW worker. Target Chromium unless the project declares more browsers.",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.11",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 134
+      },
+      "sourceHash": "7c15eda31182ed77e865777feaf5fb64063aa69aab79c6482d203f2fe304a82c",
+      "outcome": "Visual baselines: Generate screenshot baselines only in the pinned CI image and update them only through an explicit, reviewed command. Do not raise diff thresholds or regenerate baselines to silence a failure; a human approves an initial design o…",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.12",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 135
+      },
+      "sourceHash": "91675546aad0845d6ade2ac2b3b7594086f60e661add0d70c7e354b27e057880",
+      "outcome": "Assertion quality over raw line coverage: Enforce project-defined coverage floors without weakening assertions or artificially inflating coverage with empty assertions.",
+      "level": "required",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-ui-and-service-integrated-code.13",
+      "source": {
+        "anchor": "verification-guidelines-for-ui-and-service-integrated-code",
+        "line": 137
+      },
+      "sourceHash": "8657b205fc6fe9ad1fd969e7d7a1feb5c01b5d1c0e3c1adf18d4b6aa27b595c1",
+      "outcome": "*(Reference test setup boilerplate and helper utilities: `templates/testing/`)*",
+      "level": "guidance",
+      "domain": "ui",
+      "scope": "ui",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map each supported interaction/state/theme/viewport to actual assertions; no full UI or accessibility audit has been executed."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.1",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 141
+      },
+      "sourceHash": "105f198a2b94caae99541d65ee0e1669c6cd9c4375eb78fbd8bb2a4733e3d09c",
+      "outcome": "Business logic, validation, API clients, state stores and database access are verified automatically in fast Node environments, with external services reduced to true boundaries.",
+      "level": "guidance",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.2",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 143
+      },
+      "sourceHash": "b98a9b6dfbf62cf3880b47c11e9a9ddd245df7780ac25200998bf328855fa0e7",
+      "outcome": "Strong properties: For pure logic and parsers, use property-based testing with properties stronger than \"does not throw\": round trips, reference-implementation oracles, idempotence, monotonicity and conserved invariants. Pin failing seeds and coun…",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.3",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 144
+      },
+      "sourceHash": "a58f68a603a388fafb0929212c8ac55e6368fc5f8c1b5ea9b2147026c7c97e34",
+      "outcome": "Single contract source: Client and server share one schema (e.g. Zod or OpenAPI). Test that real server responses conform to it and that clients reject drifted responses, so mocks cannot diverge from the real API.",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.4",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 145
+      },
+      "sourceHash": "46d4419df56cf706c61eb4da236077e1c4b264686f3940feca286381ef6330b9",
+      "outcome": "In-process service tests: Test HTTP handlers in-process (for Hono, `app.request()`) across authentication, authorization, validation and error shape. Simulate the identity service at the network layer.",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.5",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 146
+      },
+      "sourceHash": "bb9f22d8b839fcf9613fc22f436758ac1b3bef8c803346cbea25cc3eae9bd99e",
+      "outcome": "State and concurrency: Test stores and hooks through action sequences, state transitions and concurrent or repeated invocations (double submit, parallel writes).",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.6",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 147
+      },
+      "sourceHash": "53c86c410537a012755e3d1b6caf82fa911f1a046fdc31aacd10b435a747322e",
+      "outcome": "Same-engine real database: Verify SQL, constraints, transactions, concurrency, type mapping and the project's data-access layer against a disposable instance of the production engine. Do not substitute another engine or a mock for these checks. Mo…",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.7",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 148
+      },
+      "sourceHash": "da897b39b9ed2660eabe24c972c5045909a6b7c3b1a07626278f9587f9970620",
+      "outcome": "Disposable and isolated: Test databases are created empty, receive the project's real migrations, and are destroyed afterward. Tests never read production connection settings, never touch production schemas or data, and never run production DDL. C…",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.8",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 149
+      },
+      "sourceHash": "2fe83321cd885498e8fd82fb910bc2d3aba25b63a57b4371323a9be6a5075ce0",
+      "outcome": "Managed-service gaps: When a managed-service-specific behavior (for example Oracle Autonomous Database wallet connection or Autonomous-only features) cannot be verified without a dedicated instance, report it as unverified rather than claiming cov…",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.9",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 150
+      },
+      "sourceHash": "ca0359fe135fd156b1972e137dea3e62596568f5fa92e18cccbf2cfa71ff62da",
+      "outcome": "Mutation testing for critical logic: Limit mutation testing to high-impact modules (billing, authorization, tenant isolation) because of its cost; run it incrementally or on a schedule.",
+      "level": "required",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.verification-guidelines-for-non-ui-logic-and-data-access.10",
+      "source": {
+        "anchor": "verification-guidelines-for-non-ui-logic-and-data-access",
+        "line": 152
+      },
+      "sourceHash": "00bf143e48d2d38f178527a121e285de9207b3ffcad6ed4c06c50ca9be0b653b",
+      "outcome": "*(Reference setup: `templates/testing-logic/`)*",
+      "level": "guidance",
+      "domain": "logic-services",
+      "scope": "logic/service-specific",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map schema, concurrency and data-access contracts; real-engine, tenant and managed-service coverage is unverified."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.1",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 156
+      },
+      "sourceHash": "401843df88dcc5336acca0c7569afc0ed6241dacb172e81862d9f5a3335aaacd",
+      "outcome": "To maintain repository hygiene across developers and machines without disrupting local development workflows, standard projects must enforce clear quality and security boundaries.",
+      "level": "guidance",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.2",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 158
+      },
+      "sourceHash": "bc449f91b262a5308d552df29b6e15f2df61ab5c2d0c72d31c7cf1626fe09025",
+      "outcome": "The core principle is non-destructive, read-only verification during development steps:",
+      "level": "guidance",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.3",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 159
+      },
+      "sourceHash": "99bb17f62424d036deab191c827be4866f90b805ec6c1b71c319f810e9f33caf",
+      "outcome": "Pre-commit verification:",
+      "level": "guidance",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.4",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 160
+      },
+      "sourceHash": "5779fbcd9115b63a124246770f4b7728fb6fe6afed136826e6f8179adad77c1b",
+      "outcome": "Must execute automated secret scanning across staged changes and report any detected credentials with redacted output. Scanner failure or missing scanner configuration must block the commit.",
+      "level": "required",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.5",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 161
+      },
+      "sourceHash": "661e53a04421609521c007cae01faf443d2045c6ffcdcce1ef31713e9a3ecfa2",
+      "outcome": "Must run lint checks on staged files.",
+      "level": "required",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.6",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 162
+      },
+      "sourceHash": "72c0173c66c8625587190544985f5c40e51a3d763c32fd0314b83e7c06e315b4",
+      "outcome": "Pre-commit hooks must remain strictly read-only and non-destructive: they must never automatically rewrite code, auto-format files in a way that modifies the working tree without explicit developer command, or manipulate staging areas behind the s…",
+      "level": "required",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.7",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 163
+      },
+      "sourceHash": "85d6f662c8fe94e3fa36b4759ec29dae264e3d05944d5e85a724dcceb908fc5a",
+      "outcome": "Pre-push verification:",
+      "level": "guidance",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.8",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 164
+      },
+      "sourceHash": "6fb73251adee4f43ae6c39925b5de14b34a867417d39af1576bcffae65141ac1",
+      "outcome": "Executes consolidated local validation: commit history secret scanning, lint, type checks, build, tests, and documentation freshness checks where applicable.",
+      "level": "required",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.9",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 165
+      },
+      "sourceHash": "8d49da26ae7d03697cc739ba668582b30d95d775b92ee59dd91395e6e45f4613",
+      "outcome": "CI parity:",
+      "level": "guidance",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.local-quality-gates-secret-scanning-and-git-hooks.10",
+      "source": {
+        "anchor": "local-quality-gates-secret-scanning-and-git-hooks",
+        "line": 166
+      },
+      "sourceHash": "cab2570ccea1e97d62f4102271fd0419b8224480502d8891198c768112068daa",
+      "outcome": "Because local git hooks can be bypassed (e.g. `--no-verify`), CI pipelines must execute the identical quality verification gates to ensure baseline integrity.",
+      "level": "required",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.1",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 170
+      },
+      "sourceHash": "ef3fe4fd90da4718d0d6554a3142486024e396d77bd241fcdd447ea474d688ab",
+      "outcome": "The quality and evidence requirements in this policy are mandatory where applicable. The named tools below are the default recommendations for a new project within the stated scope; they are not universal prerequisites for every language or reposi…",
+      "level": "recommended",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.2",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 181
+      },
+      "sourceHash": "442034ff0a18fa05871996fb672cdf65f1e5430d0a0982ef355de75f2973438f",
+      "outcome": "JS/TS dependency installation and task execution: Pin the package manager and lockfile. Test the actual supported runtime versions; Bun success alone does not establish Node compatibility.",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.3",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 182
+      },
+      "sourceHash": "d5a9ed7705af6b2975e645816c63be6820bfb4c40cc3c9237b734538b6da99f2",
+      "outcome": "JS/TS static types and library builds: Type-check public declarations and verify the supported distribution formats. Preserve an existing framework's build system when it meets those contracts.",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.4",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 183
+      },
+      "sourceHash": "8bf3b8c0fa898b741787b82b8b6c974a72ce7963ce429b93d8b34811edd73331",
+      "outcome": "JS/TS lint and explicit formatting: Keep defect-detection rules such as `noUnreachable`, `noUnsafeFinally`, `noDebugger` and `noDuplicateParameters`. The default formatting style is two spaces and single quotes for JS/TS. Hooks run read-only lint;…",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.5",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 184
+      },
+      "sourceHash": "dd9cf4f9be36f269a754fa60c023de34a2e3216fb057b2a3bf09ae25863266fc",
+      "outcome": "Secret scanning across languages: Pin the scanner and verify downloaded binary SHA-256; redact findings. Scan staged changes before commits and relevant history before pushes/CI. Missing or failed scanning blocks the gate.",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.6",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 185
+      },
+      "sourceHash": "a9f52d3ab17da66ad18358324b82ef9736464e9448ee67404df2c0e55f622699",
+      "outcome": "Git hooks in Node/Bun repositories: Use pre-commit and pre-push hooks. For read-only staged lint, use `--no-stash --no-hide-partially-staged`; preserve partially staged edits and keep CI enforcement because hooks can be bypassed. Equivalent hook m…",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.7",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 186
+      },
+      "sourceHash": "49609d237c775b36ba832b9784503d6270b62078cb5bc8c67c57f1278125e015",
+      "outcome": "Task orchestration and success caching in JS/TS multi-package repositories: This is the default recommendation for repositories with multiple dependent build/type/test tasks. Hash the actual inputs and selected test set, including browser tasks. K…",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.8",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 187
+      },
+      "sourceHash": "246e39b57faf58f524b68930b7b1e4464e8418224bc049914f23abbb10029636",
+      "outcome": "JS/TS unit and tooling tests: Choose the runner matching the runtime and integration. Keep existing Bun tests or another runner when the same contracts are verified.",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.9",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 188
+      },
+      "sourceHash": "db6dc865285d96f33fe822b2a5457c6de82a5b490c2e4b8b507fdadef0b4481e",
+      "outcome": "Browser UI, reusable components and network boundaries: Use these where real-browser state, component stories, accessibility or simulated network boundaries apply. Include axe assertions for accessibility. They do not require a UI stack in a backe…",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.10",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 189
+      },
+      "sourceHash": "75c610c21b1af43c3bd75fe34c4eecf963526786c7da5ca5c3feb28a5a73e620",
+      "outcome": "Hosted CI and npm releases on GitHub: Run the maintained verification commands in CI. For npm staging, human approval and publication completion, follow the release policy; CI success or a published GitHub Release alone does not establish npm avai…",
+      "level": "required",
+      "toolChoice": "recommended; existing equivalent may remain",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.default-and-recommended-tools.11",
+      "source": {
+        "anchor": "default-and-recommended-tools",
+        "line": 191
+      },
+      "sourceHash": "397d89f789fa9a99522844c2223a08e8bb2e183753ae8e46c29761f084fcbd33",
+      "outcome": "The shared examples index provides copy instructions and tested starting points without another project checkout. For generated metadata and dependency resolution, use the generated-input exercise.",
+      "level": "guidance",
+      "domain": "local-gates",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Verify actual staged/history commands, tool integrity and local hook activation; tool existence alone is not enforcement."
+      }
+    },
+    {
+      "id": "development.reusing-evidence.1",
+      "source": {
+        "anchor": "reusing-evidence",
+        "line": 198
+      },
+      "sourceHash": "72f21018776d1357a754ae46d321de9eb4478cc6ccea2274fb64e94a9b3fa548",
+      "outcome": "A prior pass is reusable only for the contract it checked and with matching relevant inputs. Those inputs include implementation, helpers, configuration, dependency lockfiles, compiler/runtime versions and platform where they affect the result. Ca…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.reusing-evidence.2",
+      "source": {
+        "anchor": "reusing-evidence",
+        "line": 200
+      },
+      "sourceHash": "84bb934f66d22f71695405e1773b45b8fd4a587863451d6745f0fd701395487e",
+      "outcome": "Record which checks ran now, which results were reused and the input comparison supporting reuse. When inputs cannot be established, rerun the affected check. Fresh release requirements, external service state and time-sensitive checks follow the …",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.reusing-evidence.3",
+      "source": {
+        "anchor": "reusing-evidence",
+        "line": 202
+      },
+      "sourceHash": "6206f53a0c793358e97c06dc187f905d72581baf24b0786510da8cf092f6f487",
+      "outcome": "For notice-only or packaging-only changes, reuse runtime results only after comparing old and new archive members and confirming runtime/declaration inputs are unchanged. Always recheck the changed archive's payload, notices and metadata.",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.maintained-workflow-supply-and-ownership.1",
+      "source": {
+        "anchor": "maintained-workflow-supply-and-ownership",
+        "line": 207
+      },
+      "sourceHash": "3cc4f3816af267228d652e3ad4fb8af3c17572a00549f43bc175a5fa10f84851",
+      "outcome": "For private package repositories adopting the maintained Actions supply, use the standard roles `Source quality`, `Shared package quality` and `Publish private packages`. Ordinary source verification starts on main push, pull request and explicit …",
+      "level": "required",
+      "domain": "actions",
+      "scope": "private-consumption",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Reuse the recorded PR workflow and fixture results only for their exact scope; live main/check bindings remain unverified."
+      }
+    },
+    {
+      "id": "development.maintained-workflow-supply-and-ownership.2",
+      "source": {
+        "anchor": "maintained-workflow-supply-and-ownership",
+        "line": 209
+      },
+      "sourceHash": "1aa80b3bda63c486ba7a67e182bfea3f79f2f025ce2bc6025eaeb9fa29dd7c11",
+      "outcome": "Shared policy implementation and project-specific behavior MUST be visibly separate. Keep shared templates/tools in a reviewed, content-pinned local supply bundle, project command wiring in a schema-validated local adapter, and generated workflows…",
+      "level": "required",
+      "domain": "actions",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Reuse the recorded PR workflow and fixture results only for their exact scope; live main/check bindings remain unverified."
+      }
+    },
+    {
+      "id": "development.maintained-workflow-supply-and-ownership.3",
+      "source": {
+        "anchor": "maintained-workflow-supply-and-ownership",
+        "line": 211
+      },
+      "sourceHash": "2d1a4d22d01bd8af33b188bf2242765c99afdfb5851b1e5aa595f8c28df29e75",
+      "outcome": "Update supply explicitly after review; do not fetch mutable policy code during ordinary CI. Generate deliberately and verify freshness read-only, including missing/obsolete output and bundle integrity; checks never repair normal output. Preserve s…",
+      "level": "required",
+      "domain": "actions",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Reuse the recorded PR workflow and fixture results only for their exact scope; live main/check bindings remain unverified."
+      }
+    },
+    {
+      "id": "development.task-caches-and-release-evidence.1",
+      "source": {
+        "anchor": "task-caches-and-release-evidence",
+        "line": 215
+      },
+      "sourceHash": "b397429f720bb2f1223bcc2ff57d64493fd61442e303c2face2106da2e2803f0",
+      "outcome": "Use a task system's validated success cache, not copied pass messages. Hash the exact test selection as well as relevant source, helpers, configuration, resolved dependencies, generated inputs, runtime and execution environment. Browser keys inclu…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.task-caches-and-release-evidence.2",
+      "source": {
+        "anchor": "task-caches-and-release-evidence",
+        "line": 229
+      },
+      "sourceHash": "cd78617d6d39008842482a8e33d6a79e739cb603e37eb10b81a5cf378b90d3d2",
+      "outcome": "Keep cache trust separate from test selection. Pull-request or untrusted-branch results must not become authoritative main/release baselines or overwrite shared trusted cache entries. Bind reusable workflow evidence to the maintained repository/wo…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "evidence.public"
+        ],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.task-caches-and-release-evidence.3",
+      "source": {
+        "anchor": "task-caches-and-release-evidence",
+        "line": 231
+      },
+      "sourceHash": "1af076c27159fa5b7d00d9232afedd675324439d73bc2318378dd565a817077c",
+      "outcome": "Pass registry credentials required by isolated verification tasks through the task runner's explicit environment allowlist. Keep credential values out of task hashes, persistent configuration, logs and receipts; verify propagation with dummy value…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.task-caches-and-release-evidence.4",
+      "source": {
+        "anchor": "task-caches-and-release-evidence",
+        "line": 233
+      },
+      "sourceHash": "cf991c2bb077c26ba55fd9bf4bb738208b6423f236377083001075e489390df5",
+      "outcome": "Check execution identity when selecting an incremental baseline as well as when reusing source results for release. A changed runtime, compiler, browser, platform or runner image can invalidate an otherwise unchanged source selection. Missing hist…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.task-caches-and-release-evidence.5",
+      "source": {
+        "anchor": "task-caches-and-release-evidence",
+        "line": 235
+      },
+      "sourceHash": "bfb5c3b24f9377eaa8e92891707e3e31de7887ab73bc45bf2d0b668fd750d6d9",
+      "outcome": "A release may reuse authoritative source-quality evidence for its exact selected commit instead of rerunning unchanged browser/unit/type suites. Verify repository, workflow, event/branch, SHA and required successful job conclusions. A newer failed…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.agent-evaluation-evidence.1",
+      "source": {
+        "anchor": "agent-evaluation-evidence",
+        "line": 244
+      },
+      "sourceHash": "c7d925e8f853996eb2fb5b69923849b524c7da4f92c5affb4f04a8b8e5bcb247",
+      "outcome": "Live-model evaluation is a targeted check, not an automatic prerequisite for every release. Preserve an existing mandatory local gate until its owner authorizes a change. Report harness self-tests separately from actual model task results. Where e…",
+      "level": "required",
+      "domain": "agent-evaluation",
+      "scope": "live-evaluation",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Conditional on actual live evaluation; historical harness self-tests do not prove independently graded model results."
+      }
+    },
+    {
+      "id": "development.verify-what-consumers-receive.1",
+      "source": {
+        "anchor": "verify-what-consumers-receive",
+        "line": 256
+      },
+      "sourceHash": "cdd9d4ff9d0686750c610f75419a12aa73a5b2e1fdd454eb6dcb25bf2d7010ca",
+      "outcome": "For distributed libraries, verification of checkout source alone does not establish package usability. Install the selected archives in disposable consumers without production source aliases, workspace links or fallback resolution to checkout depe…",
+      "level": "required",
+      "domain": "distribution",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map all supported exports/formats/peers to isolated consumers; archive path inspection is not consumer verification."
+      }
+    },
+    {
+      "id": "development.verify-what-consumers-receive.2",
+      "source": {
+        "anchor": "verify-what-consumers-receive",
+        "line": 258
+      },
+      "sourceHash": "b73f5cd9818669f36afececd859e4b06802032bd0f9ece58a6b8172458053bad",
+      "outcome": "Test the supported formats, runtimes and entrypoints declared by that project, including required peers, providers and CSS. Missing optional integrations must not make unrelated entrypoints unusable. Verify exact production dependency constraints …",
+      "level": "required",
+      "domain": "distribution",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map all supported exports/formats/peers to isolated consumers; archive path inspection is not consumer verification."
+      }
+    },
+    {
+      "id": "development.standalone-implementation-contract.1",
+      "source": {
+        "anchor": "standalone-implementation-contract",
+        "line": 262
+      },
+      "sourceHash": "2a2fff2b4c32af023aca56b06846c07740053e1e3d733eb3694c11be29d2f79d",
+      "outcome": "Adoption must be possible from this policy and the shared skill/templates without access to AppKit, SiteKit or any other project's checkout. Another project's implementation is an example, never an undeclared prerequisite. Use the standalone verif…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.lifecycle-boundaries-and-ci-triggers.1",
+      "source": {
+        "anchor": "lifecycle-boundaries-and-ci-triggers",
+        "line": 266
+      },
+      "sourceHash": "3a82f7cc42e116ffaf0abd962f896a96b14cd0c0bdb5aeeb8c51bd67908a7686",
+      "outcome": "Keep stage transitions explicit. A commit gate checks staged secrets and source lint without rewriting files or staging state. A push gate verifies history/security and the maintained build/type/test/documentation contracts. CI enforces those same…",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.lifecycle-boundaries-and-ci-triggers.2",
+      "source": {
+        "anchor": "lifecycle-boundaries-and-ci-triggers",
+        "line": 268
+      },
+      "sourceHash": "0960202fa7fd9da407200b71de24c61c091352a6358021f80a45a7876b4d61aa",
+      "outcome": "For a new repository, a safe source-quality default is PRs targeting the integration branch, pushes to that branch, and explicit manual rechecks. Specify branch filters so an accompanying release-tag push does not repeat source quality. Feature-br…",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.lifecycle-boundaries-and-ci-triggers.3",
+      "source": {
+        "anchor": "lifecycle-boundaries-and-ci-triggers",
+        "line": 270
+      },
+      "sourceHash": "f9efc988e2a1faf8cc1b7b995097f9d9555c89bb3ee2c7f367504211d12d206d",
+      "outcome": "Cancel superseded source-quality runs only within the same PR/ref. Keep publication in its own serialized group with cancellation disabled. Set bounded job deadlines. A passing compatibility lane for an additional Node version does not replace the…",
+      "level": "required",
+      "domain": "boundaries",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Review declared dependencies, literal imports, computed resolution and package responsibilities."
+      }
+    },
+    {
+      "id": "development.coalescing-cloudflare-pages-deployments.1",
+      "source": {
+        "anchor": "coalescing-cloudflare-pages-deployments",
+        "line": 274
+      },
+      "sourceHash": "823a242dac877a718ccd9f964d209afe94299663e555c46c51cd8bb0957958c8",
+      "outcome": "When maintainers deliberately merge consecutive reviewed PRs into a Pages-connected production branch, an intermediate deployment may be omitted if a following merge will deploy the combined changes. Prefix the actual intermediate merge or squash …",
+      "level": "required",
+      "domain": "deployment",
+      "scope": "Pages-deployment",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Conditional on authorized Pages merges; no production branch or deployment verification is performed."
+      }
+    },
+    {
+      "id": "development.coalescing-cloudflare-pages-deployments.2",
+      "source": {
+        "anchor": "coalescing-cloudflare-pages-deployments",
+        "line": 282
+      },
+      "sourceHash": "9f39a804e730509022e6429241ab42dc6408d37831e85cf0dbdaeef85915a692",
+      "outcome": "Leave the final merge's commit message without a skip prefix. Confirm that it includes all deferred changes, then verify the resulting Pages deployment against that final commit. If the following merge is postponed, report the deferred changes as …",
+      "level": "required",
+      "domain": "deployment",
+      "scope": "Pages-deployment",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Conditional on authorized Pages merges; no production branch or deployment verification is performed."
+      }
+    },
+    {
+      "id": "development.coalescing-cloudflare-pages-deployments.3",
+      "source": {
+        "anchor": "coalescing-cloudflare-pages-deployments",
+        "line": 287
+      },
+      "sourceHash": "2364caf5b633676e6f9cd5603520e9215beea571fcf72391b7c157a4417d5922",
+      "outcome": "Keep required PR checks, security checks and branch protection intact. Apply the prefix at the intended production merge rather than broadly skipping PR previews or using a generic CI skip flag. Pages does not create a check run for a skipped buil…",
+      "level": "required",
+      "domain": "deployment",
+      "scope": "Pages-deployment",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Conditional on authorized Pages merges; no production branch or deployment verification is performed."
+      }
+    },
+    {
+      "id": "development.optional-task-caching-and-concrete-inputs.1",
+      "source": {
+        "anchor": "optional-task-caching-and-concrete-inputs",
+        "line": 295
+      },
+      "sourceHash": "b492253e893ec5b197983d977c31779848272d1b5d5735ac1e3f10bff9c246a7",
+      "outcome": "Turborepo is optional; a validated equivalent or conservative execution is acceptable. A Bun/npm download cache stores dependencies, not passing test evidence. A task-result cache must match the exact task/test selection, implementation, test/help…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.optional-task-caching-and-concrete-inputs.2",
+      "source": {
+        "anchor": "optional-task-caching-and-concrete-inputs",
+        "line": 297
+      },
+      "sourceHash": "ede11d57ec729bf05e40ed15dac6f8620301cf978f6c9636bf8cef6576c5f691",
+      "outcome": "Declare all outputs needed after restoration, including declarations, styles/notices and generated consumer files outside `dist` where applicable. Exclude generated outputs from their own inputs while including their canonical generators/sources. …",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.optional-task-caching-and-concrete-inputs.3",
+      "source": {
+        "anchor": "optional-task-caching-and-concrete-inputs",
+        "line": 299
+      },
+      "sourceHash": "2bfe496a00de0de023c2a2e24b9380ab512718502268c411317419375f862f87",
+      "outcome": "Distinguish reviewed source declarations from build-dependent checksum inventories. Keep the canonical declarations and generators under source control; keep generated build inventories out of tracked source when their hashes depend on the current…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.optional-task-caching-and-concrete-inputs.4",
+      "source": {
+        "anchor": "optional-task-caching-and-concrete-inputs",
+        "line": 301
+      },
+      "sourceHash": "98206f16eb1ebb28c418f0aea8158eaa425b7cbf77786aa5e9568e6aa05a52f2",
+      "outcome": "Prove a first miss, unchanged hit, byte restoration and misses after source, shared helper/config, dependency/lockfile, runtime/image or test-selection changes. Repeating a failed or accidentally empty required test task must fail again, not resto…",
+      "level": "required",
+      "domain": "reuse",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Existing cache and evidence regressions cover specified cases; complete task/input/output inventory and live main reuse need review."
+      }
+    },
+    {
+      "id": "development.local-gates-ci-and-security.1",
+      "source": {
+        "anchor": "local-gates-ci-and-security",
+        "line": 305
+      },
+      "sourceHash": "93001dd3aad0ac172994417bba69a866cdc7edd4af3e50cbb6b2d65e77b79167",
+      "outcome": "Keep installation reproducible with the owning lockfile and declared toolchain. Installation hooks, dependency scripts and root build ordering follow the project contract; shared policy does not authorize installing new hooks or rewriting user con…",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.local-gates-ci-and-security.2",
+      "source": {
+        "anchor": "local-gates-ci-and-security",
+        "line": 307
+      },
+      "sourceHash": "f9c8ab20eb23e37edc410dec58b109476304d5207649ea4f3295e2ef89131445",
+      "outcome": "Preserve existing secret, lint, type, test, compatibility and distribution gates. Shared adoption must identify missing coverage, not silently disable a stronger local check. Record CI's actual trigger and scope: a job that runs after a main push …",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.local-gates-ci-and-security.3",
+      "source": {
+        "anchor": "local-gates-ci-and-security",
+        "line": 309
+      },
+      "sourceHash": "7ebbe675c24baf53872d4d02127a1a84283133ac40b352bff0b72d21c047eddf",
+      "outcome": "Keep operational receipts ignored and out of packages and public documentation manifests. Review any copy selected for sharing; do not upload raw verification logs just because their directory is ignored. Secret scans should redact matches. Clean …",
+      "level": "required",
+      "domain": "change-selection",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "evidence.public"
+        ],
+        "reason": "Map the complete linked clause to maintained project commands and scoped behavior evidence."
+      }
+    },
+    {
+      "id": "development.operational-evidence-and-secret-isolation.1",
+      "source": {
+        "anchor": "operational-evidence-and-secret-isolation",
+        "line": 313
+      },
+      "sourceHash": "6db934f09ea676b3ef138c2d067359701954858e4976cc2ec95be12d7c66a336",
+      "outcome": "Operational receipts, verification logs, and infrastructure secrets must remain strictly isolated and protected:",
+      "level": "guidance",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "evidence.public"
+        ],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.operational-evidence-and-secret-isolation.2",
+      "source": {
+        "anchor": "operational-evidence-and-secret-isolation",
+        "line": 314
+      },
+      "sourceHash": "71f0612f49511e704d0f0d56327b0438f05d130b1f623b3b9f6fea6bd84a7324",
+      "outcome": "Keep temporary fixtures in `.verification/tmp` and raw logs in `.verification/logs`.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "evidence.public"
+        ],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.operational-evidence-and-secret-isolation.3",
+      "source": {
+        "anchor": "operational-evidence-and-secret-isolation",
+        "line": 315
+      },
+      "sourceHash": "824c51faaa45415320746e1f6f30cb5ef7111ec4c91fb0d1687a4bf4d3855978",
+      "outcome": "Both directories must be strictly gitignored and excluded from package files (`files` field in `package.json`) and documentation manifests.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "evidence.public"
+        ],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.operational-evidence-and-secret-isolation.4",
+      "source": {
+        "anchor": "operational-evidence-and-secret-isolation",
+        "line": 316
+      },
+      "sourceHash": "5b45f94ac35be1cd6f842e75b4e126c05646246d3ce23aeac4bb486fa15b15af",
+      "outcome": "Ignored is not automatically safe to share: Receipts and logs frequently capture local absolute paths, environment variables, network endpoints, or sensitive test data. Never upload raw `.verification/` logs as public CI artifacts, tarball content…",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "inspector",
+        "checks": [
+          "evidence.public"
+        ],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.operational-evidence-and-secret-isolation.5",
+      "source": {
+        "anchor": "operational-evidence-and-secret-isolation",
+        "line": 317
+      },
+      "sourceHash": "edc8250ab6c39314c8f738934f80a2c7e26dce462a57b1fb14de7c2468824ae5",
+      "outcome": "When sharing verification evidence, inspect, sanitize, and redact credentials or private details.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.1",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 321
+      },
+      "sourceHash": "fa3f2b2fb2d83eab7d9e1f0e7813a618fa1aef06f73765a7942a89351d10bee7",
+      "outcome": "In server-side, multi-tenant, and cloud infrastructure integration projects, enforce a strict separation between configuration skeletons and concrete secrets:",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.2",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 322
+      },
+      "sourceHash": "02949b4e89cf90f216f219ee671d5ff2bee45de8c0bd0252b01fcfbe20b9b0aa",
+      "outcome": "No hardcoded secrets or environment-specific identifiers in shared code:",
+      "level": "guidance",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.3",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 323
+      },
+      "sourceHash": "b7a3cb9c4b758b240f41ae6cbcd0cfe29bf0c4e113556d1c78d636a4a4f22534",
+      "outcome": "Shared repositories, public frameworks, and generation templates must never hardcode concrete cloud identifiers (such as provider resource IDs, cloud OCIDs/ARNs, private IP addresses, or tenant IDs), database connection passwords, SSH private keys…",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.4",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 324
+      },
+      "sourceHash": "1cf66f03cd136fdafebb1dc35de4ff6bb8a49d9d26e1954892e050845fb044b0",
+      "outcome": "Template generators must generate only non-sensitive architectural skeletons, accepting secret keys and identifier bindings strictly from external configuration inputs.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.5",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 325
+      },
+      "sourceHash": "0b26c2c806ba3c4437137259e2b1c7710bcf7dc4177b4a50bd741e5007d429ff",
+      "outcome": "Resolution via host adapters and key references only:",
+      "level": "guidance",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.6",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 326
+      },
+      "sourceHash": "78f0a3195f7a1e119f8356acac30671a88beda440608dd2986cc7aeecd5b1f7c",
+      "outcome": "Configuration files (such as platform manifests or deployment descriptors) must declare only the reference key names (e.g. `REGISTRY_PASSWORD_KEY`, `DATABASE_PASSWORD_KEY`), never the actual plaintext secret values.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.7",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 327
+      },
+      "sourceHash": "f84740021d813a2dd6221676002f4a09f64e128bb6fe0bb5615053988dea17d9",
+      "outcome": "The actual resolution of secret bytes is delegated entirely to runtime environment adapters (e.g. host-level secret files, external secret managers, or cloud vault services).",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.8",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 328
+      },
+      "sourceHash": "fb9fb16438c41af8fddbb6b8fc6cda4867f6e092bc3d457a27f6daf152954e6a",
+      "outcome": "Generators and CLI tools must never make external network calls to fetch live production secrets during manifest generation or offline validation.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.9",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 329
+      },
+      "sourceHash": "304332dbaf5f87cb1d5c3c1536c9bcd6527a9c031998eb286b6e67d6ff0a473b",
+      "outcome": "Fail-closed secret resolution & no secret leakage in diagnostics:",
+      "level": "guidance",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.10",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 330
+      },
+      "sourceHash": "52bc18d983d02e9d4dbc26c36e75b9db7dd0c7e41cf8d3da372ebd8f9fc29e4f",
+      "outcome": "Missing, invalid, or empty secret values must result in an immediate fail-closed stop; tools must never fall back to default, empty, or dummy credentials in production execution paths.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.11",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 331
+      },
+      "sourceHash": "52930fbc08ba2750feff706284b9a85173360dc8fdcfefc61da115fac669a8a7",
+      "outcome": "Diagnostic logs, CLI error outputs, and stack traces must strictly redact secret values and must never echo raw secret bytes.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.12",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 332
+      },
+      "sourceHash": "8921d2b5cbdae94a934b8ee475c710a1afda678af57d4487e3b2afc9c7db55fe",
+      "outcome": "Private documentation isolation for operations & secrets:",
+      "level": "guidance",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.13",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 333
+      },
+      "sourceHash": "69cedcb1c162a129df65d8ad86c96d984c0c885567b4fccf507bc350bce1cadc",
+      "outcome": "Concrete operational procedures, secret injection guides, SSH bastion routing details, and deployment playbooks belong exclusively in private repositories.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.infrastructure-application-secret-isolation.14",
+      "source": {
+        "anchor": "infrastructure-application-secret-isolation",
+        "line": 334
+      },
+      "sourceHash": "9b4f8d68a848a602fb99e6940fabac19ceb049140124066d93b1fff2f9dc1809",
+      "outcome": "They must never be published to public documentation portals.",
+      "level": "required",
+      "domain": "security",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Inspect actual private/public boundaries, current archive payloads, redaction and fail-closed host secret resolution."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.1",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 338
+      },
+      "sourceHash": "4f01e582082eea7466dfa2140ae65dddf4d379a0045c977f6a62758a6f7c0736",
+      "outcome": "[!NOTE]",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.2",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 339
+      },
+      "sourceHash": "a2a9d770e2a7dd77fa7d6578e2bb230da761a8c883a6d50875b8d909e70bfce3",
+      "outcome": "Applicability Scope: The clauses in this section apply exclusively to projects implementing persistent backend services, multi-tenant databases, server-side APIs, and background job workers. They do not apply to client-only libraries, frontend UI …",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.3",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 341
+      },
+      "sourceHash": "7590a811f3b1b7683a98fe7dcb2ed6fafc2dabb85c79b62847aaf8114c505cd1",
+      "outcome": "For qualifying server projects, adhere to the following architectural boundaries and operational rules:",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.4",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 343
+      },
+      "sourceHash": "b136a452495eef41c34322c337326f8711b7fc3ae4ac4a8281b065b4ad916903",
+      "outcome": "Layered runtime boundaries (`core` / `server` / `client` / `cli`):",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.5",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 344
+      },
+      "sourceHash": "1c4000fc4c0e536e34cc57f075b90d4b928dd9899527431064a1fb53321aa18d",
+      "outcome": "Core layer: Must remain pure TypeScript/JavaScript containing schemas, contracts, domain logic, and validation rules. It must never import Node-only APIs (`fs`, `child_process`), database drivers, or UI frameworks.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.6",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 345
+      },
+      "sourceHash": "724c588628cc6f257d6745832ac2f4cc03ca906ba71734d6fea542068449a9b1",
+      "outcome": "Server layer: Encapsulates database adapters, HTTP endpoints, lifecycle engines, and storage drivers. Never leak server-only database models or private connection instances to client/browser packages.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.7",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 346
+      },
+      "sourceHash": "882729afd10622e32a85e40fe0383d340c4edb525e8d257457d1fe61451e74dd",
+      "outcome": "Client layer: Browser/UI bindings and HTTP API clients. Must never depend on server internals or raw database drivers.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.8",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 347
+      },
+      "sourceHash": "8c9abd8b239a47e963ef1b8aa01a882c68de8ab95a94ad21571ef8b2c40c5d0f",
+      "outcome": "CLI / Tooling layer: Build-time tools and generator scripts, separate from runtime production dependencies.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.9",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 348
+      },
+      "sourceHash": "fa3939c711cc9343e24fcac085b2ea8ef1d857a8f4dedba304b707c45e4a97bc",
+      "outcome": "Multi-tenant isolation & data boundary enforcement:",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.10",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 349
+      },
+      "sourceHash": "3114143d8b602fb916378bfdd861f2233d1bfb68bdd1cecfbdbb895606cb73a2",
+      "outcome": "Every tenant-scoped persistent database table must include an explicit, non-nullable `tenant_id` column.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.11",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 350
+      },
+      "sourceHash": "ae308eb285d17fd7c6f01dcf8d9d880d572aa2b92483d032d1e4197e39097ce3",
+      "outcome": "Primary keys, unique constraints, foreign keys, and indexes must incorporate `tenant_id` to guarantee tenant isolation at the database layer (preventing cross-tenant collision or leakage).",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.12",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 351
+      },
+      "sourceHash": "ce87136f67c24be1a7c0692ca65e050d218b259286dd93a2fdc870dcebce7019",
+      "outcome": "Application requests, MCP tools, and background jobs must resolve tenant context from verified session credentials, never trusting tenant IDs or administrative roles passed unverified in client request bodies or query parameters.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.13",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 352
+      },
+      "sourceHash": "7390aadfab3739ea904335acd1e26fb61ccb45ce8903b877011491ff5a82a130",
+      "outcome": "Database migrations, control plane locks & DDL safety:",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.14",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 353
+      },
+      "sourceHash": "2121dce1cc7e86a7fecb4e0bd2ce121a22bc100a4ba9609c3ece86c76a62b491",
+      "outcome": "No automated DDL during build or install: Build scripts, package installations, unit tests, and application startup routines must never automatically execute production database DDL migrations or infrastructure provisioning.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.15",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 354
+      },
+      "sourceHash": "d5b2cb416fdddad4025e8501b331ec7579cc9ab898b0803e2d4a67252cd2c872",
+      "outcome": "Privileged control plane state: Migration state, module enablement, and platform lifecycle must be managed in a dedicated control plane store with durable, atomic writer locks and revision CAS (Compare-And-Swap).",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.16",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 355
+      },
+      "sourceHash": "121cb2b6ab65c8cb487141896a75178f3076e55cd6f4ded07328f0969a526d19",
+      "outcome": "Atomic lock fail-closed behavior: Control plane locks must not automatically expire or be forcefully bypassed on crash; reconciliation and operator review are required before re-acquiring lock tokens.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.17",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 356
+      },
+      "sourceHash": "986ef1428e8b2485f9d8c2bd9f69c523b2a1270f14f0141ae947958985d216fa",
+      "outcome": "State transitions and business workflow contracts:",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.18",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 357
+      },
+      "sourceHash": "ebb9d59f3a097d3066975ff43a706c6d6957c766b6f46e2f66474a9a5a64984f",
+      "outcome": "Domain records subject to legal, financial, or operational lifecycles must not be modified via generic status updates (e.g. `PATCH /entity { status: \"approved\" }` is prohibited).",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.19",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 358
+      },
+      "sourceHash": "72c7b79c40a1d29b07bc35f254c62d72d554b3165214b48ce0a87ee860ac6678",
+      "outcome": "State transitions must be modeled as explicit domain commands with validated JSON Schemas, verifying current revision (CAS), actor permissions, and required audit evidence before applying side effects.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.20",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 359
+      },
+      "sourceHash": "4ba6862c352fed0f8da548cb9ce06a849f8adb4656871116eefdf5b4117cf2dd",
+      "outcome": "External integration side effects (e.g. payments, notification delivery) must employ transactional outbox patterns with idempotency keys and verifiable receipts.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.21",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 360
+      },
+      "sourceHash": "b8248549a0400d6ce2684adfcbc85e722e0cfcf49919fd090036f2d12f3e9cc2",
+      "outcome": "Cache invalidation and admission control:",
+      "level": "guidance",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.22",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 361
+      },
+      "sourceHash": "36aa270b32f842bb937fc3fefca8098c7640639e1bf2c3fc2fbf35402831c040",
+      "outcome": "Process-local or distributed caches must be scoped by tenant, plugin/service, and user identity (`{tenantId, serviceId, userId}`).",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.server-side-architecture-multi-tenancy-and-data-integrity-server-standards.23",
+      "source": {
+        "anchor": "server-side-architecture-multi-tenancy-and-data-integrity-server-standards",
+        "line": 362
+      },
+      "sourceHash": "74a775b1b2abbeadccd0bc9cb6b06b130abffbb728f7daecae63ec844140f167",
+      "outcome": "Cache hits must re-verify live principal authorization and permission versions before returning data, preventing stale privilege retention.",
+      "level": "required",
+      "domain": "server",
+      "scope": "backend",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Backend-only scope requires owner review; verify each tenant/CAS/DDL/outbox/permission invariant in its actual execution environment."
+      }
+    },
+    {
+      "id": "development.completion-and-authority.1",
+      "source": {
+        "anchor": "completion-and-authority",
+        "line": 366
+      },
+      "sourceHash": "7e6efd60703b9f33f3e371a1dd45fecf8df7a8abe368be1e013585980e111ebd",
+      "outcome": "Report the resulting behavior, actual commands/results, reused evidence and material gaps. Distinguish a completed edit from a passing release gate or a deployed change. A blocked required check stays visible in the handoff.",
+      "level": "required",
+      "domain": "authority",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Human authorization and accurate handoffs require actual decisions and scoped evidence; automation cannot certify its own authority."
+      }
+    },
+    {
+      "id": "development.completion-and-authority.2",
+      "source": {
+        "anchor": "completion-and-authority",
+        "line": 368
+      },
+      "sourceHash": "0d30b90a3c743b21b9d309374e1c967ed66d55ff3a9e5d06222686a99f2b1ff2",
+      "outcome": "Development authorization covers the requested edits and necessary local verification. It does not by itself authorize commits, pushes, tags, registry writes or deployments. Honor explicit authorization already given in the session; do not repeate…",
+      "level": "required",
+      "domain": "authority",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Human authorization and accurate handoffs require actual decisions and scoped evidence; automation cannot certify its own authority."
+      }
+    },
+    {
+      "id": "development.completion-and-authority.3",
+      "source": {
+        "anchor": "completion-and-authority",
+        "line": 370
+      },
+      "sourceHash": "6f070780eee74e321cf4f690ab449a239186a9d6afe545e240a24d9a8d84cda2",
+      "outcome": "Documentation ownership and authoring remain governed by the existing documentation policy. Release candidate selection and publication follow the release policy and local `RELEASING.md`.",
+      "level": "required",
+      "domain": "authority",
+      "scope": "all-public",
+      "owner": "owning public maintainers",
+      "verification": {
+        "mode": "existing-tests",
+        "checks": [],
+        "reason": "Human authorization and accurate handoffs require actual decisions and scoped evidence; automation cannot certify its own authority."
+      }
+    }
+  ]
+}

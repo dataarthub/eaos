@@ -66,3 +66,19 @@ Normal source verification reads a fingerprint-bound plan from the shared select
 The plan records selected and omitted package tests separately from cache hits. It is checked against the current source fingerprint, commit and actual execution environment before execution. Local snapshots never establish official main or Release success.
 
 EAOS keeps the existing guarded memory/deadline and latest-invocation rules. The selected source gate narrows package test commands; explicit `bun run check` remains full. Boundary, release-impact, lint, tooling and documentation gates remain in place. Builds and exact-archive consumer checks still cover the coupled five-package consumer contract, including its browser/a11y matrix; package selection does not claim those coupled checks were narrowed.
+
+## Development policy inventory
+
+The pinned `development-requirements.json` maps every clause of the reviewed shared development policy. It is descriptive evidence mapping, not a project policy profile or permission to omit a mandatory gate. `conformance:check` inspects active dependency groups, literal imports, TypeScript aliases, ignored evidence paths and declared documentation/artifact inputs. Computed module resolution and untested UI, database, authorization and human-review contracts remain explicitly unverified.
+
+Run `bun run conformance:audit` for the complete clause inventory, existing test candidates, current source/environment identity and read-only hook status. Add `--probe-commit` to exercise the actual commit command in disposable repositories: clean and invalid index contents, a synthetic secret, missing scanner configuration and missing scanner binary. The probe preserves working files and index bytes and does not activate hooks. Existing secret/history scans remain fresh outside deterministic task caches.
+
+The shared commit gate scans staged bytes and lints an isolated index snapshot. Hook files call the maintained commands; having hook files does not establish local activation. Inspect the audit result before claiming hooks run automatically. The source workflow performs dependency-free supply preflight, then critical inspection through its maintained selector after dependency restoration. Required failures stop the gate; inventory entries without behavioral proof are never reported as a full policy pass.
+
+Conformance verification selects bounded tooling/commit probes for relevant verifier, hook or configuration changes. Ordinary prose and unrelated package changes do not select browser or database suites. Actual archive inspection is available with `node scripts/workflow-supply/public/policy-critical.mjs --archive <archive.tgz>`; it checks member paths/types and identity, and does not replace the existing isolated consumers, license/notices, scanner or fresh registry checks.
+
+### Bounded GitHub policy diagnostics
+
+Manually dispatch `ci.yml` on the reviewed branch with `verification_mode=conformance` to exercise shared/owning selector regressions and the actual commit gate on Node 24 and 26. An identical second deterministic task must reuse success; ordinary prose selects no extra probes. Use `verification_mode=negative` separately to run a clean control and then stage a synthetic secret in disposable repositories. The required step must fail with `indexed-secret-blocked`, and the downstream success sentinel must be skipped. Diagnostic concurrency is isolated from normal source verification.
+
+The default `full` mode and normal PR/main gates retain existing checks. Diagnostics do not run product/browser/DB suites, save remote task caches or issue authoritative source evidence. Their artifacts record scoped results, not full policy compliance. Before merging, satisfy the normal required PR checks independently.

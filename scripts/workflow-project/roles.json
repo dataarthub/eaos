@@ -496,6 +496,10 @@
         "biome.json",
         ".gitleaks.toml"
       ]
-    }
+    },
+    "toolSetup": "secrets:setup",
+    "selectionTests": [
+      "scripts/package-selection.test.mjs"
+    ]
   }
 }

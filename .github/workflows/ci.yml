@@ -1,20 +1,93 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base ec4ae8b46d5f9df5e2e196a8a753b9457813e4f6 (local-reviewed).
-# Bundle SHA-256: 32a0e982d576bd6c9724ee70645a299adb7d4abf593a920e609f0e908a86748e
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 3f329a8ea1eaf379420d648bbf5c994fd1274a0f (local-reviewed).
+# Bundle SHA-256: 838bc218d37462c2ac3515d651d0e77df0ed5b000653850824f5ce2b139f3e8a
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Source quality"
+run-name: "${{ github.event_name == 'workflow_dispatch' && inputs.verification_mode != 'full' && format('Policy {0} ({1})', inputs.verification_mode, github.ref_name) || 'Source quality' }}"
 on:
   push:
     branches:
       - "main"
   pull_request: null
-  workflow_dispatch: null
+  workflow_dispatch:
+    inputs:
+      verification_mode:
+        description: "Full project verification or bounded policy diagnostics (never official source evidence)"
+        type: "choice"
+        required: true
+        default: "full"
+        options:
+          - "full"
+          - "conformance"
+          - "negative"
 permissions:
   contents: "read"
   actions: "read"
 concurrency:
-  group: "source-quality-${{ github.event.pull_request.number || github.ref }}"
+  group: "${{ github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative') && format('policy-diagnostics-{0}-{1}', inputs.verification_mode, github.ref) || format('source-quality-{0}', github.event.pull_request.number || github.ref) }}"
   cancel-in-progress: true
 jobs:
   verify:
+    if: "${{ github.event_name != 'workflow_dispatch' || inputs.verification_mode == '' || inputs.verification_mode == 'full' }}"
     uses: "./.github/workflows/package-quality.yml"
+  conformance:
+    name: "Verify policy (Node ${{ matrix.node }})"
+    if: "${{ github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative') }}"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 15
+    permissions:
+      contents: "read"
+      actions: "read"
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 24
+          - 26
+    steps:
+      -
+        name: "Shared: Check out selected public commit"
+        uses: "actions/checkout@v6"
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      -
+        name: "Shared: Set up conformance runtime"
+        uses: "actions/setup-node@v6"
+        with:
+          node-version: "${{ matrix.node }}"
+          package-manager-cache: false
+      -
+        name: "Shared: Set up pinned Bun"
+        uses: "oven-sh/setup-bun@v2"
+        with:
+          bun-version: "1.4.3"
+      -
+        name: "Shared: Verify pinned supply before installation"
+        run: "node scripts/workflow-supply/public/conformance.mjs check --project-root . --configuration-only"
+      -
+        name: "Project: Restore declared dependencies"
+        run: "bun install --frozen-lockfile --ignore-scripts --linker hoisted"
+      -
+        name: "Project: Prepare pinned policy tools"
+        run: "bun run secrets:setup"
+      -
+        name: "Shared: Required policy gate"
+        id: "required-policy-gate"
+        env:
+          POLICY_DIAGNOSTIC_MODE: "${{ inputs.verification_mode }}"
+        run: "node scripts/workflow-supply/public/policy-ci.mjs"
+      -
+        name: "Shared: Downstream success sentinel"
+        id: "downstream-sentinel"
+        run: "node -e \"console.log('Required gate passed; downstream reached')\""
+      -
+        name: "Shared: Preserve bounded policy diagnostics"
+        if: "${{ always() }}"
+        uses: "actions/upload-artifact@v7"
+        with:
+          name: "policy-diagnostics-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}"
+          path: ".verification/policy-ci.json"
+          include-hidden-files: true
+          if-no-files-found: "warn"
+          retention-days: 14

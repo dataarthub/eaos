@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync,cpSync,realpathSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -38,3 +38,28 @@ test('project fragments cannot authorize direct publish, PR writers or unverifia
   const p=structuredClone(project);mutate(p);writeFileSync(file,JSON.stringify(p));assert.throws(()=>install(root,{source,reviewedRevision:'a'.repeat(40)}));
  }
 }));
+
+test('external supplier code cannot generate or certify a different pinned bundle',()=>fixture(root=>{
+ install(root,{source,reviewedRevision:'a'.repeat(40)});
+ const foreign=realpathSync(mkdtempSync(join(tmpdir(),'foreign-supply-')));
+ try{
+  cpSync(source,foreign,{recursive:true});
+  const renderer=join(foreign,'public/render.mjs');writeFileSync(renderer,readFileSync(renderer,'utf8').replace("name:'Source quality'","name:'Different source quality'"));
+  const manifest=join(root,'.github/workflow-supply.json'),workflow=join(root,'.github/workflows/ci.yml'),before=[readFileSync(manifest),readFileSync(workflow)];
+  for(const command of ['generate','check']){const result=spawnSync(process.execPath,[join(foreign,'public/supply.mjs'),command,'--project-root',root],{encoding:'utf8'});assert.notEqual(result.status,0);assert.match(result.stderr,/pinned|selected reviewed/i);assert.deepEqual([readFileSync(manifest),readFileSync(workflow)],before);}
+  assert.throws(()=>install(root,{source:foreign,reviewedRevision:'b'.repeat(40)}),/pinned|selected reviewed/i);
+ }finally{rmSync(foreign,{recursive:true,force:true});}
+}));
+
+test('required source runtimes cannot be excluded or allowed to fail',()=>fixture((root,project)=>{
+ const file=join(root,'scripts/workflow-project/roles.json');
+ for(const mutate of [p=>p.source.jobs.verify.strategy.matrix.exclude=[{node:26}],p=>p.source.jobs.verify.strategy.matrix.include=[{node:28}],p=>p.source.jobs.verify['continue-on-error']=true,p=>p.source.jobs.verify.steps.find(s=>s.run)['continue-on-error']=true]){
+  const value=structuredClone(project);mutate(value);writeFileSync(file,JSON.stringify(value));assert.throws(()=>install(root,{source,reviewedRevision:'a'.repeat(40)}),/runtime|failure/i);
+ }
+}));
+
+import {createHash as policyHash} from 'node:crypto';
+test('explicit upgrade accepts the intact previous inventory but ordinary checks reject missing policy contracts',()=>fixture(root=>{
+ install(root,{source,reviewedRevision:'a'.repeat(40)});const file=join(root,'.github/workflow-supply.json'),m=JSON.parse(readFileSync(file));m.files=Object.fromEntries(Object.entries(m.files).slice(0,16));m.bundleSha256=policyHash('sha256').update(JSON.stringify(m.files)).digest('hex');writeFileSync(file,JSON.stringify(m));assert.throws(()=>check(root));install(root,{source,reviewedRevision:'b'.repeat(40)});assert.deepEqual(check(root),[]);
+}));
+test('manual conformance mode covers Node 24/26 without bypassing normal PR gates or issuing authoritative evidence',()=>fixture(root=>{install(root,{source,reviewedRevision:'a'.repeat(40)});const ci=parse(join(root,'.github/workflows/ci.yml'));assert.deepEqual(ci.on.workflow_dispatch.inputs.verification_mode.options,['full','conformance','negative']);assert.equal(ci.on.workflow_dispatch.inputs.verification_mode.default,'full');assert.match(ci.concurrency.group,/policy-diagnostics-/);assert.match(ci.concurrency.group,/inputs.verification_mode/);assert.match(ci.jobs.verify.if,/github.event_name != 'workflow_dispatch'/);const job=ci.jobs.conformance;assert.deepEqual(job.strategy.matrix.node,[24,26]);assert.match(job.if,/github.event_name == 'workflow_dispatch'/);assert(!JSON.stringify(job).includes('quality.mjs record'));assert(!JSON.stringify(job).includes('playwright install'));assert(!JSON.stringify(job).includes('cache/save'));assert(job.steps.some(s=>s.id==='required-policy-gate'));assert(job.steps.some(s=>s.id==='downstream-sentinel'&&!s.if));}));

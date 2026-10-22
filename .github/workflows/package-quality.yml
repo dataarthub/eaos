@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base ec4ae8b46d5f9df5e2e196a8a753b9457813e4f6 (local-reviewed).
-# Bundle SHA-256: 32a0e982d576bd6c9724ee70645a299adb7d4abf593a920e609f0e908a86748e
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 3f329a8ea1eaf379420d648bbf5c994fd1274a0f (local-reviewed).
+# Bundle SHA-256: 838bc218d37462c2ac3515d651d0e77df0ed5b000653850824f5ce2b139f3e8a
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Shared package quality"
@@ -34,7 +34,7 @@ jobs:
         name: "Shared: oven-sh/setup-bun@v2"
       -
         name: "Shared: Verify generated workflow supply"
-        run: "node scripts/workflow-supply/public/conformance.mjs check --project-root ."
+        run: "node scripts/workflow-supply/public/conformance.mjs check --project-root . --configuration-only"
       -
         run: "bun install --frozen-lockfile --ignore-scripts --linker hoisted"
         name: "Project: Run declared project check"

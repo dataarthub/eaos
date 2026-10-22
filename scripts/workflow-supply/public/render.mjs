@@ -20,6 +20,7 @@ function guardJobs(jobs,{source=false}={}){
   const saves=[];
   assert(job&&Array.isArray(job.steps)&&job.steps.length,'Each project job needs concrete steps');
   if(source){assert(!Object.values(job.permissions??{}).includes('write'),'Source jobs cannot write');assert(!job.if,'Required source runtime jobs cannot be skipped');}
+  if(source){assert(job['continue-on-error']===undefined||job['continue-on-error']===false,'Required source runtime failure cannot be ignored');const matrix=job.strategy?.matrix;assert(!matrix?.exclude?.length&&!matrix?.include?.length,'Required source runtime matrix cannot alter declared coverage with include/exclude');for(const step of job.steps)assert(step['continue-on-error']===undefined||step['continue-on-error']===false,'Required source step failure cannot be ignored');}
   for(const s of job.steps){
    if(s.uses?.startsWith('actions/checkout@')){s.uses='actions/checkout@v6';s.with={...s.with,'persist-credentials':false,...(source?{'fetch-depth':0}:{})};}
    if(s.uses?.startsWith('actions/setup-node@')){s.uses='actions/setup-node@v6';s.with={...s.with,'package-manager-cache':false};}
@@ -40,7 +41,7 @@ function guardJobs(jobs,{source=false}={}){
    assert(first>=0,'Source quality must check out source');
    // The project controls toolchain setup; verify the bundle before its first command.
    const before=job.steps.findIndex((s,i)=>i>first&&s.run);
-   job.steps.splice(before<0?first+1:before,0,{name:'Shared: Verify generated workflow supply',run:'node scripts/workflow-supply/public/conformance.mjs check --project-root .'});
+   job.steps.splice(before<0?first+1:before,0,{name:'Shared: Verify generated workflow supply',run:'node scripts/workflow-supply/public/conformance.mjs check --project-root . --configuration-only'});
   }
   job['timeout-minutes']??=35;
  }
@@ -67,7 +68,21 @@ export function render(adapter,project){
  guardJobs(p.source.jobs,{source:true});guardRelease(p.publish.jobs,a.repository);
  const result=new Map(),add=(role,body)=>result.set('.github/workflows/'+roles[role].file,yaml({name:roles[role].name,...body}));
  const permissions={contents:'read',actions:'read'};
- add('source',{on:{push:{branches:['main']},pull_request:null,workflow_dispatch:p.source.dispatch??null},permissions,concurrency:{group:'source-quality-${{ github.event.pull_request.number || github.ref }}','cancel-in-progress':true},jobs:{verify:{uses:'./.github/workflows/package-quality.yml',...(p.source.dispatch?{with:{packed_consumer:expr('inputs.packed_consumer == true')}}:{})}}});
+ const full="github.event_name != 'workflow_dispatch' || inputs.verification_mode == '' || inputs.verification_mode == 'full'";
+ const dispatch={...p.source.dispatch,inputs:{...p.source.dispatch?.inputs,verification_mode:{description:'Full project verification or bounded policy diagnostics (never official source evidence)',type:'choice',required:true,default:'full',options:['full','conformance','negative']}}};
+ const install=p.source.jobs.verify.steps.find(step=>/^bun install /.test(step.run??''))?.run??'bun install --frozen-lockfile --ignore-scripts';
+ const diagnostics={name:'Verify policy (Node ${{ matrix.node }})',if:expr("github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative')"),'runs-on':'ubuntu-latest','timeout-minutes':15,permissions,strategy:{'fail-fast':false,matrix:{node:[24,26]}},steps:[
+  {name:'Shared: Check out selected public commit',uses:'actions/checkout@v6',with:{'fetch-depth':0,'persist-credentials':false}},
+  {name:'Shared: Set up conformance runtime',uses:'actions/setup-node@v6',with:{'node-version':'${{ matrix.node }}','package-manager-cache':false}},
+  {name:'Shared: Set up pinned Bun',uses:'oven-sh/setup-bun@v2',with:{'bun-version':a.runtime.bunVersion}},
+  {name:'Shared: Verify pinned supply before installation',run:'node scripts/workflow-supply/public/conformance.mjs check --project-root . --configuration-only'},
+  {name:'Project: Restore declared dependencies',run:install},
+  {name:'Project: Prepare pinned policy tools',run:'bun run '+(p.conformance?.toolSetup??'secrets:setup')},
+  {name:'Shared: Required policy gate',id:'required-policy-gate',env:{POLICY_DIAGNOSTIC_MODE:'${{ inputs.verification_mode }}'},run:'node scripts/workflow-supply/public/policy-ci.mjs'},
+  {name:'Shared: Downstream success sentinel',id:'downstream-sentinel',run:'node -e "console.log(\'Required gate passed; downstream reached\')"'},
+  {name:'Shared: Preserve bounded policy diagnostics',if:'${{ always() }}',uses:'actions/upload-artifact@v7',with:{name:'policy-diagnostics-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}',path:'.verification/policy-ci.json','include-hidden-files':true,'if-no-files-found':'warn','retention-days':14}}
+ ]};
+ add('source',{'run-name':expr("github.event_name == 'workflow_dispatch' && inputs.verification_mode != 'full' && format('Policy {0} ({1})', inputs.verification_mode, github.ref_name) || 'Source quality'"),on:{push:{branches:['main']},pull_request:null,workflow_dispatch:dispatch},permissions,concurrency:{group:expr("github.event_name == 'workflow_dispatch' && (inputs.verification_mode == 'conformance' || inputs.verification_mode == 'negative') && format('policy-diagnostics-{0}-{1}', inputs.verification_mode, github.ref) || format('source-quality-{0}', github.event.pull_request.number || github.ref)"),'cancel-in-progress':true},jobs:{verify:{if:expr(full),uses:'./.github/workflows/package-quality.yml',...(p.source.dispatch?{with:{packed_consumer:expr('inputs.packed_consumer == true')}}:{})},conformance:diagnostics}});
  add('quality',{on:{workflow_call:{...(p.source.dispatch?{inputs:{packed_consumer:{type:'boolean',default:false}}}:{})}},permissions,jobs:p.source.jobs});
  add('publish',{...(p.publish['run-name']?{'run-name':p.publish['run-name']}:{}),on:{release:{types:['published']},workflow_dispatch:{inputs:{staged_run:{description:'Original successful staging run ID after human npm approval',required:true,type:'string'}}}},permissions:{contents:'read'},...(p.publish.env?{env:p.publish.env}:{}),concurrency:{group:a.repository.split('/')[1]+'-npm-release','cancel-in-progress':false},jobs:p.publish.jobs});
  if(p.complete){guardJobs(p.complete.jobs);for(const job of Object.values(p.complete.jobs)){

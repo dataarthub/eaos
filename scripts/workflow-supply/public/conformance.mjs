@@ -6,7 +6,9 @@ import {runTask,executionIdentity} from './quality.mjs';
 import {pathToFileURL} from 'node:url';
 import {load,check} from './supply.mjs';
 import {render} from './render.mjs';
-export function checkProject(root){
+import {inspectCritical,selectPolicyProbes} from './policy-critical.mjs';
+import {readCatalog,validateCatalog} from './policy-catalog.mjs';
+export function checkProject(root,{configurationOnly=false}={}){
  const {adapter:a,project:p}=load(root),pkg=JSON.parse(readFileSync(join(root,'package.json'))),scripts=pkg.scripts??{},failures=[];
  const require=(condition,id,message)=>{if(!condition)failures.push({id,message});};
  const catalog=JSON.parse(readFileSync(new URL('requirements.json',import.meta.url)));const supported=new Set(['roles','runtime','generated','entrypoints','behavior-wiring','selector-wiring','reuse-wiring','release','source-evidence','ownership']);for(const requirement of catalog.requirements)if(requirement.level==='required')require(supported.has(requirement.staticCheck),requirement.id,'Required outcome has no implemented checker');
@@ -26,7 +28,8 @@ export function checkProject(root){
  for(const command of behavior??[])require(Array.isArray(command)&&command[0]==='bun'&&command[1]==='run'&&Object.hasOwn(scripts,command[2]),'quality.failure','Missing maintained behavior probe');
  for(const phase of ['verify','stage','complete']){require(p.publish.jobs[phase].steps.some(s=>s.run==='node scripts/workflow-supply/public/quality.mjs require-source'),'release.source','Exact source evidence missing from '+phase);require(p.publish.jobs[phase].permissions?.actions==='read','release.source','Source artifact read permission missing from '+phase);}
  const guide=join(root,'docs/workflow-supply.md');require(existsSync(guide),'ownership.visibility','Owning CI guide missing');if(existsSync(guide)){const text=readFileSync(guide,'utf8');for(const heading of ['Shared workflow contract','Project-specific verification'])require(text.includes(heading),'ownership.visibility','Missing '+heading);}
- return {schemaVersion:1,repository:a.repository,configuration:failures.length?'failed':'verified',failures,behavior:'not-run',github:'unverified'};
+ const critical=configurationOnly?{checks:[],violations:[],unverified:[{reason:"Dependency-free preflight only; complete critical inspection runs through the maintained selector after dependency restore"}]}:inspectCritical(root),policyCatalog=validateCatalog(readCatalog());for(const finding of critical.violations)failures.push(finding);
+ return {policy:{catalog:policyCatalog,criticalChecks:critical.checks,unverified:critical.unverified,fullPolicy:'unverified; use conformance:audit for all clause mappings'},schemaVersion:1,repository:a.repository,configuration:failures.length?'failed':'verified',failures,behavior:'not-run',github:'unverified'};
 }
 export function changedInputs(root,{base}={}){
  try{const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8'});if(!base){try{base=git(['merge-base','HEAD','refs/remotes/origin/main']).trim();}catch{base='HEAD';}}
@@ -44,9 +47,10 @@ export async function verifyProject(root,{run=spawnSync,changedPaths,base}={}){
  const report=checkProject(root);assert.equal(report.failures.length,0,JSON.stringify(report.failures));const {project}=load(root);
  const selected=selectedProbes(project,changedPaths===undefined?changedInputs(root,{base}):changedPaths);
  const scripts=JSON.parse(readFileSync(join(root,'package.json'))).scripts;const sharedCovered=selected.commands.some(argv=>(scripts[argv[2]]??'').includes('bun run test:workflow'));
- const commands=[...(selected.shared&&!sharedCovered?[['bun','run','test:workflow']]:[]),...selected.commands],identity=executionIdentity(root),outcomes=[];
- for(const argv of commands){const id='conformance-'+argv[2].replaceAll(':','-');outcomes.push(await runTask(root,{id,command:argv},{identity,run:command=>{const result=run(command[0],command.slice(1),{cwd:root,stdio:'inherit'});if(result.error)throw result.error;assert.equal(result.status,0,'Conformance behavior probe failed: '+command.join(' '));}}));}
+ const policyProbes=selectPolicyProbes(changedPaths===undefined?changedInputs(root,{base}):changedPaths);
+ const commands=[...(policyProbes.includes('commit')?[['node','scripts/workflow-supply/public/policy-commit-probe.mjs']]:[]),...(selected.shared&&!sharedCovered?[['bun','run','test:workflow']]:[]),...selected.commands],identity=executionIdentity(root),outcomes=[];
+ for(const argv of commands){const id='conformance-'+(argv[0]==='node'?'policy-commit':argv[2]).replaceAll(':','-');outcomes.push(await runTask(root,{id,command:argv},{identity,run:command=>{const result=run(command[0],command.slice(1),{cwd:root,stdio:'inherit'});if(result.error)throw result.error;assert.equal(result.status,0,'Conformance behavior probe failed: '+command.join(' '));}}));}
  return {...report,behavior:commands.length?'verified-local-fixtures':'not-required-for-selected-inputs',selection:selected.reason,outcomes,probes:commands.map(argv=>argv.join(' ')),omitted:selected.omitted.map(argv=>argv.join(' ')),github:'unverified'};
 }
 
-if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){try{const mode=process.argv[2],i=process.argv.indexOf('--project-root'),root=resolve(i<0?'.':process.argv[i+1]);assert(['check','verify'].includes(mode),'Use check or verify');const b=process.argv.indexOf('--base');const report=mode==='verify'?await verifyProject(root,{base:b<0?undefined:process.argv[b+1]}):checkProject(root);console.log(JSON.stringify(report,null,2));if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,`### Shared policy conformance\n\nConfiguration: ${report.configuration}; behavior: ${report.behavior}; GitHub execution: ${report.github}.\n`);assert(!report.failures.length,'Shared policy conformance failed');}catch(error){console.error(error.message);process.exitCode=1;}}
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){try{const mode=process.argv[2],i=process.argv.indexOf('--project-root'),root=resolve(i<0?'.':process.argv[i+1]);assert(['check','verify'].includes(mode),'Use check or verify');const b=process.argv.indexOf('--base');const report=mode==='verify'?await verifyProject(root,{base:b<0?undefined:process.argv[b+1]}):checkProject(root,{configurationOnly:process.argv.includes('--configuration-only')});console.log(JSON.stringify(report,null,2));if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,`### Shared policy conformance\n\nConfiguration: ${report.configuration}; behavior: ${report.behavior}; GitHub execution: ${report.github}.\n`);assert(!report.failures.length,'Shared policy conformance failed');}catch(error){console.error(error.message);process.exitCode=1;}}

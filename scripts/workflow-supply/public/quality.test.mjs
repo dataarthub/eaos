@@ -83,3 +83,19 @@ test('hook Git context cannot redirect a disposable repository into the caller r
  const foreign=join(root,'foreign'),intended=join(root,'intended');mkdirSync(foreign);mkdirSync(intended);const clean=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));execFileSync('git',['init','-q'],{cwd:foreign,env:clean});
  const env=clearHookGitEnvironment({...clean,GIT_DIR:join(foreign,'.git'),GIT_WORK_TREE:foreign,GIT_INDEX_FILE:join(foreign,'.git/index'),CHECK_MODE:'preserved'});assert.equal(env.CHECK_MODE,'preserved');execFileSync('git',['init','-q'],{cwd:intended,env});assert(existsSync(join(intended,'.git')),'Fixture must create its own Git directory');assert.equal(execFileSync('git',['rev-parse','--show-toplevel'],{cwd:intended,env,encoding:'utf8'}).trim(),realpathSync(intended));
 }));
+
+test('declared unprefixed switches invalidate source identity while credential values stay excluded',async()=>{
+ const {executionIdentity}=await import('./quality.mjs');const {install}=await import('./supply.mjs');const {fixture:projectFixture}=await import('./fixtures.mjs');
+ await projectFixture(root=>{
+  const file=join(root,'scripts/workflow-project/roles.json'),project=JSON.parse(readFileSync(file));project.source.jobs.verify.env={TEST_MODE:'${{ vars.TEST_MODE }}',DATABASE_URL:'${{ secrets.DATABASE_URL }}',GITHUB_TOKEN:'${{ github.token }}',CUSTOM_ACCESS:"${{ secrets['READ_ACCESS'] }}",TOKEN_LIMIT:"${{ vars.TOKEN_LIMIT }}"};writeFileSync(file,JSON.stringify(project));install(root,{source:new URL('../',import.meta.url).pathname,reviewedRevision:'a'.repeat(40)});
+  const one=executionIdentity(root,{TEST_MODE:'one',DATABASE_URL:'synthetic-one'}),two=executionIdentity(root,{TEST_MODE:'two',DATABASE_URL:'synthetic-one'}),three=executionIdentity(root,{TEST_MODE:'two',DATABASE_URL:'synthetic-two',CUSTOM_ACCESS:'synthetic-access-one'});
+  assert.notEqual(one.environment,two.environment);assert.equal(two.environment,three.environment);assert.notEqual(executionIdentity(root,{TEST_MODE:'two',TOKEN_LIMIT:'1'}).environment,executionIdentity(root,{TEST_MODE:'two',TOKEN_LIMIT:'2'}).environment);assert(!JSON.stringify(three).includes('synthetic-two'));
+  assert.deepEqual(three,executionIdentity(root,{TEST_MODE:'two',DATABASE_URL:'synthetic-two',GITHUB_RUN_ID:'999',GITHUB_TOKEN:'ephemeral-job-token',CUSTOM_ACCESS:'synthetic-access-two'}));
+ });
+});
+
+
+test('credential rotation is excluded from deterministic task hashes',async()=>fixture(async root=>{
+ const before=process.env.GITHUB_TOKEN;let calls=0;const task={id:'credential-cache',command:['node','fixture']},options={identity:{},run:()=>{calls++;}};
+ try{process.env.GITHUB_TOKEN='synthetic-one';assert.equal((await runTask(root,task,options)).outcome,'executed');process.env.GITHUB_TOKEN='synthetic-two';assert.equal((await runTask(root,task,options)).outcome,'reused');assert.equal(calls,1);}finally{if(before===undefined)delete process.env.GITHUB_TOKEN;else process.env.GITHUB_TOKEN=before;}
+}));

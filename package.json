@@ -36,12 +36,13 @@
     "test:workflow": "node --test scripts/workflow-supply/public/*.test.mjs",
     "quality:push": "node scripts/workflow-supply/public/quality.mjs push",
     "quality:ci": "node scripts/workflow-supply/public/quality.mjs ci",
-    "quality:commit": "node scripts/workflow-adapter.mjs commit",
+    "quality:commit": "node scripts/workflow-supply/public/staged-gate.mjs commit",
     "hooks:status": "node scripts/workflow-adapter.mjs hooks-status",
     "test:publish-tooling": "node --test scripts/publish/*.test.mjs",
     "conformance:check": "node scripts/workflow-supply/public/conformance.mjs check --project-root .",
     "conformance:verify": "node scripts/workflow-supply/public/conformance.mjs verify --project-root .",
-    "check:selected": "node scripts/verified-run.mjs quality --selected"
+    "check:selected": "node scripts/verified-run.mjs quality --selected",
+    "conformance:audit": "node scripts/workflow-supply/public/policy-report.mjs"
   },
   "devDependencies": {
     "@alneas/appkit-core": "0.2.0",
