@@ -8,3 +8,9 @@ export const gitleaksChecksums = {
   linux_x64: '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb',
 };
 export const localGitleaks = path.resolve(import.meta.dirname, '../.verification/tools/gitleaks/gitleaks');
+
+
+// Establish source-build flags before containment adds its own NODE_OPTIONS preload.
+export function sourceVerificationEnvironment(env = process.env) {
+  return { ...env, NODE_OPTIONS: env.NODE_OPTIONS || '--max-old-space-size=8192' };
+}

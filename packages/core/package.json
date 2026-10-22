@@ -286,7 +286,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "bun test"
+    "test": "node ../../scripts/run-source-tests.mjs"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",

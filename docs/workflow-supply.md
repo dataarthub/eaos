@@ -82,3 +82,73 @@ Conformance verification selects bounded tooling/commit probes for relevant veri
 Manually dispatch `ci.yml` on the reviewed branch with `verification_mode=conformance` to exercise shared/owning selector regressions and the actual commit gate on Node 24 and 26. An identical second deterministic task must reuse success; ordinary prose selects no extra probes. Use `verification_mode=negative` separately to run a clean control and then stage a synthetic secret in disposable repositories. The required step must fail with `indexed-secret-blocked`, and the downstream success sentinel must be skipped. Diagnostic concurrency is isolated from normal source verification.
 
 The default `full` mode and normal PR/main gates retain existing checks. Diagnostics do not run product/browser/DB suites, save remote task caches or issue authoritative source evidence. Their artifacts record scoped results, not full policy compliance. Before merging, satisfy the normal required PR checks independently.
+
+### Runtime contract review (2026-10-22)
+
+This review uses the current shared development policy and coding/logic skills;
+the supplied clause catalog remains bound to its earlier reviewed revision. Its
+structural result is not evidence that the current policy is fully implemented.
+No package release is selected: these changes add maintainer test execution
+checks and regression fixtures; exported runtime behavior and schemas are unchanged.
+
+The owning package test commands now require a fresh JUnit report, positive
+executed tests for every selected file, and zero failed/skipped cases. The source,
+push and CI gates retain their existing selector, guard and triggers. Empty files,
+skip/todo-only suites, import failures and mixed empty/passing selections fail.
+`test:tooling` checks this failure behavior; `package-selection.test.mjs` verifies
+that the Outbox contract tests remain selected. Reports stay under ignored
+`.verification/test-reports`; they do not certify an official GitHub run.
+
+- Vulnerability response: secret/history scans and dependency boundary checks exist.
+  Recurring advisory triage, severity deadlines, fallback/security owners and
+  supported security-fix windows are not established by these checks.
+- Recovery/migration: Lifecycle owns reviewed plans, writer locks and dirty-state
+  reconciliation. No isolated production-engine restore, RTO/RPO or backup-retention
+  evidence was produced; hosts own those operational contracts.
+- Compatibility/support: manifests, package builds and isolated archive consumers
+  own supported runtime/export combinations. Provider/database lanes, persisted
+  compatibility and security-support/removal windows need explicit owner review;
+  passing source tests alone do not certify them.
+- Decisions/review: package boundaries and release records are checked. Required
+  domain/security/data/API reviewers and deployed branch-protection enforcement
+  remain human/repository configuration; assistant review cannot establish them.
+- Execution authority: principal/resource, MCP and Lifecycle tests exercise trusted
+  admission. Outbox suspension tests deny an effect after claim; failed work does
+  not resume merely because activation returns. High-impact approval policy and
+  drain/reconciliation of in-flight effects remain host responsibilities.
+- Tenant surfaces: atomic Outbox rejects foreign envelopes before effects and CAS
+  tokens reject stale settlers after restart. Existing storage/cache tests cover
+  their owning adapters; index/export/signed-link expiry, offboarding and restore
+  guarantees require host evidence and cannot be inferred from row isolation.
+- Durable work: Outbox tests model remote success followed by lost publication
+  acknowledgement, bounded retry exhaustion, restart/stale claims and explicit
+  recovery. Stable delivery identity enables host deduplication; delivery may
+  repeat. Deduplication retention, quarantined replay authorization and reconciliation
+  ownership must be supplied by the host; this is not exactly-once delivery.
+- AI data/budgets: Core contracts do not certify provider destinations, retention,
+  training settings, tenant cost reservations or remote cancellation. Those host
+  controls and live-model evaluation remain unverified.
+- Publication/withdrawal: delivery tests and archive checks establish local state
+  transitions and payloads. CDN invalidation, direct asset access, old URLs and
+  external search/AI copies require separately authorized host delivery checks.
+
+Coding and adapter reuse remain with the existing owners: Core provides pure
+contracts; Server provides AtomicRepository/CAS/durable audit/Lifecycle and wraps
+Appkit storage; CLI supplies an explicit `resolveSecret(principal,key)` development
+port. Core SecretResolver reads cached process environment values, including its
+environment-only OCI fallback; no connected Vault/secret-reference adapter is
+certified. Appkit owns provider transports, and private business/host implementations
+must not enter public imports. Current boundary inspection and isolated consumers
+cover declared/literal imports and delivered exports; computed imports, resource
+cleanup under real providers, malformed historical data and production DB transaction
+behavior need their applicable tests. These deterministic fixtures exercise adapter
+protocols, not production-engine transaction or deployed environment acceptance.
+
+
+The guarded source invocation establishes its existing documented 8192 MiB Node
+heap setting before containment appends the preload. Explicit caller `NODE_OPTIONS`
+remain authoritative. A real guarded-child regression checks both the effective
+heap setting and preserved containment/user flags. The aggregate 6144 MiB process-tree
+limit and 20-minute source deadline remain enforced; increasing a child's configured
+heap does not permit exceeding that aggregate limit. This corrects verifier environment
+composition and requires no package release.

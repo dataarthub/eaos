@@ -61,3 +61,28 @@ test('explicit failed-event recovery keeps the immutable delivery ID and denies 
  const {requeueOutboxEvent}=await import('./outbox'),repo=repository(),p={tenantId:'tenant-a',userId:'worker',roles:[]}
  await repo.run(p,async tx=>{const e=await enqueueOutboxEvent(tx,{tenantId:p.tenantId,producer:'notifications',topic:'notify',id:'fixed',idempotencyKey:'fixed',payload:{id:'notice'}}),r=await tx.get<any>('outbox/'+e.id);await tx.put(r!.id,{...r!.value,status:'failed'},r!.revision);await expect(requeueOutboxEvent(tx,'foreign',e.id)).rejects.toMatchObject({status:409});expect(await requeueOutboxEvent(tx,p.tenantId,e.id)).toMatchObject({id:'fixed',status:'pending',payload:{id:'notice'}});await expect(requeueOutboxEvent(tx,p.tenantId,e.id)).rejects.toMatchObject({status:409})})
 })
+
+
+test('restart reclaims stale work with a new CAS token and rejects both late settlements', async () => {
+ const { createAtomicOutboxStore } = await import('./outbox')
+ const repo = repository(), principal = { tenantId: 'tenant-a', userId: 'worker', roles: [] }
+ await repo.run(principal, tx => enqueueOutboxEvent(tx, { tenantId: principal.tenantId, producer: 'fixture', topic: 'notify', idempotencyKey: 'restart', payload: {}, availableAt: '2026-10-01T00:00:00Z' }))
+ const old = createAtomicOutboxStore({ repository: repo, principal, staleAfterMs: 1000 }), now = new Date('2026-10-02T00:00:00Z')
+ const [first] = await old.claim(now, 1)
+ const restarted = createAtomicOutboxStore({ repository: repo, principal, staleAfterMs: 1000 })
+ expect(await restarted.claim(new Date(now.getTime() + 999), 1)).toEqual([])
+ const [second] = await restarted.claim(new Date(now.getTime() + 1000), 1)
+ expect(second.id).toBe(first.id); expect(second.claimToken).not.toBe(first.claimToken); expect(second.attempts).toBe(2)
+ if (!first.claimToken || !second.claimToken) throw new Error('Expected claimed token')
+ await expect(old.markPublished(first.id, first.claimToken, now)).rejects.toMatchObject({ status: 409 })
+ await expect(old.markFailed(first.id, first.claimToken, 'late failure', now)).rejects.toMatchObject({ status: 409 })
+ await restarted.markPublished(second.id, second.claimToken, now)
+ expect(await restarted.claim(new Date(now.getTime() + 2000), 1)).toEqual([])
+})
+
+test('a foreign tenant envelope is rejected before an effect can execute', async () => {
+ const repo = repository(), principal = { tenantId: 'tenant-a', userId: 'worker', roles: [] }; let effects = 0
+ await repo.run(principal, tx => enqueueOutboxEvent(tx, { tenantId: 'tenant-b', producer: 'fixture', topic: 'notify', idempotencyKey: 'foreign', payload: {}, availableAt: '2026-10-01T00:00:00Z' }))
+ const dispatcher = createAtomicOutboxDispatcher({ repository: repo, principal, handlers: { notify: async () => { effects++ } } })
+ await expect(dispatcher.runOnce()).rejects.toMatchObject({ status: 409 }); expect(effects).toBe(0)
+})

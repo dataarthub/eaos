@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { join,resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { runGuarded } from './guarded-process.mjs'
+import { sourceVerificationEnvironment } from './quality-tools.mjs'
 import { sourceHash } from './source-state.mjs'
 import { withVerificationLock } from './verification-state.mjs'
 const root=resolve(import.meta.dirname,'..'),kind=process.argv[2]
@@ -28,7 +29,7 @@ try {
     const tests=spawnSync(process.execPath,['--test','scripts/guarded-process.test.mjs'],{cwd:root,stdio:'inherit',timeout:60000})
     if(tests.status!==0)throw Error('Resource guard regressions failed')
   }
-  guard=await runGuarded(process.execPath,[join(root,'scripts',kind==='quality'?'quality.mjs':'test-consumer.mjs'),...(bundle?[bundle]:[]),...(selected?['--selected',JSON.stringify({...selected.packageImpact,baseline:selected.baseline,provenance:selected.provenance,sourceInput:selected.sourceInput})]:[])],{cwd:root,env:{...process.env,EAOS_VERIFICATION_RUN:runId},...budget})
+  guard=await runGuarded(process.execPath,[join(root,'scripts',kind==='quality'?'quality.mjs':'test-consumer.mjs'),...(bundle?[bundle]:[]),...(selected?['--selected',JSON.stringify({...selected.packageImpact,baseline:selected.baseline,provenance:selected.provenance,sourceInput:selected.sourceInput})]:[])],{cwd:root,env:{...(kind==='quality'?sourceVerificationEnvironment():process.env),EAOS_VERIFICATION_RUN:runId},...budget})
   if(!guard.ok)throw Error(guard.reason??`Verification exited with ${guard.code}`)
   if(await sourceHash(root)!==initial.sourceHash)throw Error('Source changed during guarded invocation')
   if(kind==='consumer') {

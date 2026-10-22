@@ -198,7 +198,7 @@
   ],
   "scripts": {
     "build": "tsup && bun build.ts",
-    "test": "bun test approval field-customization admin"
+    "test": "node ../scripts/run-source-tests.mjs"
   },
   "description": "Standard EAOS approval, field customization and administration modules"
 }
