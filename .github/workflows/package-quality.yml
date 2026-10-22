@@ -1,0 +1,101 @@
+# Generated: github-docs/public/templates/private-actions/public; reviewed base ae1ac274494114599ea6c0de2e02c1e61f324e42 (local-reviewed).
+# Bundle SHA-256: 69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6
+# Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
+# Run workflow:generate explicitly; workflow:check never repairs output.
+name: "Shared package quality"
+on:
+  workflow_call: {}
+permissions:
+  contents: "read"
+  actions: "read"
+jobs:
+  verify:
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 30
+    env:
+      NODE_OPTIONS: "--max-old-space-size=8192"
+    steps:
+      -
+        uses: "actions/checkout@v6"
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+        name: "Shared: actions/checkout@v6"
+      -
+        uses: "actions/setup-node@v6"
+        with:
+          node-version: "${{ matrix.node }}"
+          package-manager-cache: false
+        name: "Shared: actions/setup-node@v6"
+      -
+        uses: "oven-sh/setup-bun@v2"
+        with:
+          bun-version: "1.4.3"
+        name: "Shared: oven-sh/setup-bun@v2"
+      -
+        name: "Shared: Verify generated workflow supply"
+        run: "node scripts/workflow-supply/public/conformance.mjs check --project-root . --configuration-only"
+      -
+        run: "bun install --frozen-lockfile --ignore-scripts --linker hoisted"
+        name: "Project: Run declared project check"
+      -
+        run: "bun run secrets:setup"
+        name: "Project: Run declared project check"
+      -
+        name: "Project: Select from trusted successful main ancestor"
+        id: "public-selection"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        run: "node scripts/workflow-supply/public/quality.mjs plan"
+      -
+        name: "Project: Run selected project verification"
+        if: "matrix.node == 24"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        run: "bun run quality:ci"
+      -
+        run: "bunx playwright install --with-deps chromium"
+        if: "steps.public-selection.outputs.scope == 'full'"
+        name: "Project: Run declared project check"
+      -
+        name: "Project: Prepare and test exact archives"
+        run: |
+          node scripts/release.mjs prepare > .verification/candidate-path.txt
+          bun run test:consumer -- "$(cat .verification/candidate-path.txt)"
+          bun run release:verify -- "$(cat .verification/candidate-path.txt)"
+        if: "steps.public-selection.outputs.scope == 'full'"
+      -
+        uses: "actions/upload-artifact@v7"
+        with:
+          name: "verified-public-candidate"
+          path: ".verification/release-*/"
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: "error"
+        if: "steps.public-selection.outputs.scope == 'full'"
+        name: "Shared: actions/upload-artifact@v7"
+      -
+        name: "Shared: Record authoritative source evidence"
+        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
+        env:
+          PUBLIC_SOURCE_NODE: "${{ matrix.node }}"
+        run: "node scripts/workflow-supply/public/quality.mjs record"
+      -
+        name: "Shared: Preserve source evidence"
+        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
+        uses: "actions/upload-artifact@v7"
+        with:
+          name: "source-evidence-node${{ matrix.node }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+          path: ".cache/public-quality/source.json"
+          include-hidden-files: true
+          if-no-files-found: "error"
+          retention-days: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 24
+    permissions:
+      contents: "read"
+      actions: "read"
+    name: "Verify packages (Node ${{ matrix.node }})"

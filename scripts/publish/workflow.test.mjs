@@ -1,25 +1,25 @@
-import test from 'node:test'
-import assert from 'node:assert/strict'
-import {readFileSync} from 'node:fs'
-const text=name=>readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8')
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const read=name=>JSON.parse(execFileSync('bun',['-e','console.log(JSON.stringify(Bun.YAML.parse(await Bun.stdin.text())))'],{input:readFileSync(new URL('../../.github/workflows/'+name,import.meta.url)),encoding:'utf8'}));
 test('canonical writer separates unprivileged verification, staged writer and original-run completion',()=>{
- const s=text('publish.yml'),verify=s.split('  verify:')[1].split('  stage:')[0],stage=s.split('  stage:')[1].split('  resolve:')[0],complete=s.split('  complete:')[1]
- assert.match(s,/release:\n\s+types: \[published\]/);assert.doesNotMatch(s,/\n  (push|pull_request):/)
- assert.match(s,/group: eaos-npm-release\n\s+cancel-in-progress: false/)
- assert.doesNotMatch(verify,/id-token: write|NPM_TOKEN|NODE_AUTH_TOKEN/)
- for(const gate of ['bun run check','bun run secrets:check -- --history','prepare --final','bun run test:consumer','bun run release:verify','scripts/publish/bundle.mjs'])assert(verify.includes(gate),gate)
- assert.match(verify,/include-hidden-files: true/);assert.match(verify,/retention-days: 14/)
- const paths=verify.split('path: |')[1].split('if-no-files-found:')[0].trim().split('\n').map(s=>s.trim())
- assert.deepEqual(paths,['.verification/handoff/release.json','.verification/handoff/*.tgz','.verification/handoff/*.notes.md'])
- assert.match(stage,/needs: verify/);assert.match(stage,/digest-mismatch: error/);assert.match(stage,/id-token: write/)
- assert.match(complete,/run-id: \$\{\{ needs.resolve.outputs.run \}\}/);assert.match(complete,/digest-mismatch: error/)
- assert.doesNotMatch(stage+complete,/bun run|npm publish|npm stage publish/)
- assert.match(s,/npm@11.21.0/)
-})
+ const w=read('publish.yml'),verify=JSON.stringify(w.jobs.verify),stage=JSON.stringify(w.jobs.stage),complete=JSON.stringify(w.jobs.complete);
+ assert.deepEqual(w.on.release.types,['published']);assert(!w.on.push&&!w.on.pull_request);assert.equal(w.concurrency.group,'eaos-npm-release');assert.equal(w.concurrency['cancel-in-progress'],false);
+ assert.doesNotMatch(verify,/id-token.*write|NPM_TOKEN|NODE_AUTH_TOKEN/);
+ for(const gate of ['bun run check','bun run secrets:check -- --history','prepare --final','bun run test:consumer','bun run release:verify','scripts/publish/bundle.mjs','quality.mjs require-source'])assert(verify.includes(gate),gate);
+ const upload=w.jobs.verify.steps.find(s=>s.id==='upload');assert.equal(upload.with['include-hidden-files'],true);assert.equal(upload.with['retention-days'],14);
+ assert.deepEqual(upload.with.path.trim().split('\n'),['.verification/handoff/release.json','.verification/handoff/*.tgz','.verification/handoff/*.notes.md']);
+ assert.equal(w.jobs.stage.needs,'verify');assert.equal(w.jobs.stage.permissions['id-token'],'write');
+ for(const key of ['stage','complete'])assert.equal(w.jobs[key].steps.find(s=>s.uses?.startsWith('actions/download-artifact@')).with['digest-mismatch'],'error');
+ assert.equal(w.jobs.complete.steps.find(s=>s.uses?.startsWith('actions/download-artifact@')).with['run-id'],'${{ needs.resolve.outputs.run }}');assert.doesNotMatch(stage+complete,/bun run|npm publish|npm stage publish/);assert.match(JSON.stringify(w),/npm@11.21.0/);
+});
 test('observer has no OIDC or npm credentials, uses default branch and excludes completion loops',()=>{
- const s=text('complete-approved.yml')
- assert.match(s,/workflow_run:/);assert.match(s,/workflow_run.event == 'release'/);assert.match(s,/ref: main/)
- assert.match(s,/actions: write/);assert.match(s,/timeout-minutes: 35/)
- assert.doesNotMatch(s,/id-token: write|NODE_AUTH_TOKEN|NPM_TOKEN|npm install|npm publish|bun run/)
- assert.match(s,/group: npm-approval-/);assert.doesNotMatch(s,/group: eaos-npm-release/)
-})
+ const w=read('complete-approved.yml'),s=JSON.stringify(w);assert.deepEqual(w.on.workflow_run.workflows,['Publish npm packages']);assert.match(s,/workflow_run.event == 'release'/);
+ assert.equal(w.jobs.observe.steps.find(s=>s.uses?.startsWith('actions/checkout@')).with.ref,'main');assert.equal(w.jobs.observe.permissions.actions,'write');assert.equal(w.jobs.observe['timeout-minutes'],35);
+ assert.doesNotMatch(s,/id-token.*write|NODE_AUTH_TOKEN|NPM_TOKEN|npm install|npm publish|bun run/);assert.match(w.concurrency.group,/npm-approval-/);
+});
+test('source quality owns documentation once; generated docs no longer call the full source gate again',()=>{
+ assert.equal(existsSync(new URL('../../.github/workflows/docs-generated.yml',import.meta.url)),false);const w=read('ci.yml');assert.deepEqual(Object.keys(w.on),['push','pull_request','workflow_dispatch']);assert.equal(w.jobs.verify.uses,'./.github/workflows/package-quality.yml');
+ const contract=JSON.parse(readFileSync(new URL('../workflow-project/roles.json',import.meta.url)));assert.equal(contract.quality.tasks.find(t=>t.id==='source').command.join(' '),'bun run check:selected');assert.deepEqual(contract.quality.tasks.find(t=>t.id==='documentation').scopes,['docs']);
+});

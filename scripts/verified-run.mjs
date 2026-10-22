@@ -7,6 +7,7 @@ import { sourceHash } from './source-state.mjs'
 import { withVerificationLock } from './verification-state.mjs'
 const root=resolve(import.meta.dirname,'..'),kind=process.argv[2]
 if(!['quality','consumer'].includes(kind))throw Error('Expected quality or consumer')
+const selected=kind==='quality'&&process.argv.includes('--selected')?(await import('./workflow-supply/public/quality.mjs')).readSelectedPlan(root):null
 const bundle=kind==='consumer'?resolve(process.argv[3]??''):null
 await withVerificationLock(root,kind,async()=>{
 const receipt=join(root,'.verification',kind+'-latest.json'),runId=randomUUID()
@@ -27,7 +28,7 @@ try {
     const tests=spawnSync(process.execPath,['--test','scripts/guarded-process.test.mjs'],{cwd:root,stdio:'inherit',timeout:60000})
     if(tests.status!==0)throw Error('Resource guard regressions failed')
   }
-  guard=await runGuarded(process.execPath,[join(root,'scripts',kind==='quality'?'quality.mjs':'test-consumer.mjs'),...(bundle?[bundle]:[])],{cwd:root,env:{...process.env,EAOS_VERIFICATION_RUN:runId},...budget})
+  guard=await runGuarded(process.execPath,[join(root,'scripts',kind==='quality'?'quality.mjs':'test-consumer.mjs'),...(bundle?[bundle]:[]),...(selected?['--selected',JSON.stringify({...selected.packageImpact,baseline:selected.baseline,provenance:selected.provenance,sourceInput:selected.sourceInput})]:[])],{cwd:root,env:{...process.env,EAOS_VERIFICATION_RUN:runId},...budget})
   if(!guard.ok)throw Error(guard.reason??`Verification exited with ${guard.code}`)
   if(await sourceHash(root)!==initial.sourceHash)throw Error('Source changed during guarded invocation')
   if(kind==='consumer') {

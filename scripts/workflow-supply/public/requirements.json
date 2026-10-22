@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "scope": "public npm Actions adoption; other policy domains remain outside this inventory",
+  "policy": "https://tech-docs.alneas.com/policies/development-policy.md",
+  "requirements": [
+    {"id":"actions.roles","result":"Standard role names, source triggers and callable-only shared quality are installed.","level":"required","owner":"shared-supply","implementation":"render.mjs","staticCheck":"roles","behaviorTest":"supply.test.mjs"},
+    {"id":"actions.runtime","result":"Every declared supported runtime blocks source success.","level":"required","owner":"project-adapter","implementation":"render.mjs and project source job","staticCheck":"runtime","behaviorTest":"evidence.test.mjs"},
+    {"id":"actions.drift","result":"Changed, missing and obsolete generated output fails without repair.","level":"required","owner":"shared-supply","implementation":"supply.mjs","staticCheck":"generated","behaviorTest":"supply.test.mjs"},
+    {"id":"quality.entrypoints","result":"Commit, push and CI commands exist and source CI reaches the maintained gate.","level":"required","owner":"project-adapter","implementation":"package.json and project verification scripts","staticCheck":"entrypoints","behaviorTest":"project behavior commands"},
+    {"id":"quality.failure","result":"A required command failure stops the gate; failure is never saved as success.","level":"required","owner":"shared-supply and project-adapter","implementation":"quality.mjs and project runner","staticCheck":"behavior-wiring","behaviorTest":"quality.test.mjs and project behavior commands"},
+    {"id":"quality.selection","result":"Only compatible successful main ancestry permits narrower CI scope; missing evidence selects conservative checks.","level":"required","owner":"shared-supply","implementation":"quality.mjs and evidence.mjs","staticCheck":"selector-wiring","behaviorTest":"evidence.test.mjs and quality.test.mjs"},
+    {"id":"quality.reuse","result":"Source, executable modes, command, task set, outputs and execution changes invalidate reused success.","level":"required","owner":"shared-supply or established equivalent","implementation":"quality.mjs or project task system","staticCheck":"reuse-wiring","behaviorTest":"quality.test.mjs and project cache tests"},
+    {"id":"release.staging","result":"Stable Releases stage exact verified archives; human npm approval precedes completion, which never builds or directly publishes.","level":"required","owner":"shared-supply and project publisher","implementation":"render.mjs and project publisher","staticCheck":"release","behaviorTest":"supply.test.mjs and project publication tests"},
+    {"id":"release.source","result":"New releases revalidate exact-commit official source evidence; local and PR passes cannot replace it.","level":"required","owner":"shared-supply","implementation":"evidence.mjs and release verify/stage/complete jobs","staticCheck":"source-evidence","behaviorTest":"evidence.test.mjs"},
+    {"id":"ownership.visibility","result":"Shared/project ownership, adopted roles and unverified behavior are documented.","level":"required","owner":"project-maintainer","implementation":"docs/workflow-supply.md","staticCheck":"ownership","behaviorTest":"conformance.test.mjs"},
+    {"id":"hooks.manager","result":"Choose a hook manager appropriate for the project; installation stays explicit.","level":"recommended","owner":"project-maintainer","implementation":"existing project hook manager or manual commands","staticCheck":"none","behaviorTest":"existing project hook tests"}
+  ]
+}
