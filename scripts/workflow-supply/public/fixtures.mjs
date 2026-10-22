@@ -1,3 +1,6 @@
+import {clearHookGitEnvironment} from './quality.mjs';
+// A hook's Git directory/index belongs to its caller, never to these disposable repositories.
+clearHookGitEnvironment();
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';

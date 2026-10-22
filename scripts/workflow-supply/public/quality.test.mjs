@@ -1,6 +1,7 @@
+import './fixtures.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
-import {mkdtempSync,writeFileSync,readFileSync,rmSync,mkdirSync} from 'node:fs';import {join} from 'node:path';import {tmpdir} from 'node:os';import {execFileSync} from 'node:child_process';
-import {runTask,scopeFor} from './quality.mjs';
+import {realpathSync,existsSync,mkdtempSync,writeFileSync,readFileSync,rmSync,mkdirSync} from 'node:fs';import {join} from 'node:path';import {tmpdir} from 'node:os';import {execFileSync} from 'node:child_process';
+import {runTask,scopeFor,clearHookGitEnvironment} from './quality.mjs';
 async function fixture(work){const root=mkdtempSync(join(tmpdir(),'public-quality-'));try{execFileSync('git',['init','-q'],{cwd:root});writeFileSync(join(root,'.gitignore'),'.cache/\ndist/\n');writeFileSync(join(root,'source.js'),'one');execFileSync('git',['add','.'],{cwd:root});return await work(root);}finally{rmSync(root,{recursive:true,force:true});}}
 test('docs omission needs compatible trusted baseline and packaging README stays broad',()=>{assert.equal(scopeFor(['docs/guide.md'],{trusted:true}),'docs');for(const files of [['docs/guide.md'],['README.md'],['packages/core/README.md'],['bun.lock'],['docs/script.ts'],[]])assert.equal(scopeFor(files,{trusted:false}),'full');assert.equal(scopeFor(['packages/core/README.md'],{trusted:true}),'full');});
 test('task result reuse requires identical source, command, environment and output bytes',async()=>fixture(async root=>{
@@ -77,3 +78,8 @@ test('selected execution binds current fingerprints and runtime and rejects tamp
   writeFileSync(file,JSON.stringify(plan));writeFileSync(join(root,'packages/a/src/index.ts'),'edited during selection');assert.throws(()=>readSelectedPlan(root),/Source changed/);
  });
 });
+
+test('hook Git context cannot redirect a disposable repository into the caller repository',async()=>fixture(async root=>{
+ const foreign=join(root,'foreign'),intended=join(root,'intended');mkdirSync(foreign);mkdirSync(intended);const clean=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')));execFileSync('git',['init','-q'],{cwd:foreign,env:clean});
+ const env=clearHookGitEnvironment({...clean,GIT_DIR:join(foreign,'.git'),GIT_WORK_TREE:foreign,GIT_INDEX_FILE:join(foreign,'.git/index'),CHECK_MODE:'preserved'});assert.equal(env.CHECK_MODE,'preserved');execFileSync('git',['init','-q'],{cwd:intended,env});assert(existsSync(join(intended,'.git')),'Fixture must create its own Git directory');assert.equal(execFileSync('git',['rev-parse','--show-toplevel'],{cwd:intended,env,encoding:'utf8'}).trim(),realpathSync(intended));
+}));
