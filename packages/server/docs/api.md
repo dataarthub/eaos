@@ -7217,6 +7217,51 @@ export function reviewBaseline(source: DataContract, version: string, sql: DataC
 ```
 
 
+<a id="api-createEntitlementAdminRoutes"></a>
+
+## [FUNCTION] `createEntitlementAdminRoutes`
+
+Create privileged contract administration routes with current authorization and origin checks.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+declare function createEntitlementAdminRoutes(options: EntitlementAdminRouteOptions): Hono<{
+    Variables: {
+        contractPrincipal: PlatformPrincipal;
+    };
+}, hono_types.BlankSchema, "/">;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `EntitlementAdminRouteOptions` | Yes | Trusted administrator policy, service resolver, tenant existence and mutation origins. |
+
+### Returns
+
+`Hono<{     Variables: {         contractPrincipal: PlatformPrincipal;     }; }, hono_types.BlankSchema, "/">`
+
+GET/PUT /tenants/:tenantId/entitlements routes with no-store responses.
+
+### Remarks
+
+Request bodies never grant platform administration. PUT requires X-EAOS-Request: tenant-contract and an allowed Origin before reaching contract storage.
+
+### Errors and rejections
+
+Construction performs no IO; requests map validation/CAS failures to their HTTP status and other failures to503.
+
+### Example
+
+```typescript
+import {createEntitlementAdminRoutes,type EntitlementAdminRouteOptions} from '@alneas/eaos-server/entitlements'
+export const routes=(ports:EntitlementAdminRouteOptions)=>createEntitlementAdminRoutes(ports)
+```
+
 <a id="api-createErpEngine"></a>
 
 ## [FUNCTION] `createErpEngine`
@@ -7964,6 +8009,59 @@ import { createPlatformAdminRouter, type PlatformAdminRouterOptions } from "@aln
 export function controlRoutes(options: PlatformAdminRouterOptions) { return createPlatformAdminRouter(options); }
 ```
 
+
+<a id="api-createPlatformEntitlementService"></a>
+
+## [FUNCTION] `createPlatformEntitlementService`
+
+Create durable contract reads/updates and entitlement admission over one control repository.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+declare function createPlatformEntitlementService(options: PlatformEntitlementServiceOptions): {
+    runtime: PluginEntitlementRuntime;
+    repository: AtomicRepository;
+    read: (p: PlatformPrincipal) => Promise<EntitlementRevision>;
+    save(p: PlatformPrincipal, input: {
+        commandId: string;
+        revision: number;
+        contract: TenantEntitlements;
+    }): Promise<{
+        revision: number;
+        contract: TenantEntitlements;
+    }>;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `PlatformEntitlementServiceOptions` | Yes | Atomic database driver, accepted manifests and live lifecycle callback. |
+
+### Returns
+
+`{     runtime: PluginEntitlementRuntime;     repository: AtomicRepository;     read: (p: PlatformPrincipal) => Promise<EntitlementRevision>;     save(p: PlatformPrincipal, input: {         commandId: string;         revision: number;         contract: TenantEntitlements;     }): Promise<{         revision: number;         contract: TenantEntitlements;     }>; }`
+
+Contract service with shared runtime, repository, read and idempotent save operations.
+
+### Remarks
+
+Saves use atomic commands and durable audit. Replays return the original result; stale revisions return409. Schema installation and privileged caller authorization remain explicit Host responsibilities.
+
+### Errors and rejections
+
+Invalid table/driver configuration can fail construction; operations reject invalid contracts, tenants, revisions, unknown addons/quotas, CAS conflicts and storage/audit failures.
+
+### Example
+
+```typescript
+import {createPlatformEntitlementService,type PlatformEntitlementServiceOptions} from '@alneas/eaos-server/entitlements'
+export const contracts=(ports:PlatformEntitlementServiceOptions)=>createPlatformEntitlementService(ports)
+```
 
 <a id="api-createPlatformSessionResolver"></a>
 
@@ -12775,6 +12873,126 @@ import { enqueueOutboxEvent } from '@alneas/eaos-server/plugin-data'
 export function enqueue<T>(tx: Parameters<typeof enqueueOutboxEvent>[0], input: Parameters<typeof enqueueOutboxEvent<T>>[1]) { return enqueueOutboxEvent(tx, input) }
 ```
 
+<a id="api-EntitlementAdminRouteOptions"></a>
+
+## [INTERFACE] `EntitlementAdminRouteOptions`
+
+Privileged Host connections for contract administration.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+interface EntitlementAdminRouteOptions {
+    authorization: PlatformAdminAuthorization;
+    origins?: readonly string[];
+    service(): Promise<PlatformEntitlementService>;
+    tenantExists(id: string): Promise<boolean>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `authorization` | `PlatformAdminAuthorization` | Yes | Host authentication and current platform administrator policy. |
+| `origins` | `readonly string[]` | No | Allowed mutation origins; omitted uses the current request origin. |
+| `service` | `Promise<PlatformEntitlementService>` | Yes | Resolve the Host-owned shared control-plane service. |
+| `tenantExists` | `Promise<boolean>` | Yes | Check a target tenant against trusted Host configuration. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createEntitlementAdminRoutes
+
+### Public members
+
+#### `authorization`
+
+Host authentication and current platform administrator policy.
+
+
+#### `origins`
+
+Allowed mutation origins; omitted uses the current request origin.
+
+
+#### `service`
+
+Resolve the Host-owned shared control-plane service.
+
+Returns: A service bound to durable control storage.
+
+Example:
+
+```typescript
+import type {EntitlementAdminRouteOptions} from '@alneas/eaos-server/entitlements'
+export const service=(ports:EntitlementAdminRouteOptions)=>ports.service()
+```
+
+
+#### `tenantExists`
+
+Check a target tenant against trusted Host configuration.
+
+Parameters:
+
+- `id`: Validated target tenant identifier.
+
+Returns: Whether the tenant exists in the Host control plane.
+
+Example:
+
+```typescript
+import type {EntitlementAdminRouteOptions} from '@alneas/eaos-server/entitlements'
+export const exists=(ports:EntitlementAdminRouteOptions)=>ports.tenantExists('tenant-one')
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-entitlementAuditSql"></a>
+
+## [CONSTANT] `entitlementAuditSql`
+
+Control-plane audit storage, applied only through a reviewed schema release.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+declare const entitlementAuditSql: {
+    sqlite: string;
+    oracle: string;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+`Declared constant value.`
+
+### See also
+
+createPlatformEntitlementService
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-EntitlementError"></a>
 
 ## [CLASS] `EntitlementError`
@@ -12858,6 +13076,55 @@ Host failures propagate through request handling.
 ### See also
 
 createPluginEntitlementGuard for usage.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-EntitlementRevision"></a>
+
+## [INTERFACE] `EntitlementRevision`
+
+Current control-plane contract and compare-and-swap revision.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+interface EntitlementRevision {
+    revision: number;
+    contract: TenantEntitlements | null;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `revision` | `number` | Yes | Zero means no stored contract; persisted contracts have positive revisions. |
+| `contract` | `TenantEntitlements \| null` | Yes | Verified current tenant contract, or null when absent. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createPlatformEntitlementService
+
+### Public members
+
+#### `revision`
+
+Zero means no stored contract; persisted contracts have positive revisions.
+
+
+#### `contract`
+
+Verified current tenant contract, or null when absent.
+
+
 
 ### Example
 
@@ -21957,6 +22224,108 @@ import { platformDatabaseTargets } from '@alneas/eaos-server/platform/runtime';
 const targets = platformDatabaseTargets({ backend: { id: 'main', databaseId: 'db-main', dialect: 'sqlite', mode: 'shared' } });
 ```
 
+
+<a id="api-PlatformEntitlementService"></a>
+
+## [TYPE] `PlatformEntitlementService`
+
+Common contract service returned by the canonical factory.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+type PlatformEntitlementService = ReturnType<typeof createPlatformEntitlementService>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createPlatformEntitlementService
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PlatformEntitlementServiceOptions"></a>
+
+## [INTERFACE] `PlatformEntitlementServiceOptions`
+
+Host connections used by the common contract service.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/entitlements`.
+
+### Signature
+
+```typescript
+interface PlatformEntitlementServiceOptions {
+    driver: AtomicSqlDriver;
+    manifests: readonly PluginManifest[];
+    isActive(p: PlatformPrincipal, pluginId: string): Promise<boolean>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `driver` | `AtomicSqlDriver` | Yes | Durable atomic control-plane database; never a separate business database. |
+| `manifests` | `readonly PluginManifest[]` | Yes | Adopted manifests declaring accepted addon and quota identifiers. |
+| `isActive` | `Promise<boolean>` | Yes | Current lifecycle admission, independently rechecked for runtime use. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createPlatformEntitlementService
+
+### Public members
+
+#### `driver`
+
+Durable atomic control-plane database; never a separate business database.
+
+
+#### `manifests`
+
+Adopted manifests declaring accepted addon and quota identifiers.
+
+
+#### `isActive`
+
+Current lifecycle admission, independently rechecked for runtime use.
+
+Parameters:
+
+- `p`: Verified current tenant principal.
+- `pluginId`: Exact adopted plugin identifier.
+
+Returns: Whether this plugin is currently active for the principal.
+
+Example:
+
+```typescript
+import type {PlatformEntitlementServiceOptions} from '@alneas/eaos-server/entitlements'
+export const active=(ports:PlatformEntitlementServiceOptions)=>ports.isActive({tenantId:'one',userId:'user',roles:[]},'accounting')
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-PlatformExtension"></a>
 

@@ -52,3 +52,9 @@ See [live entitlements](entitlements.md), [database boundaries](db/docs/guide.md
 `createUserDirectoryRoutes` from `@alneas/eaos-server/platform` provides the common `/person/ensure` and `/directory` routes. Mount it behind trusted `userId`/`tenantId` middleware. Supply explicit feature/provider mode, allowed browser origins, a current normalized provider identity reader and a tenant-scoped `DirectoryRepository`. The repository owns database column mapping; the public service contains no business table names. Writes require current administrator authority and `X-EAOS-Request: user-directory`. Contacts and person categories never grant account access.
 
 Registration requires an actual provider display name and preserves an existing business name. Repositories must identify an account person only by tenant and provider identity, never by email. Provider failures return 503 without touching the repository; inactive memberships are denied before any directory operation.
+
+## Contract administration
+
+`createPlatformEntitlementService` from `@alneas/eaos-server/entitlements` combines durable contract reads, idempotent updates and entitlement admission over one atomic control-plane repository. Supply the control-plane `AtomicSqlDriver`, adopted manifests and current lifecycle callback. Apply `tenantEntitlementContract` migrations and `entitlementAuditSql` only through an explicitly reviewed schema release. Creating the service does not apply schema or activate tenants.
+
+Mount `createEntitlementAdminRoutes` with the Host administrator policy, tenant existence check, service resolver and allowed mutation origins. PUT requires current platform-administrator authorization, `X-EAOS-Request: tenant-contract`, an allowed Origin and an exact tenant-bound contract. Request bodies cannot grant administrative authority. CAS conflicts return409; audit and storage failures roll back the update.
