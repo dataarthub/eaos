@@ -89,6 +89,7 @@ tags: ["api", "generated"]
 | `@alneas/eaos-server/workspace-context` | Typed public export |
 | `@alneas/eaos-server/entitlements` | Typed public export |
 | `@alneas/eaos-server/plugin-sdk` | Typed public export |
+| `@alneas/eaos-server/host` | Typed public export |
 
 <a id="api-AccessFrequencyRecord"></a>
 
@@ -5111,6 +5112,83 @@ const serialized = canonical({ b: [2, 1], a: true });
 ```
 
 
+<a id="api-ClientPluginOptions"></a>
+
+## [INTERFACE] `ClientPluginOptions`
+
+Safe client metadata selection; visibility is not API permission.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+interface ClientPluginOptions {
+    tenantId: string;
+    enabledPluginIds: string[];
+    manifests: PluginManifest[];
+    extensions: PlatformExtension[];
+    isEnabled?: (tenantId: string, pluginId: string) => Promise<boolean>;
+    navigationPluginIds?: readonly string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantId` | `string` | Yes | Concrete tenant established by verified host membership. |
+| `enabledPluginIds` | `string[]` | Yes | Current host licensing selection, never client claims. |
+| `manifests` | `PluginManifest[]` | Yes | Reviewed adopted feature metadata with unique identities. |
+| `extensions` | `PlatformExtension[]` | Yes | Verified private contribution ownership and explicit tenant scope. |
+| `isEnabled` | `(tenantId: string, pluginId: string) => Promise<boolean>` | No | Optional live activation check; lookup failures propagate. |
+| `navigationPluginIds` | `readonly string[]` | No | Host-owned standalone clients that expose navigation without server routes. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+resolveClientPlugins
+
+### Public members
+
+#### `tenantId`
+
+Concrete tenant established by verified host membership.
+
+
+#### `enabledPluginIds`
+
+Current host licensing selection, never client claims.
+
+
+#### `manifests`
+
+Reviewed adopted feature metadata with unique identities.
+
+
+#### `extensions`
+
+Verified private contribution ownership and explicit tenant scope.
+
+
+#### `isEnabled`
+
+Optional live activation check; lookup failures propagate.
+
+
+#### `navigationPluginIds`
+
+Host-owned standalone clients that expose navigation without server routes.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-CloudflareD1Binding"></a>
 
 ## [INTERFACE] `CloudflareD1Binding`
@@ -7119,6 +7197,128 @@ console.log(response.status); // 200
 ```
 
 
+<a id="api-createHostManifestCatalog"></a>
+
+## [FUNCTION] `createHostManifestCatalog`
+
+Compose metadata with explicitly supplied runtime and MCP bindings.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+declare function createHostManifestCatalog(options: HostManifestCatalogOptions): PluginManifest[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `HostManifestCatalogOptions` | Yes | Host-selected manifests, route factories and MCP feature IDs. |
+
+### Returns
+
+`PluginManifest[]`
+
+Fresh manifests without unbound static handlers.
+
+### Errors and rejections
+
+On duplicate identities or unknown route/MCP bindings.
+
+### Example
+
+```typescript
+import { createHostManifestCatalog } from '@alneas/eaos-server/extensions'
+const manifests = createHostManifestCatalog({ manifests: [] })
+```
+
+<a id="api-createHostMcpToolContext"></a>
+
+## [FUNCTION] `createHostMcpToolContext`
+
+Bind selected tools to the trusted current request and recheck authority before execution.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+declare function createHostMcpToolContext(options: HostMcpBindingOptions): NonNullable<McpRouterOptions['createToolContext']>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `HostMcpBindingOptions` | Yes | Selected feature IDs, owning binder and request-local context bridge. |
+
+### Returns
+
+`NonNullable<McpRouterOptions['createToolContext']>`
+
+An Engine-compatible current tool-context factory.
+
+### Errors and rejections
+
+Missing membership or changed tenant/user/grants deny with 403; unavailable tools deny with 404.
+
+### Example
+
+```typescript
+import { createHostMcpToolContext, type HostMcpBindingOptions } from '@alneas/eaos-server/host'
+export const bindTools = (options: HostMcpBindingOptions) => createHostMcpToolContext(options)
+```
+
+<a id="api-createHostModulePolicy"></a>
+
+## [FUNCTION] `createHostModulePolicy`
+
+Bind host-provided module licensing to Hono without environment-based defaults.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+declare function createHostModulePolicy(options: HostModulePolicyOptions): {
+    entitlementMiddleware: hono.MiddlewareHandler<any, string, {}, Response>;
+    requireModule: (moduleId: string) => hono.MiddlewareHandler<any, string, {}, Response & hono.TypedResponse<{
+        error: string;
+        message: string;
+    }, 403, "json">>;
+    enabledPluginIds: (enabledModules: string[]) => string[];
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `HostModulePolicyOptions` | Yes | Trusted manifest selection, live licensing lookup and optional host policy. |
+
+### Returns
+
+`{     entitlementMiddleware: hono.MiddlewareHandler<any, string, {}, Response>;     requireModule: (moduleId: string) => hono.MiddlewareHandler<any, string, {}, Response & hono.TypedResponse<{         error: string;         message: string;     }, 403, "json">>;     enabledPluginIds: (enabledModules: string[]) => string[]; }`
+
+Licensing middleware, a per-feature guard and feature-ID mapping.
+
+### Remarks
+
+A module guard does not authenticate a principal or authorize a resource.
+
+### Errors and rejections
+
+Licensing lookup failures propagate; missing tenant/module admission returns 403.
+
+### Example
+
+```typescript
+import { createHostModulePolicy } from '@alneas/eaos-server/extensions'
+const policy = createHostModulePolicy({ manifests: [], loadEnabledModules: async () => [] })
+```
+
 <a id="api-createHttpAgentExecutor"></a>
 
 ## [FUNCTION] `createHttpAgentExecutor`
@@ -7828,6 +8028,43 @@ import { createPluginAtomicRepository } from '@alneas/eaos-server/plugin-data'
 export function repository(manifest: Parameters<typeof createPluginAtomicRepository>[0], driver: Parameters<typeof createPluginAtomicRepository>[1], catalog: Parameters<typeof createPluginAtomicRepository>[2]) { return createPluginAtomicRepository(manifest, driver, catalog) }
 ```
 
+<a id="api-createPluginAuthorizationMiddleware"></a>
+
+## [FUNCTION] `createPluginAuthorizationMiddleware`
+
+Install a request-scoped authorization port that rechecks membership and activation.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+declare function createPluginAuthorizationMiddleware(options: PluginAuthorizationOptions): hono.MiddlewareHandler<any, string, {}, Response>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `PluginAuthorizationOptions` | Yes | Trusted live membership and feature providers. |
+
+### Returns
+
+`hono.MiddlewareHandler<any, string, {}, Response>`
+
+Hono middleware attaching the existing platform authorization binding.
+
+### Remarks
+
+Authentication must run first. Lookup failures deny access. API-key identity must be host-verified; resource policies still apply.
+
+### Example
+
+```typescript
+import { createPluginAuthorizationMiddleware, type PluginAuthorizationOptions } from '@alneas/eaos-server/extensions'
+export const bindAuthorization = (providers: PluginAuthorizationOptions) => createPluginAuthorizationMiddleware(providers)
+```
+
 <a id="api-createPluginEntitlementGuard"></a>
 
 ## [FUNCTION] `createPluginEntitlementGuard`
@@ -8498,6 +8735,84 @@ export function entitlementLoader(driver: Parameters<typeof createSqlTenantEntit
 }
 ```
 
+
+<a id="api-createStandardHost"></a>
+
+## [FUNCTION] `createStandardHost`
+
+Start one authenticated Host from selected bindings and explicit infrastructure capabilities.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+declare function createStandardHost(input: StandardHostOptions): Promise<StandardHostResult>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `input` | `StandardHostOptions` | Yes | App settings, verified identity, current admission and runtime factories. |
+
+### Returns
+
+`Promise<StandardHostResult>`
+
+The completed Hono app and runtime context, without opening a listener.
+
+### Remarks
+
+Applies no migrations, activates no tenants and imports no private implementations.
+
+### Errors and rejections
+
+Invalid metadata/ports or startup failures reject without returning a partial app.
+
+### Example
+
+```typescript
+import { createStandardHost, type StandardHostOptions } from '@alneas/eaos-server/host'
+export const start = (options: StandardHostOptions) => createStandardHost(options)
+```
+
+<a id="api-createStandardHostPolicy"></a>
+
+## [FUNCTION] `createStandardHostPolicy`
+
+Compose selected Host metadata and live module admission without starting services.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+declare function createStandardHostPolicy(options: StandardHostPolicyOptions): StandardHostPolicy;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `StandardHostPolicyOptions` | Yes | Explicit adoption, executable bindings and licensing providers. |
+
+### Returns
+
+`StandardHostPolicy`
+
+A fresh selected catalog and the canonical module policy.
+
+### Errors and rejections
+
+Invalid identities and conflicting bindings reject before service construction.
+
+### Example
+
+```typescript
+import { createStandardHostPolicy } from '@alneas/eaos-server/host'
+const policy = createStandardHostPolicy({ manifests: [], loadEnabledModules: async () => [] })
+```
 
 <a id="api-createStandardPluginServer"></a>
 
@@ -13920,6 +14235,285 @@ Readiness checks run on each readiness request; defaults to no checks.
 #### `now`
 
 Clock read separately for each request; defaults to the current Date.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostBoundPlugin"></a>
+
+## [INTERFACE] `HostBoundPlugin`
+
+Executable tool surface supplied by the trusted owning feature binder.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface HostBoundPlugin {
+    mcp?: PluginManifest['mcp'];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `mcp` | `PluginManifest['mcp']` | No | Owning tools; absence rejects binding rather than falling back to static metadata. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createHostMcpToolContext
+
+### Public members
+
+#### `mcp`
+
+Owning tools; absence rejects binding rather than falling back to static metadata.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostManifestCatalogOptions"></a>
+
+## [INTERFACE] `HostManifestCatalogOptions`
+
+Trusted manifests and executable bindings selected by the application host.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+interface HostManifestCatalogOptions {
+    manifests: PluginManifest[];
+    routeFactories?: Record<string, HostRouteFactory>;
+    mcpPluginIds?: readonly string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `manifests` | `PluginManifest[]` | Yes | Reviewed adopted feature metadata with unique identities. |
+| `routeFactories` | `Record<string, HostRouteFactory>` | No | Executable host bindings keyed by an adopted manifest identity. |
+| `mcpPluginIds` | `readonly string[]` | No | Feature IDs whose tools dispatch through the live host MCP port. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createHostManifestCatalog
+
+### Public members
+
+#### `manifests`
+
+Reviewed adopted feature metadata with unique identities.
+
+
+#### `routeFactories`
+
+Executable host bindings keyed by an adopted manifest identity.
+
+
+#### `mcpPluginIds`
+
+Feature IDs whose tools dispatch through the live host MCP port.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostMcpBindingOptions"></a>
+
+## [INTERFACE] `HostMcpBindingOptions`
+
+Current-request bridge and executable capabilities for selected MCP features.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface HostMcpBindingOptions {
+    pluginIds: readonly string[];
+    bindPlugin: (context: Context, pluginId: string) => Promise<HostBoundPlugin | Response | undefined>;
+    requestContext: {
+        current: () => Context;
+        bind: (context: Context) => void;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginIds` | `readonly string[]` | Yes | Exact selected feature IDs, copied at composition. |
+| `bindPlugin` | `(context: Context, pluginId: string) => Promise<HostBoundPlugin \| Response \| undefined>` | Yes | Bind the verified request to its owning feature; a denial Response is never executed. |
+| `requestContext` | `{     current: () => Context;     bind: (context: Context) => void; }` | Yes | Trusted request-local context storage; never use one shared mutable variable. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createHostMcpToolContext
+
+### Public members
+
+#### `pluginIds`
+
+Exact selected feature IDs, copied at composition.
+
+
+#### `bindPlugin`
+
+Bind the verified request to its owning feature; a denial Response is never executed.
+
+
+#### `requestContext`
+
+Trusted request-local context storage; never use one shared mutable variable.
+
+
+#### `requestContext.current`
+
+Obtain this asynchronous request's context; missing scope must reject.
+
+
+#### `requestContext.bind`
+
+Associate a verified MCP request with the current Host request scope.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostModulePolicyOptions"></a>
+
+## [INTERFACE] `HostModulePolicyOptions`
+
+Application licensing policy. Membership and resource permission remain separate checks.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+interface HostModulePolicyOptions {
+    manifests: PluginManifest[];
+    moduleAliases?: Record<string, string[]>;
+    routePrefixes?: Record<string, string[]>;
+    loadEnabledModules: (tenantId: string) => Promise<string[]>;
+    bypass?: (context: Context) => boolean;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `manifests` | `PluginManifest[]` | Yes | Reviewed adopted feature metadata with unique identities. |
+| `moduleAliases` | `Record<string, string[]>` | No | Host-owned legacy licensing keys accepted for each feature. |
+| `routePrefixes` | `Record<string, string[]>` | No | Exact API prefixes and descendants to which a feature guard applies. |
+| `loadEnabledModules` | `(tenantId: string) => Promise<string[]>` | Yes | Read current licensing keys for the verified tenant; failures propagate. |
+| `bypass` | `(context: Context) => boolean` | No | Explicit trusted host policy; omitted means no bypass in any environment. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createHostModulePolicy
+
+### Public members
+
+#### `manifests`
+
+Reviewed adopted feature metadata with unique identities.
+
+
+#### `moduleAliases`
+
+Host-owned legacy licensing keys accepted for each feature.
+
+
+#### `routePrefixes`
+
+Exact API prefixes and descendants to which a feature guard applies.
+
+
+#### `loadEnabledModules`
+
+Read current licensing keys for the verified tenant; failures propagate.
+
+
+#### `bypass`
+
+Explicit trusted host policy; omitted means no bypass in any environment.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostPrincipal"></a>
+
+## [TYPE] `HostPrincipal`
+
+Current verified identity and live feature admission; never populate from request claims.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+type HostPrincipal = PluginPrincipal & {
+    enabledPluginIds: readonly string[];
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createPluginAuthorizationMiddleware
+
+### Public members
+
+#### `enabledPluginIds`
+
+Current feature identities supplied by trusted admission providers.
 
 
 
@@ -21562,6 +22156,62 @@ Latest metadata modification timestamp.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-PluginAuthorizationOptions"></a>
+
+## [INTERFACE] `PluginAuthorizationOptions`
+
+Live workspace, module and lifecycle providers supplied by trusted host composition.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+interface PluginAuthorizationOptions {
+    store: () => WorkspaceContextStore;
+    enabledPluginIds: (tenantId: string) => Promise<string[]>;
+    isEnabled: (tenantId: string, pluginId: string) => Promise<boolean>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `store` | `() => WorkspaceContextStore` | Yes | Supply the live tenant/membership store for principal revalidation. |
+| `enabledPluginIds` | `(tenantId: string) => Promise<string[]>` | Yes | Read current licensing IDs for the verified tenant. |
+| `isEnabled` | `(tenantId: string, pluginId: string) => Promise<boolean>` | Yes | Recheck current lifecycle activation for the verified tenant and feature. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createPluginAuthorizationMiddleware
+
+### Public members
+
+#### `store`
+
+Supply the live tenant/membership store for principal revalidation.
+
+
+#### `enabledPluginIds`
+
+Read current licensing IDs for the verified tenant.
+
+
+#### `isEnabled`
+
+Recheck current lifecycle activation for the verified tenant and feature.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-PluginEntitlementRuntime"></a>
 
 ## [CLASS] `PluginEntitlementRuntime`
@@ -23857,6 +24507,43 @@ export async function authenticate(
 }
 ```
 
+
+<a id="api-resolveClientPlugins"></a>
+
+## [FUNCTION] `resolveClientPlugins`
+
+Project current adopted and tenant-scoped features into safe client metadata.
+
+Imports: `@alneas/eaos-server/extensions`.
+
+### Signature
+
+```typescript
+declare function resolveClientPlugins(options: ClientPluginOptions): Promise<Pick<PluginManifest, "id" | "name" | "version" | "targets" | "entitlement" | "navigation">[]>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `ClientPluginOptions` | Yes | Verified tenant, host selection and optional live activation check. |
+
+### Returns
+
+`Promise<Pick<PluginManifest, "id" \| "name" \| "version" \| "targets" \| "entitlement" \| "navigation">[]>`
+
+Display metadata only, without executable routes or tools.
+
+### Errors and rejections
+
+Live activation failures propagate rather than produce misleading availability.
+
+### Example
+
+```typescript
+import { resolveClientPlugins } from '@alneas/eaos-server/extensions'
+const plugins = await resolveClientPlugins({ tenantId: 'tenant', enabledPluginIds: [], manifests: [], extensions: [] })
+```
 
 <a id="api-resolveDataContracts"></a>
 
@@ -26676,6 +27363,520 @@ Payload/object/history policy declared by the plugin manifest.
 #### `documents`
 
 Canonical closed payload contracts copied and enforced by the wrapper.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-StandardHostContext"></a>
+
+## [INTERFACE] `StandardHostContext`
+
+Completed runtime capabilities for application routes and separately mounted public gateways.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface StandardHostContext extends StandardHostRuntimeInput {
+    readonly entitlements: PluginEntitlementRuntime;
+    readonly resolvePrincipal: EntitlementPrincipalResolver;
+    readonly resolveClientPlugins: typeof resolveClientPlugins;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `entitlements` | `PluginEntitlementRuntime` | Yes | Real injected entitlement runtime; persistence remains owned by its Host adapter. |
+| `resolvePrincipal` | `EntitlementPrincipalResolver` | Yes | Read the canonical request authorization port again; null denies access. |
+| `resolveClientPlugins` | `typeof resolveClientPlugins` | Yes | Existing safe client projection helper; visibility alone grants no API permission. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createStandardHost
+
+### Public members
+
+#### `entitlements`
+
+Real injected entitlement runtime; persistence remains owned by its Host adapter.
+
+
+#### `resolvePrincipal`
+
+Read the canonical request authorization port again; null denies access.
+
+
+#### `resolveClientPlugins`
+
+Existing safe client projection helper; visibility alone grants no API permission.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-StandardHostOptions"></a>
+
+## [INTERFACE] `StandardHostOptions`
+
+Authenticated Host startup inputs; provider connections and persistence remain injected.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface StandardHostOptions {
+    app: {
+        name: string;
+        corsOrigins?: readonly string[];
+        authSkipPaths?: readonly string[];
+        releaseVersion?: string;
+        health?: CreateAppOptions['health'];
+        validateSecrets?: boolean;
+    };
+    adoption: Omit<StandardHostPolicyOptions, 'loadEnabledModules' | 'moduleAliases' | 'routePrefixes' | 'bypass'>;
+    auth: {
+        verifier: AuthSessionVerifier;
+        membership: MiddlewareHandler<EaosEnv>;
+    };
+    admission: {
+        store: () => WorkspaceContextStore;
+        loadEnabledModules: StandardHostPolicyOptions['loadEnabledModules'];
+        moduleAliases?: Record<string, string[]>;
+        routePrefixes?: Record<string, string[]>;
+        bypass?: StandardHostPolicyOptions['bypass'];
+    };
+    runtime: {
+        loadLifecycle: () => Promise<LifecycleRuntime | undefined>;
+        createEntitlements: (context: StandardHostRuntimeInput) => Promise<PluginEntitlementRuntime> | PluginEntitlementRuntime;
+    };
+    mcp?: Omit<HostMcpBindingOptions, 'pluginIds'>;
+    createRoutes?: (context: StandardHostContext) => Promise<NonNullable<CreateAppOptions['customRoutes']>> | NonNullable<CreateAppOptions['customRoutes']>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `app` | `{     name: string;     corsOrigins?: readonly string[];     authSkipPaths?: readonly string[];     releaseVersion?: string;     health?: CreateAppOptions['health'];     validateSecrets?: boolean; }` | Yes | Application presentation and shared HTTP setup. |
+| `adoption` | `Omit<StandardHostPolicyOptions, 'loadEnabledModules' \| 'moduleAliases' \| 'routePrefixes' \| 'bypass'>` | Yes | Effective generated catalog, selected subset and executable capabilities. |
+| `auth` | `{     verifier: AuthSessionVerifier;     membership: MiddlewareHandler<EaosEnv>; }` | Yes | Required real credential verifier and verified tenant membership adapter. |
+| `admission` | `{     store: () => WorkspaceContextStore;     loadEnabledModules: StandardHostPolicyOptions['loadEnabledModules'];     moduleAliases?: Record<string, string[]>;     routePrefixes?: Record<string, string[]>;     bypass?: StandardHostPolicyOptions['bypass']; }` | Yes | Current persistence/admission capabilities; startup does not connect to a database. |
+| `runtime` | `{     loadLifecycle: () => Promise<LifecycleRuntime \| undefined>;     createEntitlements: (context: StandardHostRuntimeInput) => Promise<PluginEntitlementRuntime> \| PluginEntitlementRuntime; }` | Yes | Host-owned services constructed after metadata validation. |
+| `mcp` | `Omit<HostMcpBindingOptions, 'pluginIds'>` | No | Required when effective selected MCP IDs are nonempty; never supplies an implicit identity. |
+| `createRoutes` | `(context: StandardHostContext) => Promise<NonNullable<CreateAppOptions['customRoutes']>> \| NonNullable<CreateAppOptions['customRoutes']>` | No | Application routers built with completed services; each retains its own route-specific authorization. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createStandardHost
+
+### Public members
+
+#### `app`
+
+Application presentation and shared HTTP setup.
+
+
+#### `app.name`
+
+Nonblank health/application label; opens no listener.
+
+
+#### `app.corsOrigins`
+
+Exact trusted browser origins, copied into existing Engine CORS settings.
+
+
+#### `app.authSkipPaths`
+
+Existing authentication-exempt path prefixes; omission preserves Engine defaults.
+
+
+#### `app.releaseVersion`
+
+Optional value of the fixed X-EAOS-Release response header.
+
+
+#### `app.health`
+
+Readiness checks and clock; concrete dependency probes remain Host-owned.
+
+
+#### `app.validateSecrets`
+
+Preserve Engine secret validation unless explicitly false.
+
+
+#### `adoption`
+
+Effective generated catalog, selected subset and executable capabilities.
+
+
+#### `auth`
+
+Required real credential verifier and verified tenant membership adapter.
+
+
+#### `auth.verifier`
+
+Trusted verifier of sessions and optional API keys.
+
+
+#### `auth.membership`
+
+Resolve tenant membership after authentication; never trust browser role claims.
+
+
+#### `admission`
+
+Current persistence/admission capabilities; startup does not connect to a database.
+
+
+#### `admission.store`
+
+Return the current membership store for principal revalidation.
+
+
+#### `admission.loadEnabledModules`
+
+Read current tenant module licensing keys.
+
+
+#### `admission.moduleAliases`
+
+Explicit legacy license aliases.
+
+
+#### `admission.routePrefixes`
+
+Paths to which specific module guards apply.
+
+
+#### `admission.bypass`
+
+Explicit development/custom policy; no ambient environment grants are supplied.
+
+
+#### `runtime`
+
+Host-owned services constructed after metadata validation.
+
+
+#### `runtime.loadLifecycle`
+
+Resolve the existing backend/tenant Lifecycle capabilities, without activating tenants.
+
+
+#### `runtime.createEntitlements`
+
+Construct entitlement persistence/runtime using the already resolved startup context.
+
+
+#### `mcp`
+
+Required when effective selected MCP IDs are nonempty; never supplies an implicit identity.
+
+
+#### `createRoutes`
+
+Application routers built with completed services; each retains its own route-specific authorization.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-StandardHostPolicy"></a>
+
+## [INTERFACE] `StandardHostPolicy`
+
+Selected catalog and canonical live module policy for one Host instance.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface StandardHostPolicy {
+    readonly manifests: readonly PluginManifest[];
+    readonly entitlementMiddleware: MiddlewareHandler<EaosEnv>;
+    readonly requireModule: (pluginId: string) => MiddlewareHandler<EaosEnv>;
+    readonly enabledPluginIds: (enabledModules: string[]) => string[];
+    readonly loadEnabledModules: (tenantId: string) => Promise<string[]>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `manifests` | `readonly PluginManifest[]` | Yes | Fresh selected manifests; implementations remain trusted callable references. |
+| `entitlementMiddleware` | `MiddlewareHandler<EaosEnv>` | Yes | Populate current tenant module context after verified membership. |
+| `requireModule` | `(pluginId: string) => MiddlewareHandler<EaosEnv>` | Yes | Construct the existing module licensing guard for one feature. |
+| `enabledPluginIds` | `(enabledModules: string[]) => string[]` | Yes | Map live licensing keys to selected feature IDs only. |
+| `loadEnabledModules` | `(tenantId: string) => Promise<string[]>` | Yes | Host's live licensing lookup; no database or environment fallback is invented. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createStandardHostPolicy
+
+### Public members
+
+#### `manifests`
+
+Fresh selected manifests; implementations remain trusted callable references.
+
+
+#### `entitlementMiddleware`
+
+Populate current tenant module context after verified membership.
+
+
+#### `requireModule`
+
+Construct the existing module licensing guard for one feature.
+
+
+#### `enabledPluginIds`
+
+Map live licensing keys to selected feature IDs only.
+
+
+#### `loadEnabledModules`
+
+Host's live licensing lookup; no database or environment fallback is invented.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-StandardHostPolicyOptions"></a>
+
+## [INTERFACE] `StandardHostPolicyOptions`
+
+Explicit adopted metadata and live licensing capabilities; omission never reads environment.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface StandardHostPolicyOptions {
+    manifests: readonly PluginManifest[];
+    pluginIds?: readonly string[];
+    routeFactories?: Readonly<Record<string, HostRouteFactory>>;
+    mcpPluginIds?: readonly string[];
+    extensions?: readonly PlatformExtension[];
+    loadEnabledModules: (tenantId: string) => Promise<string[]>;
+    moduleAliases?: Record<string, string[]>;
+    routePrefixes?: Record<string, string[]>;
+    bypass?: (context: Context) => boolean;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `manifests` | `readonly PluginManifest[]` | Yes | Reviewed catalog; contributed extension manifests are appended and validated. |
+| `pluginIds` | `readonly string[]` | No | Explicit subset in requested order; undefined uses the supplied set, while [] adopts nothing. |
+| `routeFactories` | `Readonly<Record<string, HostRouteFactory>>` | No | Executable bindings for known catalog IDs, never overrides of an extension's factory. |
+| `mcpPluginIds` | `readonly string[]` | No | Known features whose static tool declarations dispatch through the current request binder. |
+| `extensions` | `readonly PlatformExtension[]` | No | Already acquired trusted contributions with explicit tenant restrictions. |
+| `loadEnabledModules` | `(tenantId: string) => Promise<string[]>` | Yes | Read current licensing keys for the verified tenant; failures propagate. |
+| `moduleAliases` | `Record<string, string[]>` | No | Legacy module keys explicitly accepted by each feature. |
+| `routePrefixes` | `Record<string, string[]>` | No | Exact paths and descendants where an alias/module guard applies. |
+| `bypass` | `(context: Context) => boolean` | No | Explicit Host policy only; absent means no bypass in any environment. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createStandardHostPolicy
+
+### Public members
+
+#### `manifests`
+
+Reviewed catalog; contributed extension manifests are appended and validated.
+
+
+#### `pluginIds`
+
+Explicit subset in requested order; undefined uses the supplied set, while [] adopts nothing.
+
+
+#### `routeFactories`
+
+Executable bindings for known catalog IDs, never overrides of an extension's factory.
+
+
+#### `mcpPluginIds`
+
+Known features whose static tool declarations dispatch through the current request binder.
+
+
+#### `extensions`
+
+Already acquired trusted contributions with explicit tenant restrictions.
+
+
+#### `loadEnabledModules`
+
+Read current licensing keys for the verified tenant; failures propagate.
+
+
+#### `moduleAliases`
+
+Legacy module keys explicitly accepted by each feature.
+
+
+#### `routePrefixes`
+
+Exact paths and descendants where an alias/module guard applies.
+
+
+#### `bypass`
+
+Explicit Host policy only; absent means no bypass in any environment.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-StandardHostResult"></a>
+
+## [INTERFACE] `StandardHostResult`
+
+A fully composed app; creating it never opens a listener or activates tenants.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface StandardHostResult {
+    app: Hono<EaosEnv>;
+    context: StandardHostContext;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `app` | `Hono<EaosEnv>` | Yes | Composed authenticated app; the Host owns process fetch/listener and any public gateway. |
+| `context` | `StandardHostContext` | Yes | Resolved capabilities for additional Host composition. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createStandardHost
+
+### Public members
+
+#### `app`
+
+Composed authenticated app; the Host owns process fetch/listener and any public gateway.
+
+
+#### `context`
+
+Resolved capabilities for additional Host composition.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-StandardHostRuntimeInput"></a>
+
+## [INTERFACE] `StandardHostRuntimeInput`
+
+Resolved startup services passed to the Host-owned entitlement runtime factory.
+
+Imports: `@alneas/eaos-server/host`.
+
+### Signature
+
+```typescript
+interface StandardHostRuntimeInput {
+    readonly policy: StandardHostPolicy;
+    readonly manifests: readonly PluginManifest[];
+    readonly lifecycle: LifecycleRuntime | undefined;
+    readonly isPluginEnabled: (tenantId: string, pluginId: string) => Promise<boolean>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `policy` | `StandardHostPolicy` | Yes | Selected module policy for this Host instance. |
+| `manifests` | `readonly PluginManifest[]` | Yes | The final selected catalog, including tenant-constrained contributions. |
+| `lifecycle` | `LifecycleRuntime \| undefined` | Yes | Resolved Lifecycle runtime; absence never means active. |
+| `isPluginEnabled` | `(tenantId: string, pluginId: string) => Promise<boolean>` | Yes | Check the tenant's current resolved backend activation; false without a runtime. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createStandardHost
+
+### Public members
+
+#### `policy`
+
+Selected module policy for this Host instance.
+
+
+#### `manifests`
+
+The final selected catalog, including tenant-constrained contributions.
+
+
+#### `lifecycle`
+
+Resolved Lifecycle runtime; absence never means active.
+
+
+#### `isPluginEnabled`
+
+Check the tenant's current resolved backend activation; false without a runtime.
 
 
 

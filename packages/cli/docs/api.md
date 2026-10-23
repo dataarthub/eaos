@@ -56,6 +56,64 @@ tags: ["api", "generated"]
 | `@alneas/eaos-cli/presets/oci-adb/template` | Typed public export |
 | `@alneas/eaos-cli/platform/deployment-assets` | Typed public export |
 
+<a id="api-acquireFrontendArtifact"></a>
+
+## [FUNCTION] `acquireFrontendArtifact`
+
+Acquire a verified immutable frontend contribution and update its selected catalog.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function acquireFrontendArtifact(root: string, inventoryPath: string, options?: {
+    config?: string;
+}): Promise<{
+    acquired: string;
+    digest: string;
+    verified: true;
+    activated: false;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application project root. |
+| `inventoryPath` | `string` | Yes | Explicit built artifact inventory path, absolute or relative to root. |
+| `options` | `{     config?: string; }` | No | Optional catalog path; defaults to frontend.packages.json within root. |
+
+### Returns
+
+`Promise<{     acquired: string;     digest: string;     verified: true;     activated: false; }>`
+
+Package identity and inventory digest; acquisition never activates features.
+
+### Remarks
+
+Does not execute contribution code, deploy or change tenant admission. Failed selection leaves the previous catalog intact; unselected immutable artifacts may be retained.
+
+### Errors and rejections
+
+For unsafe paths, changed checksums, missing exports, malformed catalogs, conflicting selection or concurrent operations.
+
+### Public members
+
+#### `options.config`
+
+Project-relative selected catalog; defaults to frontend.packages.json.
+
+
+
+### Example
+
+```typescript
+import { acquireFrontendArtifact } from '@alneas/eaos-cli/platform'
+export const acquire = (root: string, inventory: string) => acquireFrontendArtifact(root, inventory)
+```
+
 <a id="api-AdbConnectionProfile"></a>
 
 ## [INTERFACE] `AdbConnectionProfile`
@@ -160,7 +218,49 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Replace one well-formed generated block while preserving surrounding human-authored text.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function agentDocumentNext(existing: string, block: string): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `existing` | `string` | Yes | Current document text, possibly without a generated block. |
+| `block` | `string` | Yes | Replacement generated block, normally from renderAgentMetadata. |
+
+### Returns
+
+`string`
+
+Updated document text; a missing block is appended.
+
+### Remarks
+
+The replacement block itself is trusted and is not parsed for marker validity.
+
+### Errors and rejections
+
+If existing markers are mismatched, repeated or reversed.
+
+### Example
+
+```typescript
+import { agentDocumentNext } from '@alneas/eaos-cli/plugin-tools'
+const next = agentDocumentNext('# Notes', '<!-- eaos:generated:start -->\nContract\n<!-- eaos:generated:end -->')
+```
+
+<a id="api-agentDocumentNext"></a>
+
+## [FUNCTION] `agentDocumentNext`
+
+Replace one well-formed generated block while preserving surrounding human-authored text.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
 
 ### Signature
 
@@ -202,7 +302,44 @@ const next = agentDocumentNext('# Notes', '<!-- eaos:generated:start -->\nContra
 
 Reject identifiers outside the lowercase hyphen-separated plugin naming grammar.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/utils`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function assertPluginId(id: string): void;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Identifier beginning with a lowercase letter; segments contain lowercase letters or digits. |
+
+### Returns
+
+`void`
+
+No value; normal completion means the identifier matches the naming grammar.
+
+### Errors and rejections
+
+If the identifier does not match the required grammar.
+
+### Example
+
+```typescript
+import { assertPluginId } from '@alneas/eaos-cli/plugin-tools'
+assertPluginId('notes-api')
+```
+
+<a id="api-assertPluginId"></a>
+
+## [FUNCTION] `assertPluginId`
+
+Reject identifiers outside the lowercase hyphen-separated plugin naming grammar.
+
+Imports: `@alneas/eaos-cli/plugin-tools/utils`.
 
 ### Signature
 
@@ -318,7 +455,49 @@ export function listSites(config: Parameters<typeof callSiteControl>[0], id: str
 
 Compare statically inspected plugin contracts against a workspace-owned baseline.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/check-contracts`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function checkContracts(root: string, options: ContractCheckOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted workspace root containing the plugin and baseline. |
+| `options` | `ContractCheckOptions` | Yes | Required plugin and against path; against must identify a regular workspace file. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value when the baseline is compatible; additions are reported to stdout.
+
+### Remarks
+
+Does not import plugin code; checks metadata compatibility rather than runtime authorization or complete semantic equivalence.
+
+### Errors and rejections
+
+Rejects unresolved contracts, mismatched plugin identities, incompatible schemas/policies or an invalid baseline.
+
+### Example
+
+```typescript
+import { checkContracts } from '@alneas/eaos-cli/plugin-tools'
+export async function checkNotes(root: string) { await checkContracts(root, { plugin: 'notes', against: 'contracts/notes.json' }) }
+```
+
+<a id="api-checkContracts"></a>
+
+## [FUNCTION] `checkContracts`
+
+Compare statically inspected plugin contracts against a workspace-owned baseline.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/check-contracts`.
 
 ### Signature
 
@@ -441,7 +620,154 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Command-specific plugin authoring arguments; each command validates the subset it consumes.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/utils`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+interface CommandOptions {
+    plugin?: string;
+    check?: boolean;
+    write?: boolean;
+    autoFix?: boolean;
+    name?: string;
+    description?: string;
+    industry?: string;
+    tier?: string;
+    addonId?: string;
+    monthlyQuota?: string;
+    allowedTenants?: string;
+    targets?: string;
+    features?: string;
+    output?: string;
+    format?: string;
+    against?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `plugin` | `string` | No | Existing plugin ID consumed by inspection/maintenance commands. |
+| `check` | `boolean` | No | Read-only equality/diagnostic verification where supported; failures reject. |
+| `write` | `boolean` | No | Explicit permission to replace an existing generated draft where supported. |
+| `autoFix` | `boolean` | No | Command-specific guidance flag; secret detection does not rewrite matched content. |
+| `name` | `string` | No | New plugin name used to derive a validated identifier. |
+| `description` | `string` | No | Human-readable plugin description written into generated metadata. |
+| `industry` | `string` | No | Optional author-selected industry label for generated metadata. |
+| `tier` | `string` | No | Public, standard, pro or corporate policy selection; supported legacy aliases are normalized by the generator. |
+| `addonId` | `string` | No | Explicit Pro addon identity; generator otherwise derives its default from the plugin ID. |
+| `monthlyQuota` | `string` | No | Text form of the nonnegative admitted-request budget; zero grants no metered calls. |
+| `allowedTenants` | `string` | No | Comma-separated explicit Corporate tenant allowlist; Corporate generation requires it. |
+| `targets` | `string` | No | Command-specific selected client/runtime target hints. |
+| `features` | `string` | No | Command-specific optional generated feature hints. |
+| `output` | `string` | No | Optional new scaffold destination, subject to the generator's path and existence checks. |
+| `format` | `string` | No | Diagnostic format; json requests structured source inspection. |
+| `against` | `string` | No | Workspace-relative contract-baseline JSON used for compatibility checks. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[generatePlugin](#api-generatePlugin) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `plugin`
+
+Existing plugin ID consumed by inspection/maintenance commands.
+
+
+#### `check`
+
+Read-only equality/diagnostic verification where supported; failures reject.
+
+
+#### `write`
+
+Explicit permission to replace an existing generated draft where supported.
+
+
+#### `autoFix`
+
+Command-specific guidance flag; secret detection does not rewrite matched content.
+
+
+#### `name`
+
+New plugin name used to derive a validated identifier.
+
+
+#### `description`
+
+Human-readable plugin description written into generated metadata.
+
+
+#### `industry`
+
+Optional author-selected industry label for generated metadata.
+
+
+#### `tier`
+
+Public, standard, pro or corporate policy selection; supported legacy aliases are normalized by the generator.
+
+
+#### `addonId`
+
+Explicit Pro addon identity; generator otherwise derives its default from the plugin ID.
+
+
+#### `monthlyQuota`
+
+Text form of the nonnegative admitted-request budget; zero grants no metered calls.
+
+
+#### `allowedTenants`
+
+Comma-separated explicit Corporate tenant allowlist; Corporate generation requires it.
+
+
+#### `targets`
+
+Command-specific selected client/runtime target hints.
+
+
+#### `features`
+
+Command-specific optional generated feature hints.
+
+
+#### `output`
+
+Optional new scaffold destination, subject to the generator's path and existence checks.
+
+
+#### `format`
+
+Diagnostic format; json requests structured source inspection.
+
+
+#### `against`
+
+Workspace-relative contract-baseline JSON used for compatibility checks.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-CommandOptions"></a>
+
+## [INTERFACE] `CommandOptions`
+
+Command-specific plugin authoring arguments; each command validates the subset it consumes.
+
+Imports: `@alneas/eaos-cli/plugin-tools/utils`.
 
 ### Signature
 
@@ -588,7 +914,49 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Plugin selection and workspace-relative baseline for static compatibility checking.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/check-contracts`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+interface ContractCheckOptions extends CommandOptions {
+    against?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `against` | `string` | No | Required workspace-relative regular JSON file containing the previously inspected contract. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[checkContracts](#api-checkContracts) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `against`
+
+Required workspace-relative regular JSON file containing the previously inspected contract.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ContractCheckOptions"></a>
+
+## [INTERFACE] `ContractCheckOptions`
+
+Plugin selection and workspace-relative baseline for static compatibility checking.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/check-contracts`.
 
 ### Signature
 
@@ -630,7 +998,71 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Validate inventories and every declared asset hash without executing deployment or migrations.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/deployment-plan`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function createDeploymentPlan(paths: string[], options?: {
+    placements?: DeploymentPlacements;
+}): Promise<{
+    databasePolicy: string;
+    componentPlacements?: {
+        owner: string;
+        pluginId: string;
+        componentId: string;
+        destinationIds: string[];
+        adopted: boolean;
+    }[] | undefined;
+    destinations?: _alneas_eaos_server_platform.DeploymentDestination[] | undefined;
+    mode: string;
+    contributions: DeploymentContribution[];
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `paths` | `string[]` | Yes | Deployment inventory JSON paths; each must be a regular nonsymlink file of at most 1 MiB. |
+| `options` | `{     placements?: DeploymentPlacements; }` | No | Optional explicit placement catalog for component-to-destination resolution. |
+
+### Returns
+
+`Promise<{     databasePolicy: string;     componentPlacements?: {         owner: string;         pluginId: string;         componentId: string;         destinationIds: string[];         adopted: boolean;     }[] \| undefined;     destinations?: _alneas_eaos_server_platform.DeploymentDestination[] \| undefined;     mode: string;     contributions: DeploymentContribution[]; }>`
+
+Verified contributions, function bindings and any resolved placement plan.
+
+### Remarks
+
+Reads packaged sources but does not certify their behavior or authorize host adoption.
+
+### Errors and rejections
+
+Rejects malformed or duplicate owners/assets/functions, path escapes, symlinks, checksum mismatches and unresolved required placements.
+
+### Public members
+
+#### `options.placements`
+
+Optional explicit component/destination selections to validate against the verified inventories; omitted performs artifact-only inspection.
+
+
+
+### Example
+
+```typescript
+import { createDeploymentPlan } from '@alneas/eaos-cli/platform'
+export function inspectInventory(path: string) { return createDeploymentPlan([path]) }
+```
+
+<a id="api-createDeploymentPlan"></a>
+
+## [FUNCTION] `createDeploymentPlan`
+
+Validate inventories and every declared asset hash without executing deployment or migrations.
+
+Imports: `@alneas/eaos-cli/platform/deployment-plan`.
 
 ### Signature
 
@@ -768,7 +1200,53 @@ export function defineHostResource(args: Parameters<typeof createOciAdbPreset>[1
 
 Declare an OCI user authentication token and expose its value as a Pulumi secret Output.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciAuthToken(name: string, args: OciAuthTokenArgs, options?: pulumi.CustomResourceOptions): {
+    authToken: _pulumi_oci_identity_authToken.AuthToken;
+    token: pulumi.Output<string>;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Logical resource name. |
+| `args` | `OciAuthTokenArgs` | Yes | User identity, optional description and shallow native overrides. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`{     authToken: _pulumi_oci_identity_authToken.AuthToken;     token: pulumi.Output<string>; }`
+
+The AuthToken resource and secret-wrapped token Output.
+
+### Remarks
+
+Creation can issue real credentials during Pulumi apply. The host owns rotation, distribution and access; never unwrap the token into logs or public outputs. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Provider/resource registration errors propagate.
+
+### Example
+
+```typescript
+import { createOciAuthToken } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciAuthToken>[1], options?: Parameters<typeof createOciAuthToken>[2]) { return createOciAuthToken('example', args, options) }
+```
+
+<a id="api-createOciAuthToken"></a>
+
+## [FUNCTION] `createOciAuthToken`
+
+Declare an OCI user authentication token and expose its value as a Pulumi secret Output.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -814,7 +1292,50 @@ export function defineHostResource(args: Parameters<typeof createOciAuthToken>[1
 
 Declare an OCI Autonomous Database with an explicit default profile or unchanged native arguments.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/database`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciAutonomousDatabase(name: string, args: OciAutonomousDatabaseArgs, options?: pulumi.CustomResourceOptions): _pulumi_oci_database_autonomousDatabase.AutonomousDatabase;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Exact Pulumi logical name. |
+| `args` | `OciAutonomousDatabaseArgs` | Yes | Either explicit free-oltp settings including nonempty endpoint ACL, or defaults=none with full native arguments. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`_pulumi_oci_database_autonomousDatabase.AutonomousDatabase`
+
+The native AutonomousDatabase resource.
+
+### Remarks
+
+New free-oltp declarations default to protection, server-auth TLS and disabled autoscaling. Password values are secret Outputs. No DDL, wallets, IAM configuration or implicit adoption; provider inputs/overrides must be reviewed by the host. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Unknown profiles or absent required version/password/ACL fail immediately; provider errors propagate.
+
+### Example
+
+```typescript
+import { createOciAutonomousDatabase } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciAutonomousDatabase>[1], options?: Parameters<typeof createOciAutonomousDatabase>[2]) { return createOciAutonomousDatabase('example', args, options) }
+```
+
+<a id="api-createOciAutonomousDatabase"></a>
+
+## [FUNCTION] `createOciAutonomousDatabase`
+
+Declare an OCI Autonomous Database with an explicit default profile or unchanged native arguments.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/database`.
 
 ### Signature
 
@@ -857,7 +1378,50 @@ export function defineHostResource(args: Parameters<typeof createOciAutonomousDa
 
 Declare the OCI Bastion service with an explicit nonempty client CIDR allowlist.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciBastion(name: string, args: OciBastionArgs, options?: pulumi.CustomResourceOptions): _pulumi_oci_bastion_bastion.Bastion;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Exact Pulumi logical name. |
+| `args` | `OciBastionArgs` | Yes | Compartment, target subnet, client allowlist and optional TTL/native overrides. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`_pulumi_oci_bastion_bastion.Bastion`
+
+The native Bastion resource.
+
+### Remarks
+
+Default session TTL is 10800 seconds. Does not create sessions, IAM policies or SSH tunnels. Deferred Output allowlists are validated by the provider. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Missing or empty immediate allowlists fail; provider validation/errors propagate.
+
+### Example
+
+```typescript
+import { createOciBastion } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciBastion>[1], options?: Parameters<typeof createOciBastion>[2]) { return createOciBastion('example', args, options) }
+```
+
+<a id="api-createOciBastion"></a>
+
+## [FUNCTION] `createOciBastion`
+
+Declare the OCI Bastion service with an explicit nonempty client CIDR allowlist.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -992,7 +1556,53 @@ export function defineHostResource(args: Parameters<typeof createOciNetwork>[1],
 
 Declare a TCP OCI network load balancer and one backend per uniquely named listener.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciNetworkLoadBalancer(name: string, args: OciNetworkLoadBalancerArgs, options?: pulumi.CustomResourceOptions): {
+    loadBalancer: _pulumi_oci_networkloadbalancer_networkLoadBalancer.NetworkLoadBalancer;
+    listeners: Record<string, OciNlbListenerResources>;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Default resource prefix. |
+| `args` | `OciNetworkLoadBalancerArgs` | Yes | Compartment, subnet, target ID and optional listener/resource overrides. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`{     loadBalancer: _pulumi_oci_networkloadbalancer_networkLoadBalancer.NetworkLoadBalancer;     listeners: Record<string, OciNlbListenerResources>; }`
+
+The load balancer and listener resources keyed by listener key.
+
+### Remarks
+
+Defaults to public TCP 80/443 forwarding and TCP backend health checks. TLS termination, client ingress policy and application authorization remain host-owned; native overrides are shallow. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Empty/duplicate/invalid listener keys or duplicate/out-of-range ports fail before resource registration; provider errors propagate.
+
+### Example
+
+```typescript
+import { createOciNetworkLoadBalancer } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciNetworkLoadBalancer>[1], options?: Parameters<typeof createOciNetworkLoadBalancer>[2]) { return createOciNetworkLoadBalancer('example', args, options) }
+```
+
+<a id="api-createOciNetworkLoadBalancer"></a>
+
+## [FUNCTION] `createOciNetworkLoadBalancer`
+
+Declare a TCP OCI network load balancer and one backend per uniquely named listener.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -1038,7 +1648,44 @@ export function defineHostResource(args: Parameters<typeof createOciNetworkLoadB
 
 Build backend TCP ingress rules for the selected NLB ports and client source CIDRs.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciNlbIngressRules(options?: OciNlbIngressRulesOptions): NonNullable<oci.core.SecurityListArgs['ingressSecurityRules']>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `OciNlbIngressRulesOptions` | No | ports defaults to 80/443, allowedCidrs defaults to world IPv4, and descriptionPrefix labels the rules. |
+
+### Returns
+
+`NonNullable<oci.core.SecurityListArgs['ingressSecurityRules']>`
+
+One rule per selected port/CIDR pair.
+
+### Remarks
+
+This helper does not validate port/CIDR values or reconcile NLB source-preservation settings. Review those against the actual forwarding configuration; no security list is changed by rendering.
+
+### Example
+
+```typescript
+import { createOciNlbIngressRules } from '@alneas/eaos-cli/presets/oci-adb/infra'
+const rules = createOciNlbIngressRules({ ports: [443], allowedCidrs: ['192.0.2.0/24'] })
+```
+
+<a id="api-createOciNlbIngressRules"></a>
+
+## [FUNCTION] `createOciNlbIngressRules`
+
+Build backend TCP ingress rules for the selected NLB ports and client source CIDRs.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -1130,7 +1777,50 @@ export function defineHostResource(args: Parameters<typeof createOciPrivateNetwo
 
 Declare an OCI KMS Vault with optional native argument overrides.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciVault(name: string, args: OciVaultArgs, options?: pulumi.CustomResourceOptions): _pulumi_oci_kms_vault.Vault;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Logical name and default display name. |
+| `args` | `OciVaultArgs` | Yes | Compartment and optional display name, vault type or shallow native overrides. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`_pulumi_oci_kms_vault.Vault`
+
+The native KMS Vault resource.
+
+### Remarks
+
+Defaults to DEFAULT vault type. Credentials/state and protection/retention settings remain host-owned; the factory itself does not populate secrets. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Provider/resource registration errors propagate.
+
+### Example
+
+```typescript
+import { createOciVault } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciVault>[1], options?: Parameters<typeof createOciVault>[2]) { return createOciVault('example', args, options) }
+```
+
+<a id="api-createOciVault"></a>
+
+## [FUNCTION] `createOciVault`
+
+Declare an OCI KMS Vault with optional native argument overrides.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -1173,7 +1863,50 @@ export function defineHostResource(args: Parameters<typeof createOciVault>[1], o
 
 Declare an OCI KMS master encryption key for a supplied Vault management endpoint.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciVaultKey(name: string, args: OciVaultKeyArgs, options?: pulumi.CustomResourceOptions): _pulumi_oci_kms_key.Key;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Logical name and default display name. |
+| `args` | `OciVaultKeyArgs` | Yes | Compartment, management endpoint, optional algorithm/length/protection and shallow overrides. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`_pulumi_oci_kms_key.Key`
+
+The native KMS Key resource.
+
+### Remarks
+
+Defaults to AES and SOFTWARE protection. Length defaults are 32 bytes for AES/ECDSA and 256 bytes for RSA; callers select other provider-supported lengths or curves explicitly through the native shape. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Provider/resource registration errors propagate; provider validation owns algorithm/length compatibility.
+
+### Example
+
+```typescript
+import { createOciVaultKey } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciVaultKey>[1], options?: Parameters<typeof createOciVaultKey>[2]) { return createOciVaultKey('example', args, options) }
+```
+
+<a id="api-createOciVaultKey"></a>
+
+## [FUNCTION] `createOciVaultKey`
+
+Declare an OCI KMS master encryption key for a supplied Vault management endpoint.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -1216,7 +1949,50 @@ export function defineHostResource(args: Parameters<typeof createOciVaultKey>[1]
 
 Declare an OCI Vault secret with secret-wrapped base64 content.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function createOciVaultSecret(name: string, args: OciVaultSecretArgs, options?: pulumi.CustomResourceOptions): _pulumi_oci_vault_secret.Secret;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Logical resource name. |
+| `args` | `OciVaultSecretArgs` | Yes | Compartment, Vault/key IDs, secret name/content and optional already-base64/native overrides. |
+| `options` | `pulumi.CustomResourceOptions` | No | Optional Pulumi resource options such as provider, parent, protection or adoption; host-owned. |
+
+### Returns
+
+`_pulumi_oci_vault_secret.Secret`
+
+The native OCI Secret resource.
+
+### Remarks
+
+Encodes UTF-8 content unless isAlreadyBase64=true. Native overrides can replace secretContent without re-encoding; the final content object is always marked secret, including overrides. The host owns content shape and access policy. Importing the module alone does not run a Pulumi update.
+
+### Errors and rejections
+
+Provider/resource registration errors and Output transformation failures propagate.
+
+### Example
+
+```typescript
+import { createOciVaultSecret } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function defineHostResource(args: Parameters<typeof createOciVaultSecret>[1], options?: Parameters<typeof createOciVaultSecret>[2]) { return createOciVaultSecret('example', args, options) }
+```
+
+<a id="api-createOciVaultSecret"></a>
+
+## [FUNCTION] `createOciVaultSecret`
+
+Declare an OCI Vault secret with secret-wrapped base64 content.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -1536,7 +2312,44 @@ const config = defineDevConfig({ plugin: definePlugin({ id: 'notes', entitlement
 
 Retain typed trusted host operations without executing any supplied callback.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare const definePlatformOperations: (operations: PlatformOperations) => PlatformOperations;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `operations` | `PlatformOperations` | Yes | Host-owned lock, lifecycle, health and deployment/bootstrap bindings. |
+
+### Returns
+
+`PlatformOperations`
+
+The same host operations object, without cloning or execution.
+
+### Remarks
+
+Host callbacks carry real capabilities. Configuration passthrough is not validation, approval or a deployment.
+
+### Example
+
+```typescript
+import { definePlatformOperations } from '@alneas/eaos-cli/platform'
+export function bindOperations(operations: Parameters<typeof definePlatformOperations>[0]) { return definePlatformOperations(operations) }
+```
+
+<a id="api-definePlatformOperations"></a>
+
+## [FUNCTION] `definePlatformOperations`
+
+Retain typed trusted host operations without executing any supplied callback.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -1878,7 +2691,48 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Deploy a reviewed prebuilt image using Kamal or constrained single-host OpenSSH transport.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/deploy`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function deployPlatformImage(options: PlatformImageDeployOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `PlatformImageDeployOptions` | Yes | Explicit configFile and immutable version; optional transport, cwd, environment and registry credentials. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value when the selected deployment commands succeed.
+
+### Remarks
+
+Executes real Ruby/Kamal/SSH/Docker operations. Fixed-port replacement may stop the prior version and attempt rollback on failure; inspect actual host state before retrying. Does not build/push images, apply DB migrations or activate tenants. Credentials must come from trusted host bindings.
+
+### Errors and rejections
+
+Rejects invalid versions/configuration, unsupported OpenSSH features, subprocess failures or failed rollback commands.
+
+### Example
+
+```typescript
+import { deployPlatformImage } from '@alneas/eaos-cli/platform'
+export function deployReviewed(options: Parameters<typeof deployPlatformImage>[0]) { return deployPlatformImage(options) }
+```
+
+<a id="api-deployPlatformImage"></a>
+
+## [FUNCTION] `deployPlatformImage`
+
+Deploy a reviewed prebuilt image using Kamal or constrained single-host OpenSSH transport.
+
+Imports: `@alneas/eaos-cli/platform/deploy`.
 
 ### Signature
 
@@ -1919,7 +2773,49 @@ export function deployReviewed(options: Parameters<typeof deployPlatformImage>[0
 
 Scan plugin TypeScript, JavaScript and JSON files for configured credential patterns without printing matches.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/detect-secrets`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function detectSecrets(workspaceRoot: string, options: CommandOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `workspaceRoot` | `string` | Yes | Trusted workspace containing the plugin. |
+| `options` | `CommandOptions` | Yes | plugin is required; check rejects findings and autoFix only prints resolver guidance. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value after reporting findings; does not edit or remove credentials.
+
+### Remarks
+
+Skips node_modules, dist and .git. Pattern scanning cannot certify absence of all secrets; findings contain relative paths and redacted categories.
+
+### Errors and rejections
+
+Rejects invalid plugin paths, filesystem errors, or detected patterns when check is true.
+
+### Example
+
+```typescript
+import { detectSecrets } from '@alneas/eaos-cli/plugin-tools'
+export async function scanNotes(root: string) { await detectSecrets(root, { plugin: 'notes', check: true }) }
+```
+
+<a id="api-detectSecrets"></a>
+
+## [FUNCTION] `detectSecrets`
+
+Scan plugin TypeScript, JavaScript and JSON files for configured credential patterns without printing matches.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/detect-secrets`.
 
 ### Signature
 
@@ -1961,7 +2857,45 @@ export async function scanNotes(root: string) { await detectSecrets(root, { plug
 
 Print source-inspection diagnostics and optionally fail when unresolved issues remain.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/diagnose-plugin`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function diagnosePlugin(root: string, options: CommandOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted workspace root. |
+| `options` | `CommandOptions` | Yes | plugin is required; format=json prints structured data and check rejects unresolved issues. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value after printing the report.
+
+### Errors and rejections
+
+Rejects if plugin is missing, source inspection fails, or check finds issues.
+
+### Example
+
+```typescript
+import { diagnosePlugin } from '@alneas/eaos-cli/plugin-tools'
+export async function diagnoseNotes(root: string) { await diagnosePlugin(root, { plugin: 'notes', check: true }) }
+```
+
+<a id="api-diagnosePlugin"></a>
+
+## [FUNCTION] `diagnosePlugin`
+
+Print source-inspection diagnostics and optionally fail when unresolved issues remain.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/diagnose-plugin`.
 
 ### Signature
 
@@ -2063,7 +2997,71 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Execute a reviewed release/bootstrap under local and shared host locks with durable step receipts.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function executePlatformOperation(root: string, operation: 'release' | 'bootstrap', options?: PlatformOperationOptions, ports?: OperationPorts): Promise<{
+    mode: "plan-only";
+    operation: "release" | "bootstrap";
+    inputSha256: string;
+    preset: string | undefined;
+    roles: {
+        role: "backend" | "frontend" | "worker";
+        image: string;
+        version: string;
+    }[];
+    stages: string[];
+    selectedPlugins: {
+        owner: string;
+        id: string;
+    }[];
+    requires: string;
+} | {
+    receipt: string;
+    status: "succeeded";
+    id: string;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Existing application root. |
+| `operation` | `'release' \| 'bootstrap'` | Yes | Explicit release or bootstrap operation. |
+| `options` | `PlatformOperationOptions` | No | plan returns inspection only; actual bootstrap additionally requires an explicit Pulumi stack. |
+| `ports` | `OperationPorts` | No | Trusted host operations and optional process/deploy/fetch ports; missing ports use real host implementations. |
+
+### Returns
+
+`Promise<{     mode: "plan-only";     operation: "release" \| "bootstrap";     inputSha256: string;     preset: string \| undefined;     roles: {         role: "backend" \| "frontend" \| "worker";         image: string;         version: string;     }[];     stages: string[];     selectedPlugins: {         owner: string;         id: string;     }[];     requires: string; } \| {     receipt: string;     status: "succeeded";     id: string; }>`
+
+The plan in plan mode; after real execution, an object with the persisted receipt path, succeeded status, and operation UUID. The receipt contents are stored in the referenced file.
+
+### Remarks
+
+Actual execution can apply infrastructure and migrations, deploy roles and issue administrator setup data. Failure evidence is retained; completed external effects are not generally rolled back. Never retry blindly or treat plan mode as approval. New tenants are not automatically enabled.
+
+### Errors and rejections
+
+Rejects invalid or changed inputs, held locks, dirty/stale lifecycle plans, missing capabilities or any failed infrastructure/deployment/health step.
+
+### Example
+
+```typescript
+import { executePlatformOperation } from '@alneas/eaos-cli/platform'
+export function inspectRelease(root: string) { return executePlatformOperation(root, 'release', { plan: true }) }
+```
+
+<a id="api-executePlatformOperation"></a>
+
+## [FUNCTION] `executePlatformOperation`
+
+Execute a reviewed release/bootstrap under local and shared host locks with durable step receipts.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -2127,7 +3125,7 @@ export function inspectRelease(root: string) { return executePlatformOperation(r
 
 Expand supported OCI preset defaults without downloading images or performing infrastructure work.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/preset`.
+Imports: `@alneas/eaos-cli/platform`.
 
 ### Signature
 
@@ -2162,13 +3160,174 @@ import { expandPreset } from '@alneas/eaos-cli/platform'
 const expanded = expandPreset({ preset: 'oci-adb', platform: { appName: 'example', baseDomain: 'example.com' } })
 ```
 
+<a id="api-expandPreset"></a>
+
+## [FUNCTION] `expandPreset`
+
+Expand supported OCI preset defaults without downloading images or performing infrastructure work.
+
+Imports: `@alneas/eaos-cli/platform/preset`.
+
+### Signature
+
+```typescript
+declare function expandPreset(input: unknown): any;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `input` | `unknown` | Yes | Untrusted manifest value; a manifest without preset is returned unchanged. |
+
+### Returns
+
+`any`
+
+The original value without a preset, or a new manifest with explicit preset defaults.
+
+### Remarks
+
+Default dev image tags are local build names, not claims of published registry availability.
+
+### Errors and rejections
+
+If the preset, package selections or deployment overrides have an invalid shape.
+
+### Example
+
+```typescript
+import { expandPreset } from '@alneas/eaos-cli/platform'
+const expanded = expandPreset({ preset: 'oci-adb', platform: { appName: 'example', baseDomain: 'example.com' } })
+```
+
+<a id="api-FeatureRegistrationOptions"></a>
+
+## [INTERFACE] `FeatureRegistrationOptions`
+
+Explicit application adoption and separate generated modules.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface FeatureRegistrationOptions {
+    descriptors: readonly OfficialFeatureDescriptor[];
+    selectedIds: readonly string[];
+    outputs: {
+        manifests: string;
+        lifecycle: string;
+        web: string;
+    };
+    check?: boolean;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `descriptors` | `readonly OfficialFeatureDescriptor[]` | Yes | Trusted owner descriptors; duplicate identities are rejected. |
+| `selectedIds` | `readonly string[]` | Yes | Exact reviewed build selection, including required dependencies. |
+| `outputs` | `{     manifests: string;     lifecycle: string;     web: string; }` | Yes | Distinct project-relative generated module destinations. |
+| `check` | `boolean` | No | Validate exact current output without repairing it. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+generateFeatureRegistrations
+
+### Public members
+
+#### `descriptors`
+
+Trusted owner descriptors; duplicate identities are rejected.
+
+
+#### `selectedIds`
+
+Exact reviewed build selection, including required dependencies.
+
+
+#### `outputs`
+
+Distinct project-relative generated module destinations.
+
+
+#### `outputs.manifests`
+
+Server-only manifest import module.
+
+
+#### `outputs.lifecycle`
+
+Server-only lifecycle import module.
+
+
+#### `outputs.web`
+
+Browser-safe client metadata module.
+
+
+#### `check`
+
+Validate exact current output without repairing it.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-findPluginDir"></a>
 
 ## [FUNCTION] `findPluginDir`
 
 Resolve an existing plugin directory while rejecting symbolic links and paths outside the plugin root.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/utils`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function findPluginDir(workspaceRoot: string, pluginId: string): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `workspaceRoot` | `string` | Yes | Trusted workspace containing the plugins directory. |
+| `pluginId` | `string` | Yes | Lowercase hyphen-separated plugin identifier. |
+
+### Returns
+
+`string`
+
+The joined plugin directory path using the supplied workspaceRoot; containment is checked using real paths, but the returned path is not canonicalized.
+
+### Errors and rejections
+
+If the identifier, directory or resolved containment is invalid; filesystem errors propagate.
+
+### Example
+
+```typescript
+import { findPluginDir } from '@alneas/eaos-cli/plugin-tools'
+export function locateNotes(root: string) { return findPluginDir(root, 'notes') }
+```
+
+<a id="api-findPluginDir"></a>
+
+## [FUNCTION] `findPluginDir`
+
+Resolve an existing plugin directory while rejecting symbolic links and paths outside the plugin root.
+
+Imports: `@alneas/eaos-cli/plugin-tools/utils`.
 
 ### Signature
 
@@ -2238,7 +3397,39 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Closing marker delimiting the single CLI-owned plugin contract block inside AGENTS.md.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare const generatedEnd = "<!-- eaos:generated:end -->";
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+`Declared constant value.`
+
+### See also
+
+[agentDocumentNext](#api-agentDocumentNext) for the canonical usage example and runtime requirements.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-generatedEnd"></a>
+
+## [CONSTANT] `generatedEnd`
+
+Closing marker delimiting the single CLI-owned plugin contract block inside AGENTS.md.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
 
 ### Signature
 
@@ -2270,7 +3461,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Opening marker delimiting the single CLI-owned plugin contract block inside AGENTS.md.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
 
 ### Signature
 
@@ -2296,13 +3487,129 @@ declare const generatedStart = "<!-- eaos:generated:start -->";
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-generatedStart"></a>
+
+## [CONSTANT] `generatedStart`
+
+Opening marker delimiting the single CLI-owned plugin contract block inside AGENTS.md.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
+
+### Signature
+
+```typescript
+declare const generatedStart = "<!-- eaos:generated:start -->";
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+`Declared constant value.`
+
+### See also
+
+[agentDocumentNext](#api-agentDocumentNext) for the canonical usage example and runtime requirements.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-generateFeatureRegistrations"></a>
+
+## [FUNCTION] `generateFeatureRegistrations`
+
+Generate separate manifest, lifecycle and browser metadata for explicit adoption.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function generateFeatureRegistrations(root: string, options: FeatureRegistrationOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application project root. |
+| `options` | `FeatureRegistrationOptions` | Yes | Data-only descriptors, exact adoption IDs and project-relative outputs. |
+
+### Returns
+
+`Promise<void>`
+
+Completion after all generated modules are replaced, or after read-only freshness verification.
+
+### Remarks
+
+Imports only selected feature entries. Browser output contains client metadata without server imports. Generation never loads a plugin, deploys or activates a tenant.
+
+### Errors and rejections
+
+On unknown/duplicate selections, unsafe declarations, missing dependencies/lifecycle, stale output or filesystem failures.
+
+### Example
+
+```typescript
+import { generateFeatureRegistrations, type FeatureRegistrationOptions } from '@alneas/eaos-cli/platform'
+export const prepare = (root: string, options: FeatureRegistrationOptions) => generateFeatureRegistrations(root, options)
+```
+
 <a id="api-generateMcpTools"></a>
 
 ## [FUNCTION] `generateMcpTools`
 
 Scan source service methods and write a deliberately unbound MCP tool draft.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/generate-mcp-tools`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function generateMcpTools(workspaceRoot: string, options: CommandOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `workspaceRoot` | `string` | Yes | Trusted workspace containing the plugin. |
+| `options` | `CommandOptions` | Yes | plugin is required; check compares the draft and write permits replacement. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value; a missing services directory is reported and skipped.
+
+### Remarks
+
+Uses source-pattern heuristics, not semantic method validation. Generated handlers throw until connected to real domain services; no tool is registered or executed.
+
+### Errors and rejections
+
+Rejects missing plugin selection, invalid paths or draft/filesystem errors.
+
+### Example
+
+```typescript
+import { generateMcpTools } from '@alneas/eaos-cli/plugin-tools'
+export async function checkTools(root: string) { await generateMcpTools(root, { plugin: 'notes', check: true }) }
+```
+
+<a id="api-generateMcpTools"></a>
+
+## [FUNCTION] `generateMcpTools`
+
+Scan source service methods and write a deliberately unbound MCP tool draft.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/generate-mcp-tools`.
 
 ### Signature
 
@@ -2421,7 +3728,49 @@ export function checkPlatform(root: string) { return generatePlatform(root, { ch
 
 Write a new plugin scaffold with explicit tier and host-owned implementation placeholders.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/generate-plugin`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function generatePlugin(root: string, options: CommandOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted workspace root for the generated plugin directory. |
+| `options` | `CommandOptions` | Yes | Plugin name/description/tier and optional output/addon/quota/tenant selections. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value after writing scaffold files.
+
+### Remarks
+
+Writes source drafts, metadata, guides and inventory declarations. Generated handlers require real host bindings; generation never proves persistence, enables tenants or applies infrastructure.
+
+### Errors and rejections
+
+Rejects invalid identifiers/tier/quota/allowlists, unsafe or existing destinations and filesystem failures.
+
+### Example
+
+```typescript
+import { generatePlugin } from '@alneas/eaos-cli/plugin-tools'
+export function scaffoldNotes(root: string) { return generatePlugin(root, { name: 'notes', tier: 'public' }) }
+```
+
+<a id="api-generatePlugin"></a>
+
+## [FUNCTION] `generatePlugin`
+
+Write a new plugin scaffold with explicit tier and host-owned implementation placeholders.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/generate-plugin`.
 
 ### Signature
 
@@ -2463,7 +3812,48 @@ export function scaffoldNotes(root: string) { return generatePlugin(root, { name
 
 List direct plugin directories that contain a manifest.ts file.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/utils`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function getAllPluginIds(workspaceRoot: string): string[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `workspaceRoot` | `string` | Yes | Workspace whose plugins directory is inspected. |
+
+### Returns
+
+`string[]`
+
+Discovered directory names, or an empty array when plugins is absent; ordering follows the filesystem.
+
+### Remarks
+
+This is discovery only; names are not an activation or authorization decision.
+
+### Errors and rejections
+
+Filesystem enumeration errors propagate.
+
+### Example
+
+```typescript
+import { getAllPluginIds } from '@alneas/eaos-cli/plugin-tools'
+export function listPlugins(root: string) { return getAllPluginIds(root) }
+```
+
+<a id="api-getAllPluginIds"></a>
+
+## [FUNCTION] `getAllPluginIds`
+
+List direct plugin directories that contain a manifest.ts file.
+
+Imports: `@alneas/eaos-cli/plugin-tools/utils`.
 
 ### Signature
 
@@ -2568,7 +3958,49 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Infer a draft service interface from asynchronous source-method signatures.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/infer-contracts`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function inferContracts(workspaceRoot: string, options: CommandOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `workspaceRoot` | `string` | Yes | Trusted workspace containing the plugin. |
+| `options` | `CommandOptions` | Yes | plugin is required; check compares and write permits replacement of the generated draft. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value after writing/checking, or skips when the services directory is absent.
+
+### Remarks
+
+Pattern matching does not prove runtime contracts; review nested types and implementation semantics before adopting the interface.
+
+### Errors and rejections
+
+Rejects invalid plugin selection, protected/stale drafts or filesystem errors.
+
+### Example
+
+```typescript
+import { inferContracts } from '@alneas/eaos-cli/plugin-tools'
+export async function checkInferred(root: string) { await inferContracts(root, { plugin: 'notes', check: true }) }
+```
+
+<a id="api-inferContracts"></a>
+
+## [FUNCTION] `inferContracts`
+
+Infer a draft service interface from asynchronous source-method signatures.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/infer-contracts`.
 
 ### Signature
 
@@ -2610,7 +4042,52 @@ export async function checkInferred(root: string) { await inferContracts(root, {
 
 Acquire initial Pulumi source while refusing to replace existing customized files.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb`, `@alneas/eaos-cli/presets/oci-adb/template`.
+Imports: `@alneas/eaos-cli/presets/oci-adb`.
+
+### Signature
+
+```typescript
+declare function initializePreset(root: string, config?: string): Promise<{
+    directory: string;
+    files: number;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root with the selected preset. |
+| `config` | `string` | No | Workspace-relative application manifest path; defaults to eaos.platform.json. |
+
+### Returns
+
+`Promise<{     directory: string;     files: number; }>`
+
+The Pulumi directory path and generated file count.
+
+### Remarks
+
+Preflights the whole file set and writes new files exclusively. Does not install packages, run preview/update or read credentials; existing customizations stay host-owned.
+
+### Errors and rejections
+
+Rejects missing preset selection, unsafe paths or existing files that differ from the generated template; filesystem failures propagate.
+
+### Example
+
+```typescript
+import { initializePreset } from '@alneas/eaos-cli/presets/oci-adb'
+export function initializeHost(root: string) { return initializePreset(root) }
+```
+
+<a id="api-initializePreset"></a>
+
+## [FUNCTION] `initializePreset`
+
+Acquire initial Pulumi source while refusing to replace existing customized files.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/template`.
 
 ### Signature
 
@@ -2655,7 +4132,81 @@ export function initializeHost(root: string) { return initializePreset(root) }
 
 Summarize deployment task evidence after verifying its inventory and journal bindings.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/deployment-status`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function inspectDeploymentStatus(inventories: string[], options?: {
+    receipts?: string[];
+    target?: DeploymentTarget;
+    config?: string;
+    projectRoot?: string;
+}): Promise<{
+    mode: string;
+    complete: boolean;
+    contributions: DeploymentStatusContribution[];
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `inventories` | `string[]` | Yes | Immutable deployment inventory paths to inspect. |
+| `options` | `{     receipts?: string[];     target?: DeploymentTarget;     config?: string;     projectRoot?: string; }` | No | Optional receipts, target and explicit placement bindings used to scope the summary. |
+
+### Returns
+
+`Promise<{     mode: string;     complete: boolean;     contributions: DeploymentStatusContribution[]; }>`
+
+Contribution status summaries; missing evidence remains visibly incomplete.
+
+### Remarks
+
+Inspection does not execute tasks or turn absent evidence into success.
+
+### Errors and rejections
+
+Rejects changed inventories, invalid evidence or incompatible placement/target bindings.
+
+### Public members
+
+#### `options.receipts`
+
+Optional deployment evidence journal paths; omission leaves required work pending rather than assuming success.
+
+
+#### `options.target`
+
+Optional exact environment/backend/database/tenant context used to select matching scoped evidence; placement-aware inspection derives database identity from destinations.
+
+
+#### `options.config`
+
+Optional workspace-relative application manifest path providing explicit placements and binding revisions; omitted uses unplaced evidence summaries.
+
+
+#### `options.projectRoot`
+
+Root against which the optional placement config is resolved; defaults to process.cwd().
+
+
+
+### Example
+
+```typescript
+import { inspectDeploymentStatus } from '@alneas/eaos-cli/platform'
+export function inspectRelease(inventory: string) { return inspectDeploymentStatus([inventory]) }
+```
+
+<a id="api-inspectDeploymentStatus"></a>
+
+## [FUNCTION] `inspectDeploymentStatus`
+
+Summarize deployment task evidence after verifying its inventory and journal bindings.
+
+Imports: `@alneas/eaos-cli/platform/deployment-status`.
 
 ### Signature
 
@@ -2729,7 +4280,49 @@ export function inspectRelease(inventory: string) { return inspectDeploymentStat
 
 Statically inspect a plugin manifest and source contracts without executing the plugin.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/inspect`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function inspectPlugin(root: string, pluginId: string): PluginInspection;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted workspace root. |
+| `pluginId` | `string` | Yes | Plugin identifier whose manifest and sources are read. |
+
+### Returns
+
+`PluginInspection`
+
+Source-derived plugin metadata, tools, policies and unresolved inspection issues.
+
+### Remarks
+
+Inspection issues must be resolved before generated metadata is treated as an executable contract.
+
+### Errors and rejections
+
+Invalid plugin paths and source/filesystem failures propagate.
+
+### Example
+
+```typescript
+import { inspectPlugin } from '@alneas/eaos-cli/plugin-tools'
+export function inspectNotes(root: string) { return inspectPlugin(root, 'notes') }
+```
+
+<a id="api-inspectPlugin"></a>
+
+## [FUNCTION] `inspectPlugin`
+
+Statically inspect a plugin manifest and source contracts without executing the plugin.
+
+Imports: `@alneas/eaos-cli/plugin-tools/inspect`.
 
 ### Signature
 
@@ -2808,7 +4401,275 @@ const text = json({ ready: true })
 
 Explicit SSH host, role, registry and runtime-file inputs for Kamal configuration.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/kamal`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface KamalDeployment {
+    host: string;
+    arch?: 'amd64' | 'arm64';
+    ssh?: {
+        user?: string;
+        port?: number;
+    };
+    services?: {
+        backend?: string;
+        frontend?: string;
+    };
+    registry?: {
+        usernameSecret?: string;
+        passwordSecret?: string;
+    };
+    runtimeDirectory?: string;
+    runtimeFiles?: {
+        kratosConfig?: string;
+        databasePassword?: string;
+        tlsDirectory?: string;
+    };
+    worker?: {
+        host: string;
+        privateAddress: string;
+        kratosAdminUrl: string;
+        arch?: 'amd64' | 'arm64';
+        ssh?: {
+            user?: string;
+            port?: number;
+        };
+        service?: string;
+    };
+    agentRuntime?: {
+        host: string;
+        privateAddress?: string;
+        arch?: 'amd64' | 'arm64';
+        port?: number;
+        ssh?: {
+            user?: string;
+            port?: number;
+        };
+        service?: string;
+        runtimeDirectory?: string;
+        tlsDirectory?: string;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `host` | `string` | Yes | Reviewed SSH host or configured alias selected by the host. |
+| `arch` | `'amd64' \| 'arm64'` | No | Container/host architecture, amd64 or arm64. |
+| `ssh` | `{     user?: string;     port?: number; }` | No | Optional trusted SSH user and port configuration. |
+| `services` | `{     backend?: string;     frontend?: string; }` | No | Explicit backend/frontend service names. |
+| `registry` | `{     usernameSecret?: string;     passwordSecret?: string; }` | No | Registry credential environment-binding names; plaintext values are supplied by the host at execution. |
+| `runtimeDirectory` | `string` | No | Host runtime directory for generated configuration and secrets mounts. |
+| `runtimeFiles` | `{     kratosConfig?: string;     databasePassword?: string;     tlsDirectory?: string; }` | No | Registered host paths for identity configuration, database password and optional TLS files. |
+| `worker` | `{     host: string;     privateAddress: string;     kratosAdminUrl: string;     arch?: 'amd64' \| 'arm64';     ssh?: {         user?: string;         port?: number;     };     service?: string; }` | No | Optional separate worker host and private service endpoints. |
+| `agentRuntime` | `{     host: string;     privateAddress?: string;     arch?: 'amd64' \| 'arm64';     port?: number;     ssh?: {         user?: string;         port?: number;     };     service?: string;     runtimeDirectory?: string;     tlsDirectory?: string; }` | No | Optional separate agent-runtime host, port and reviewed network bindings. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[resolveKamal](#api-resolveKamal) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `host`
+
+Reviewed SSH host or configured alias selected by the host.
+
+
+#### `arch`
+
+Container/host architecture, amd64 or arm64.
+
+
+#### `ssh`
+
+Optional trusted SSH user and port configuration.
+
+
+#### `ssh.user`
+
+Main-host SSH username; defaults to root and must match the lowercase POSIX-like username grammar.
+
+
+#### `ssh.port`
+
+Main-host SSH port, integer 1–65535; defaults to 22.
+
+
+#### `services`
+
+Explicit backend/frontend service names.
+
+
+#### `services.backend`
+
+Backend Kamal service name; defaults to appName-backend and must differ from frontend.
+
+
+#### `services.frontend`
+
+Frontend Kamal service name; defaults to appName-frontend and must differ from backend.
+
+
+#### `registry`
+
+Registry credential environment-binding names; plaintext values are supplied by the host at execution.
+
+
+#### `registry.usernameSecret`
+
+Uppercase registry-username environment binding; defaults to KAMAL_REGISTRY_USERNAME.
+
+
+#### `registry.passwordSecret`
+
+Uppercase registry-password environment binding; defaults to KAMAL_REGISTRY_PASSWORD.
+
+
+#### `runtimeDirectory`
+
+Host runtime directory for generated configuration and secrets mounts.
+
+
+#### `runtimeFiles`
+
+Registered host paths for identity configuration, database password and optional TLS files.
+
+
+#### `runtimeFiles.kratosConfig`
+
+Absolute host Kratos runtime YAML path; defaults to runtimeDirectory/kratos-runtime.yml and cannot overlap other runtime/migration paths.
+
+
+#### `runtimeFiles.databasePassword`
+
+Absolute host database-password file path; defaults to runtimeDirectory/postgres-password and cannot overlap other runtime/migration paths.
+
+
+#### `runtimeFiles.tlsDirectory`
+
+Absolute host platform TLS directory; defaults to runtimeDirectory/tls and cannot overlap other runtime/migration paths.
+
+
+#### `worker`
+
+Optional separate worker host and private service endpoints.
+
+
+#### `worker.host`
+
+Reviewed worker SSH host/alias, required to differ from the main host.
+
+
+#### `worker.privateAddress`
+
+Required host-selected worker address used for private application routing.
+
+
+#### `worker.kratosAdminUrl`
+
+Required host-selected HTTP(S) Kratos administrator URL for the worker; host network policy must keep administration private.
+
+
+#### `worker.arch`
+
+Worker image architecture; defaults to the main deployment architecture.
+
+
+#### `worker.ssh`
+
+Trusted per-role SSH overrides; omitted fields inherit the resolved main SSH user and port.
+
+
+#### `worker.ssh.user`
+
+Role SSH username; omitted inherits the main user, including its root default.
+
+
+#### `worker.ssh.port`
+
+Role SSH port, integer 1–65535; defaults to the selected main SSH port.
+
+
+#### `worker.service`
+
+Worker Kamal service name; defaults to appName-worker.
+
+
+#### `agentRuntime`
+
+Optional separate agent-runtime host, port and reviewed network bindings.
+
+
+#### `agentRuntime.host`
+
+Reviewed agent-runtime SSH host/alias; validation does not prove private network isolation.
+
+
+#### `agentRuntime.privateAddress`
+
+Optional host-selected address advertised for private runtime connections; omitted remains absent.
+
+
+#### `agentRuntime.arch`
+
+Agent-runtime image architecture; defaults to arm64 independently of the main host.
+
+
+#### `agentRuntime.port`
+
+Agent service port, integer 1–65535; defaults to 8443.
+
+
+#### `agentRuntime.ssh`
+
+Trusted per-role SSH overrides; omitted fields inherit the resolved main SSH user and port.
+
+
+#### `agentRuntime.ssh.user`
+
+Role SSH username; omitted inherits the main user, including its root default.
+
+
+#### `agentRuntime.ssh.port`
+
+Role SSH port, integer 1–65535; defaults to the selected main SSH port.
+
+
+#### `agentRuntime.service`
+
+Agent-runtime Kamal service name; defaults to appName-agent-runtime.
+
+
+#### `agentRuntime.runtimeDirectory`
+
+Absolute host runtime directory; defaults to main runtimeDirectory/agent-runtime and must avoid platform runtime/migration overlap.
+
+
+#### `agentRuntime.tlsDirectory`
+
+Absolute agent TLS directory; defaults to the agent runtimeDirectory/tls and must avoid platform runtime/migration overlap.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-KamalDeployment"></a>
+
+## [INTERFACE] `KamalDeployment`
+
+Explicit SSH host, role, registry and runtime-file inputs for Kamal configuration.
+
+Imports: `@alneas/eaos-cli/platform/kamal`.
 
 ### Signature
 
@@ -3076,7 +4937,84 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Host-supplied registry identity and Pulumi path used while rendering the current Kamal resolver template.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/kamal-secrets`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface KamalSecretsTemplateOptions {
+    defaultRegistryUser?: string;
+    identityDomain?: string;
+    tenancyNamespace?: string;
+    username?: string;
+    authTokenSecretName?: string;
+    pulumiDir?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `defaultRegistryUser` | `string` | No | Explicit registry username, taking precedence over the composed namespace/domain/username. |
+| `identityDomain` | `string` | No | Identity domain used when composing a username; defaults to Default. |
+| `tenancyNamespace` | `string` | No | Optional OCI namespace used with username to compose the registry user. |
+| `username` | `string` | No | Optional user name/email used with tenancyNamespace to compose the registry user. |
+| `authTokenSecretName` | `string` | No | Pulumi stack output name for the registry token; defaults to ocirAuthToken. This selects an output, not an OCI Vault secret ID. |
+| `pulumiDir` | `string` | No | Pulumi working directory passed as one subprocess argument; defaults to pulumi, matching the generated OCI preset. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[renderKamalSecretsScript](#api-renderKamalSecretsScript) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `defaultRegistryUser`
+
+Explicit registry username, taking precedence over the composed namespace/domain/username.
+
+
+#### `identityDomain`
+
+Identity domain used when composing a username; defaults to Default.
+
+
+#### `tenancyNamespace`
+
+Optional OCI namespace used with username to compose the registry user.
+
+
+#### `username`
+
+Optional user name/email used with tenancyNamespace to compose the registry user.
+
+
+#### `authTokenSecretName`
+
+Pulumi stack output name for the registry token; defaults to ocirAuthToken. This selects an output, not an OCI Vault secret ID.
+
+
+#### `pulumiDir`
+
+Pulumi working directory passed as one subprocess argument; defaults to pulumi, matching the generated OCI preset.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-KamalSecretsTemplateOptions"></a>
+
+## [INTERFACE] `KamalSecretsTemplateOptions`
+
+Host-supplied registry identity and Pulumi path used while rendering the current Kamal resolver template.
+
+Imports: `@alneas/eaos-cli/platform/kamal-secrets`.
 
 ### Signature
 
@@ -3153,7 +5091,79 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Import verified trusted package factories and validate their returned platform contributions.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function loadRegisteredPlatformModules(root: string, config?: string, options?: {
+    tenantIds?: string[];
+    bindings?: Record<string, unknown>;
+}): Promise<Array<{
+    registration: PlatformPackage;
+    contribution: PlatformContribution;
+}>>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Application root containing installed or acquired artifacts. |
+| `config` | `string` | No | Workspace-relative manifest path; defaults to eaos.platform.json. |
+| `options` | `{     tenantIds?: string[];     bindings?: Record<string, unknown>; }` | No | Host-verified tenantIds for npm modules and in-memory bindings keyed by package identity. |
+
+### Returns
+
+`Promise<Array<{     registration: PlatformPackage;     contribution: PlatformContribution; }>>`
+
+Loaded registration/contribution pairs in registration order.
+
+### Remarks
+
+Executes trusted module top-level code and createExtension. Hosts own authorization and durable bindings; loading is not a tenant activation operation.
+
+### Errors and rejections
+
+Rejects missing verified tenants, inventory mismatch, missing createExtension, invalid factory contributions or propagated import/factory errors.
+
+### Public members
+
+#### `options.tenantIds`
+
+Verified concrete tenant catalog required for selected npm modules; no wildcard/default scope is inferred.
+
+
+#### `options.bindings`
+
+In-memory live host bindings keyed by package identity and passed to its createExtension factory; not written to registration metadata.
+
+
+#### `result[].registration`
+
+Verified package/module registration and its explicit tenant/plugin/settings scope used for loading.
+
+
+#### `result[].contribution`
+
+Trusted factory contribution validated to match registration identity, tenant catalog and lifecycle plugin IDs.
+
+
+
+### Example
+
+```typescript
+import { loadRegisteredPlatformModules } from '@alneas/eaos-cli/platform'
+export function loadHost(root: string, tenantIds: string[], bindings: Record<string, unknown>) { return loadRegisteredPlatformModules(root, 'eaos.platform.json', { tenantIds, bindings }) }
+```
+
+<a id="api-loadRegisteredPlatformModules"></a>
+
+## [FUNCTION] `loadRegisteredPlatformModules`
+
+Import verified trusted package factories and validate their returned platform contributions.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -3451,7 +5461,48 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Look up the regional All Services network and retain its matching route CIDR label.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function lookupOciAllServicesNetwork(options?: pulumi.InvokeOutputOptions): pulumi.Output<OciServiceNetwork>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `pulumi.InvokeOutputOptions` | No | Optional host-selected Pulumi invoke provider/parent settings. |
+
+### Returns
+
+`pulumi.Output<OciServiceNetwork>`
+
+A Pulumi Output with the unique network ID and CIDR label.
+
+### Remarks
+
+The host supplies provider region and credentials; no network resource or route is created by this lookup.
+
+### Errors and rejections
+
+Provider query errors and absent/ambiguous results reject during Output resolution.
+
+### Example
+
+```typescript
+import { lookupOciAllServicesNetwork } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function regionalServices(options: Parameters<typeof lookupOciAllServicesNetwork>[0]) { return lookupOciAllServicesNetwork(options) }
+```
+
+<a id="api-lookupOciAllServicesNetwork"></a>
+
+## [FUNCTION] `lookupOciAllServicesNetwork`
+
+Look up the regional All Services network and retain its matching route CIDR label.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
 
 ### Signature
 
@@ -3492,7 +5543,49 @@ export function regionalServices(options: Parameters<typeof lookupOciAllServices
 
 Look up available OCI images and apply an explicit exact-name or latest selection policy.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function lookupOciImage(args: OciImageLookupArgs, options?: pulumi.InvokeOutputOptions): pulumi.Output<string>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `args` | `OciImageLookupArgs` | Yes | Compartment, shape, OS/version and explicit exact/latest selection; exact additionally requires displayName. |
+| `options` | `pulumi.InvokeOutputOptions` | No | Optional host-selected Pulumi invoke provider/parent settings. |
+
+### Returns
+
+`pulumi.Output<string>`
+
+A Pulumi Output resolving to the selected image ID.
+
+### Remarks
+
+Makes a real provider lookup when used in a host stack; latest can select a newer image on a later update. Pin reviewed IDs where replacement control is required.
+
+### Errors and rejections
+
+Invalid immediate selection fails synchronously; provider query, ambiguity and Output selection errors reject during resolution.
+
+### Example
+
+```typescript
+import { lookupOciImage } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function reviewedImage(args: Parameters<typeof lookupOciImage>[0]) { return lookupOciImage(args) }
+```
+
+<a id="api-lookupOciImage"></a>
+
+## [FUNCTION] `lookupOciImage`
+
+Look up available OCI images and apply an explicit exact-name or latest selection policy.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
 
 ### Signature
 
@@ -3534,7 +5627,91 @@ export function reviewedImage(args: Parameters<typeof lookupOciImage>[0]) { retu
 
 Exact provider connection-profile filters; unspecified filters use the documented default TCPS profile.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/database`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciAdbConnectionSelection {
+    consumerGroup?: 'LOW' | 'MEDIUM' | 'HIGH' | 'TP' | 'TPURGENT';
+    tlsAuthentication?: 'SERVER' | 'MUTUAL';
+    hostFormat?: 'FQDN' | 'IP';
+    sessionMode?: 'DIRECT' | 'REDIRECT';
+    syntaxFormat?: 'LONG' | 'EZCONNECT' | 'EZCONNECTPLUS';
+    isRegional?: boolean;
+    displayName?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `consumerGroup` | `'LOW' \| 'MEDIUM' \| 'HIGH' \| 'TP' \| 'TPURGENT'` | No | Exact provider workload group; selection defaults to LOW. |
+| `tlsAuthentication` | `'SERVER' \| 'MUTUAL'` | No | Exact provider TLS authentication mode; selection defaults to SERVER. |
+| `hostFormat` | `'FQDN' \| 'IP'` | No | Exact provider hostname representation; selection defaults to FQDN. |
+| `sessionMode` | `'DIRECT' \| 'REDIRECT'` | No | Optional exact DIRECT/REDIRECT filter; omission leaves both eligible. |
+| `syntaxFormat` | `'LONG' \| 'EZCONNECT' \| 'EZCONNECTPLUS'` | No | Provider DSN syntax; selection defaults to LONG. |
+| `isRegional` | `boolean` | No | Optional exact regional-profile flag; omitted value does not filter it. |
+| `displayName` | `string` | No | Optional exact display-name filter; omission does not filter profile display names. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[selectAdbConnectionProfile](#api-selectAdbConnectionProfile) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `consumerGroup`
+
+Exact provider workload group; selection defaults to LOW.
+
+
+#### `tlsAuthentication`
+
+Exact provider TLS authentication mode; selection defaults to SERVER.
+
+
+#### `hostFormat`
+
+Exact provider hostname representation; selection defaults to FQDN.
+
+
+#### `sessionMode`
+
+Optional exact DIRECT/REDIRECT filter; omission leaves both eligible.
+
+
+#### `syntaxFormat`
+
+Provider DSN syntax; selection defaults to LONG.
+
+
+#### `isRegional`
+
+Optional exact regional-profile flag; omitted value does not filter it.
+
+
+#### `displayName`
+
+Optional exact display-name filter; omission does not filter profile display names.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciAdbConnectionSelection"></a>
+
+## [INTERFACE] `OciAdbConnectionSelection`
+
+Exact provider connection-profile filters; unspecified filters use the documented default TCPS profile.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/database`.
 
 ### Signature
 
@@ -3737,7 +5914,63 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 User identity and description for creation of an OCI registry authentication token.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciAuthTokenArgs {
+    userId: pulumi.Input<string>;
+    description?: pulumi.Input<string>;
+    authToken?: Partial<oci.identity.AuthTokenArgs>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `userId` | `pulumi.Input<string>` | Yes | Existing OCI user identity for which an authentication token is declared. |
+| `description` | `pulumi.Input<string>` | No | Provider-visible description; defaults to AuthToken for followed by the factory's logical name, unless native authToken overrides replace it. |
+| `authToken` | `Partial<oci.identity.AuthTokenArgs>` | No | Shallow native AuthToken arguments applied last. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciAuthToken](#api-createOciAuthToken) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `userId`
+
+Existing OCI user identity for which an authentication token is declared.
+
+
+#### `description`
+
+Provider-visible description; defaults to AuthToken for followed by the factory's logical name, unless native authToken overrides replace it.
+
+
+#### `authToken`
+
+Shallow native AuthToken arguments applied last.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciAuthTokenArgs"></a>
+
+## [INTERFACE] `OciAuthTokenArgs`
+
+User identity and description for creation of an OCI registry authentication token.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -3793,7 +6026,98 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Either the explicit new free-oltp database profile or complete native arguments with defaults disabled.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/database`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+type OciAutonomousDatabaseArgs = {
+    defaults?: 'free-oltp';
+    compartmentId: pulumi.Input<string>;
+    dbName: pulumi.Input<string>;
+    dbVersion: pulumi.Input<string>;
+    adminPassword: pulumi.Input<string>;
+    whitelistedIps: NonNullable<oci.database.AutonomousDatabaseArgs['whitelistedIps']>;
+    database?: Partial<oci.database.AutonomousDatabaseArgs>;
+} | {
+    defaults: 'none';
+    database: oci.database.AutonomousDatabaseArgs;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciAutonomousDatabase](#api-createOciAutonomousDatabase) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `defaults`
+
+Omitted or free-oltp selects the new-database defaults; protection defaults on but host resource options can override it.
+
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `dbName`
+
+Database name selected by the trusted host.
+
+
+#### `dbVersion`
+
+Required explicit provider-supported Oracle database version for the new-database profile.
+
+
+#### `adminPassword`
+
+Sensitive administrator password Input; the factory wraps it as a Pulumi secret.
+
+
+#### `whitelistedIps`
+
+Explicit nonempty endpoint ACL of IP/CIDR or supported VCN references; no world-open default is inferred.
+
+
+#### `database`
+
+Native OCI Autonomous Database arguments/overrides; defaults=none requires the complete native shape.
+
+
+#### `defaults`
+
+Select none to require complete native database arguments and skip the free-oltp defaults and default resource protection.
+
+
+#### `database`
+
+Native OCI Autonomous Database arguments/overrides; defaults=none requires the complete native shape.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciAutonomousDatabaseArgs"></a>
+
+## [TYPE] `OciAutonomousDatabaseArgs`
+
+Either the explicit new free-oltp database profile or complete native arguments with defaults disabled.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/database`.
 
 ### Signature
 
@@ -3884,7 +6208,77 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Bastion subnet and explicit client CIDR allowlist with optional native overrides.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciBastionArgs {
+    compartmentId: pulumi.Input<string>;
+    targetSubnetId: pulumi.Input<string>;
+    clientCidrBlockAllowLists: NonNullable<oci.bastion.BastionArgs['clientCidrBlockAllowLists']>;
+    maxSessionTtlInSeconds?: pulumi.Input<number>;
+    bastion?: Partial<oci.bastion.BastionArgs>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `compartmentId` | `pulumi.Input<string>` | Yes | OCI compartment ID supplied through the host provider context. |
+| `targetSubnetId` | `pulumi.Input<string>` | Yes | Host-selected private target subnet ID for the Bastion service. |
+| `clientCidrBlockAllowLists` | `NonNullable<oci.bastion.BastionArgs['clientCidrBlockAllowLists']>` | Yes | Explicit nonempty source CIDR allowlist for Bastion clients; no public default is provided. |
+| `maxSessionTtlInSeconds` | `pulumi.Input<number>` | No | Optional Bastion session TTL in seconds; defaults to 10800. |
+| `bastion` | `Partial<oci.bastion.BastionArgs>` | No | Shallow native Bastion arguments applied last, replacing nested defaults. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciBastion](#api-createOciBastion) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `targetSubnetId`
+
+Host-selected private target subnet ID for the Bastion service.
+
+
+#### `clientCidrBlockAllowLists`
+
+Explicit nonempty source CIDR allowlist for Bastion clients; no public default is provided.
+
+
+#### `maxSessionTtlInSeconds`
+
+Optional Bastion session TTL in seconds; defaults to 10800.
+
+
+#### `bastion`
+
+Shallow native Bastion arguments applied last, replacing nested defaults.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciBastionArgs"></a>
+
+## [INTERFACE] `OciBastionArgs`
+
+Bastion subnet and explicit client CIDR allowlist with optional native overrides.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -4066,7 +6460,93 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Available image query with a mandatory exact-name or latest selection decision.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+type OciImageLookupArgs = {
+    compartmentId: pulumi.Input<string>;
+    shape: pulumi.Input<string>;
+    operatingSystem: pulumi.Input<string>;
+    operatingSystemVersion: pulumi.Input<string>;
+} & ({
+    selection: 'exact';
+    displayName: pulumi.Input<string>;
+} | {
+    selection: 'latest';
+    displayName?: never;
+});
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[lookupOciImage](#api-lookupOciImage) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `shape`
+
+Required host-reviewed instance shape used to filter compatible images.
+
+
+#### `operatingSystem`
+
+Host-reviewed OCI image operating-system name.
+
+
+#### `operatingSystemVersion`
+
+Host-reviewed OCI image operating-system release.
+
+
+#### `selection`
+
+Explicit selection policy: exact requires one matching displayName; latest chooses newest creation time with ascending ID as a deterministic tie-breaker.
+
+
+#### `displayName`
+
+Exact provider display name required for exact selection; the latest variant forbids this property.
+
+
+#### `selection`
+
+Explicit selection policy: exact requires one matching displayName; latest chooses newest creation time with ascending ID as a deterministic tie-breaker.
+
+
+#### `displayName`
+
+Exact provider display name required for exact selection; the latest variant forbids this property.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciImageLookupArgs"></a>
+
+## [TYPE] `OciImageLookupArgs`
+
+Available image query with a mandatory exact-name or latest selection decision.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
 
 ### Signature
 
@@ -4327,7 +6807,77 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Explicit subnet/target and optional listener/native customization for TCP NLB forwarding.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciNetworkLoadBalancerArgs {
+    compartmentId: pulumi.Input<string>;
+    subnetId: pulumi.Input<string>;
+    targetId: pulumi.Input<string>;
+    listeners?: readonly OciNlbListenerConfig[];
+    loadBalancer?: OciResourceCustomization<oci.networkloadbalancer.NetworkLoadBalancerArgs>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `compartmentId` | `pulumi.Input<string>` | Yes | OCI compartment ID supplied through the host provider context. |
+| `subnetId` | `pulumi.Input<string>` | Yes | Explicit subnet ID/Input selected by the host. |
+| `targetId` | `pulumi.Input<string>` | Yes | Compute/private-IP resource target; one backend is registered per listener. |
+| `listeners` | `readonly OciNlbListenerConfig[]` | No | Optional nonempty unique listener selections; defaults to TCP 80 and 443. |
+| `loadBalancer` | `OciResourceCustomization<oci.networkloadbalancer.NetworkLoadBalancerArgs>` | No | Optional native NLB logical name, shallow arguments and resource option overrides. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciNetworkLoadBalancer](#api-createOciNetworkLoadBalancer) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `subnetId`
+
+Explicit subnet ID/Input selected by the host.
+
+
+#### `targetId`
+
+Compute/private-IP resource target; one backend is registered per listener.
+
+
+#### `listeners`
+
+Optional nonempty unique listener selections; defaults to TCP 80 and 443.
+
+
+#### `loadBalancer`
+
+Optional native NLB logical name, shallow arguments and resource option overrides.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciNetworkLoadBalancerArgs"></a>
+
+## [INTERFACE] `OciNetworkLoadBalancerArgs`
+
+Explicit subnet/target and optional listener/native customization for TCP NLB forwarding.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -4397,7 +6947,63 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Port and client-CIDR combinations to render as backend TCP ingress rules.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciNlbIngressRulesOptions {
+    ports?: number[];
+    allowedCidrs?: string[];
+    descriptionPrefix?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `ports` | `number[]` | No | Target TCP ports; defaults to 80 and 443. This rendering helper does not validate them. |
+| `allowedCidrs` | `string[]` | No | Client source CIDRs; defaults to 0.0.0.0/0. Review actual load-balancer source handling before adopting rules. |
+| `descriptionPrefix` | `string` | No | Rule label prefix; defaults to NLB backend. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciNlbIngressRules](#api-createOciNlbIngressRules) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `ports`
+
+Target TCP ports; defaults to 80 and 443. This rendering helper does not validate them.
+
+
+#### `allowedCidrs`
+
+Client source CIDRs; defaults to 0.0.0.0/0. Review actual load-balancer source handling before adopting rules.
+
+
+#### `descriptionPrefix`
+
+Rule label prefix; defaults to NLB backend.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciNlbIngressRulesOptions"></a>
+
+## [INTERFACE] `OciNlbIngressRulesOptions`
+
+Port and client-CIDR combinations to render as backend TCP ingress rules.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -4453,7 +7059,96 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 One uniquely keyed TCP listener with its backend port, health check and optional resource overrides.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciNlbListenerConfig {
+    key: string;
+    port: number;
+    backendPort?: number;
+    healthChecker?: oci.networkloadbalancer.BackendSetArgs['healthChecker'];
+    resources?: {
+        backendSet?: OciResourceCustomization<oci.networkloadbalancer.BackendSetArgs>;
+        backend?: OciResourceCustomization<oci.networkloadbalancer.BackendArgs>;
+        listener?: OciResourceCustomization<oci.networkloadbalancer.ListenerArgs>;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `key` | `string` | Yes | Stable unique lowercase listener key used for child resource names. |
+| `port` | `number` | Yes | Unique integer listener port from 1 to 65535. |
+| `backendPort` | `number` | No | Optional backend port; defaults to the listener port. |
+| `healthChecker` | `oci.networkloadbalancer.BackendSetArgs['healthChecker']` | No | Optional native health-check configuration; defaults to TCP on the backend port. |
+| `resources` | `{     backendSet?: OciResourceCustomization<oci.networkloadbalancer.BackendSetArgs>;     backend?: OciResourceCustomization<oci.networkloadbalancer.BackendArgs>;     listener?: OciResourceCustomization<oci.networkloadbalancer.ListenerArgs>; }` | No | Per-child shallow native overrides; review replaced nested arguments and resource options. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciNetworkLoadBalancer](#api-createOciNetworkLoadBalancer) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `key`
+
+Stable unique lowercase listener key used for child resource names.
+
+
+#### `port`
+
+Unique integer listener port from 1 to 65535.
+
+
+#### `backendPort`
+
+Optional backend port; defaults to the listener port.
+
+
+#### `healthChecker`
+
+Optional native health-check configuration; defaults to TCP on the backend port.
+
+
+#### `resources`
+
+Per-child shallow native overrides; review replaced nested arguments and resource options.
+
+
+#### `resources.backendSet`
+
+Optional logical name, shallow native arguments, and resource options overriding this listener's backend set and health-check defaults.
+
+
+#### `resources.backend`
+
+Optional logical name, shallow native arguments, and resource options overriding the listener target/backend-port resource.
+
+
+#### `resources.listener`
+
+Optional logical name, shallow native arguments, and resource options overriding the TCP listener resource.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciNlbListenerConfig"></a>
+
+## [INTERFACE] `OciNlbListenerConfig`
+
+One uniquely keyed TCP listener with its backend port, health check and optional resource overrides.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -4542,7 +7237,63 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Native resources registered for one load-balancer listener key.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/access`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciNlbListenerResources {
+    backendSet: oci.networkloadbalancer.BackendSet;
+    backend: oci.networkloadbalancer.Backend;
+    listener: oci.networkloadbalancer.Listener;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `backendSet` | `oci.networkloadbalancer.BackendSet` | Yes | Native backend-set resource registered for this listener, with its configured health checker and routing policy. |
+| `backend` | `oci.networkloadbalancer.Backend` | Yes | Native backend resource binding the selected target and backend port. |
+| `listener` | `oci.networkloadbalancer.Listener` | Yes | Native TCP listener resource forwarding its port to this backend set. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciNetworkLoadBalancer](#api-createOciNetworkLoadBalancer) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `backendSet`
+
+Native backend-set resource registered for this listener, with its configured health checker and routing policy.
+
+
+#### `backend`
+
+Native backend resource binding the selected target and backend port.
+
+
+#### `listener`
+
+Native TCP listener resource forwarding its port to this backend set.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciNlbListenerResources"></a>
+
+## [INTERFACE] `OciNlbListenerResources`
+
+Native resources registered for one load-balancer listener key.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/access`.
 
 ### Signature
 
@@ -4763,7 +7514,56 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Matching regional Oracle service-network resource identity and route CIDR label.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciServiceNetwork {
+    id: string;
+    cidrBlock: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Provider identity of the selected regional All Services network. |
+| `cidrBlock` | `string` | Yes | Regional service-network route CIDR label returned with that same provider identity. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[lookupOciAllServicesNetwork](#api-lookupOciAllServicesNetwork) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `id`
+
+Provider identity of the selected regional All Services network.
+
+
+#### `cidrBlock`
+
+Regional service-network route CIDR label returned with that same provider identity.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciServiceNetwork"></a>
+
+## [INTERFACE] `OciServiceNetwork`
+
+Matching regional Oracle service-network resource identity and route CIDR label.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/lookups`.
 
 ### Signature
 
@@ -4812,7 +7612,70 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 KMS Vault compartment, display and type settings with shallow native overrides.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciVaultArgs {
+    compartmentId: pulumi.Input<string>;
+    displayName?: pulumi.Input<string>;
+    vaultType?: pulumi.Input<'DEFAULT' | 'VIRTUAL_PRIVATE'>;
+    vault?: Partial<oci.kms.VaultArgs>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `compartmentId` | `pulumi.Input<string>` | Yes | OCI compartment ID supplied through the host provider context. |
+| `displayName` | `pulumi.Input<string>` | No | Optional provider display name; defaults to the factory's logical resource name unless native vault overrides replace it. |
+| `vaultType` | `pulumi.Input<'DEFAULT' \| 'VIRTUAL_PRIVATE'>` | No | Optional DEFAULT or VIRTUAL_PRIVATE Vault kind; defaults to DEFAULT. |
+| `vault` | `Partial<oci.kms.VaultArgs>` | No | Shallow native KMS Vault arguments applied last. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciVault](#api-createOciVault) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `displayName`
+
+Optional provider display name; defaults to the factory's logical resource name unless native vault overrides replace it.
+
+
+#### `vaultType`
+
+Optional DEFAULT or VIRTUAL_PRIVATE Vault kind; defaults to DEFAULT.
+
+
+#### `vault`
+
+Shallow native KMS Vault arguments applied last.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciVaultArgs"></a>
+
+## [INTERFACE] `OciVaultArgs`
+
+KMS Vault compartment, display and type settings with shallow native overrides.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -4875,7 +7738,91 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Vault management endpoint and encryption key settings with shallow native overrides.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+interface OciVaultKeyArgs {
+    compartmentId: pulumi.Input<string>;
+    managementEndpoint: pulumi.Input<string>;
+    displayName?: pulumi.Input<string>;
+    algorithm?: 'AES' | 'RSA' | 'ECDSA';
+    length?: number;
+    protectionMode?: 'SOFTWARE' | 'HSM';
+    key?: Partial<oci.kms.KeyArgs>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `compartmentId` | `pulumi.Input<string>` | Yes | OCI compartment ID supplied through the host provider context. |
+| `managementEndpoint` | `pulumi.Input<string>` | Yes | Vault management endpoint Input supplied by the selected provider resource. |
+| `displayName` | `pulumi.Input<string>` | No | Optional provider display name; defaults to the factory's logical resource name unless native key overrides replace it. |
+| `algorithm` | `'AES' \| 'RSA' \| 'ECDSA'` | No | Key algorithm; defaults to AES. Supply a provider-compatible explicit length when selecting another algorithm. |
+| `length` | `number` | No | Key length in bytes; defaults to 32 for AES/ECDSA or 256 for RSA. Explicit native keyShape overrides take precedence. |
+| `protectionMode` | `'SOFTWARE' \| 'HSM'` | No | SOFTWARE by default, or explicitly selected HSM protection. |
+| `key` | `Partial<oci.kms.KeyArgs>` | No | Shallow native KMS Key arguments applied last; nested keyShape values are replaced. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciVaultKey](#api-createOciVaultKey) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `managementEndpoint`
+
+Vault management endpoint Input supplied by the selected provider resource.
+
+
+#### `displayName`
+
+Optional provider display name; defaults to the factory's logical resource name unless native key overrides replace it.
+
+
+#### `algorithm`
+
+Key algorithm; defaults to AES. Supply a provider-compatible explicit length when selecting another algorithm.
+
+
+#### `length`
+
+Key length in bytes; defaults to 32 for AES/ECDSA or 256 for RSA. Explicit native keyShape overrides take precedence.
+
+
+#### `protectionMode`
+
+SOFTWARE by default, or explicitly selected HSM protection.
+
+
+#### `key`
+
+Shallow native KMS Key arguments applied last; nested keyShape values are replaced.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OciVaultKeyArgs"></a>
+
+## [INTERFACE] `OciVaultKeyArgs`
+
+Vault management endpoint and encryption key settings with shallow native overrides.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
 
 ### Signature
 
@@ -4959,7 +7906,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Vault/key destination and secret-wrapped content used for an OCI secret declaration.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
 
 ### Signature
 
@@ -5044,6 +7991,231 @@ Shallow native secret arguments applied last; overridden secretContent retains i
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-OciVaultSecretArgs"></a>
+
+## [INTERFACE] `OciVaultSecretArgs`
+
+Vault/key destination and secret-wrapped content used for an OCI secret declaration.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/vault`.
+
+### Signature
+
+```typescript
+interface OciVaultSecretArgs {
+    compartmentId: pulumi.Input<string>;
+    vaultId: pulumi.Input<string>;
+    keyId: pulumi.Input<string>;
+    secretName: pulumi.Input<string>;
+    description?: pulumi.Input<string>;
+    secretContent: pulumi.Input<string>;
+    isAlreadyBase64?: boolean;
+    secret?: Partial<oci.vault.SecretArgs>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `compartmentId` | `pulumi.Input<string>` | Yes | OCI compartment ID supplied through the host provider context. |
+| `vaultId` | `pulumi.Input<string>` | Yes | Explicit Vault identity for secret storage. |
+| `keyId` | `pulumi.Input<string>` | Yes | Explicit KMS key identity used to encrypt the secret. |
+| `secretName` | `pulumi.Input<string>` | Yes | Provider-visible secret name selected by the host. |
+| `description` | `pulumi.Input<string>` | No | Provider-visible description; defaults to Encrypted Secret for followed by the factory's logical name, unless native secret overrides replace it. |
+| `secretContent` | `pulumi.Input<string>` | Yes | Sensitive raw UTF-8 or already-base64 Input; wrapped as a secret before conversion. |
+| `isAlreadyBase64` | `boolean` | No | False by default; true preserves supplied base64 bytes without encoding them again. |
+| `secret` | `Partial<oci.vault.SecretArgs>` | No | Shallow native secret arguments applied last; overridden secretContent retains its supplied shape and is always wrapped as a Pulumi secret. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createOciVaultSecret](#api-createOciVaultSecret) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `compartmentId`
+
+OCI compartment ID supplied through the host provider context.
+
+
+#### `vaultId`
+
+Explicit Vault identity for secret storage.
+
+
+#### `keyId`
+
+Explicit KMS key identity used to encrypt the secret.
+
+
+#### `secretName`
+
+Provider-visible secret name selected by the host.
+
+
+#### `description`
+
+Provider-visible description; defaults to Encrypted Secret for followed by the factory's logical name, unless native secret overrides replace it.
+
+
+#### `secretContent`
+
+Sensitive raw UTF-8 or already-base64 Input; wrapped as a secret before conversion.
+
+
+#### `isAlreadyBase64`
+
+False by default; true preserves supplied base64 bytes without encoding them again.
+
+
+#### `secret`
+
+Shallow native secret arguments applied last; overridden secretContent retains its supplied shape and is always wrapped as a Pulumi secret.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OfficialFeatureDescriptor"></a>
+
+## [INTERFACE] `OfficialFeatureDescriptor`
+
+Data-only package declarations; no functions, source paths or host credentials.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface OfficialFeatureDescriptor {
+    id: string;
+    version: string;
+    manifest: string;
+    server?: string;
+    lifecycle?: {
+        entry: string;
+        exportName: string;
+    };
+    dependencies?: readonly string[];
+    clients: Array<{
+        target: string;
+        entry: string;
+        exportName: string;
+        path: string;
+        providerEntry?: string;
+        providerExport?: string;
+    }>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Stable owner-declared feature identity. |
+| `version` | `string` | Yes | Exact installed owner version, without a range. |
+| `manifest` | `string` | Yes | Supported package subpath exporting manifest metadata. |
+| `server` | `string` | No | Optional supported runtime entry, never imported by generated browser metadata. |
+| `lifecycle` | `{     entry: string;     exportName: string; }` | No | Supported lifecycle export required for an adopted feature. |
+| `dependencies` | `readonly string[]` | No | Other feature IDs that must be explicitly adopted together. |
+| `clients` | `Array<{     target: string;     entry: string;     exportName: string;     path: string;     providerEntry?: string;     providerExport?: string; }>` | Yes | Owner-declared client entrypoints without host credentials or implementations. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+generateFeatureRegistrations
+
+### Public members
+
+#### `id`
+
+Stable owner-declared feature identity.
+
+
+#### `version`
+
+Exact installed owner version, without a range.
+
+
+#### `manifest`
+
+Supported package subpath exporting manifest metadata.
+
+
+#### `server`
+
+Optional supported runtime entry, never imported by generated browser metadata.
+
+
+#### `lifecycle`
+
+Supported lifecycle export required for an adopted feature.
+
+
+#### `lifecycle.entry`
+
+Package subpath exporting the lifecycle definition.
+
+
+#### `lifecycle.exportName`
+
+JavaScript export name for that definition.
+
+
+#### `dependencies`
+
+Other feature IDs that must be explicitly adopted together.
+
+
+#### `clients`
+
+Owner-declared client entrypoints without host credentials or implementations.
+
+
+#### `clients[].target`
+
+Client family; browser output selects web.
+
+
+#### `clients[].entry`
+
+Supported client package subpath; a server entry is rejected.
+
+
+#### `clients[].exportName`
+
+Component export name, including default where applicable.
+
+
+#### `clients[].path`
+
+Declared application route.
+
+
+#### `clients[].providerEntry`
+
+Optional package subpath providing its client context.
+
+
+#### `clients[].providerExport`
+
+Export name of the client context provider.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-OperationPorts"></a>
 
 ## [INTERFACE] `OperationPorts`
@@ -5113,7 +8285,137 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Persisted release/bootstrap execution state and lifecycle plan hashes.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface OperationReceipt {
+    formatVersion: 1;
+    id: string;
+    operation: 'release' | 'bootstrap';
+    inputSha256: string;
+    environment: string;
+    startedAt: string;
+    finishedAt?: string;
+    status: 'running' | 'succeeded' | 'failed';
+    stages: Array<{
+        name: string;
+        status: 'running' | 'succeeded' | 'failed';
+        startedAt: string;
+        finishedAt?: string;
+    }>;
+    lifecyclePlans: string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `formatVersion` | `1` | Yes | Persisted operation receipt format; currently 1. |
+| `id` | `string` | Yes | Unique execution UUID matching the release context. |
+| `operation` | `'release' \| 'bootstrap'` | Yes | Requested release or bootstrap operation. |
+| `inputSha256` | `string` | Yes | Hash of inputs used for the reviewed operation. |
+| `environment` | `string` | Yes | Shared host environment identity supplied by trusted operations. |
+| `startedAt` | `string` | Yes | UTC ISO timestamp for operation start. |
+| `finishedAt` | `string` | No | UTC ISO timestamp set when the attempt finishes. |
+| `status` | `'running' \| 'succeeded' \| 'failed'` | Yes | Current running, succeeded or failed outcome. |
+| `stages` | `Array<{     name: string;     status: 'running' \| 'succeeded' \| 'failed';     startedAt: string;     finishedAt?: string; }>` | Yes | Ordered per-stage status records; a failed attempt preserves completed and failed stages. |
+| `lifecyclePlans` | `string[]` | Yes | Lifecycle plan hashes used by this attempt for later review. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[executePlatformOperation](#api-executePlatformOperation) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `formatVersion`
+
+Persisted operation receipt format; currently 1.
+
+
+#### `id`
+
+Unique execution UUID matching the release context.
+
+
+#### `operation`
+
+Requested release or bootstrap operation.
+
+
+#### `inputSha256`
+
+Hash of inputs used for the reviewed operation.
+
+
+#### `environment`
+
+Shared host environment identity supplied by trusted operations.
+
+
+#### `startedAt`
+
+UTC ISO timestamp for operation start.
+
+
+#### `finishedAt`
+
+UTC ISO timestamp set when the attempt finishes.
+
+
+#### `status`
+
+Current running, succeeded or failed outcome.
+
+
+#### `stages`
+
+Ordered per-stage status records; a failed attempt preserves completed and failed stages.
+
+
+#### `stages[].name`
+
+Execution stage label, such as migrate or deploy:backend.
+
+
+#### `stages[].status`
+
+Stage outcome; running can remain in evidence after interruption.
+
+
+#### `stages[].startedAt`
+
+ISO start time written before stage work.
+
+
+#### `stages[].finishedAt`
+
+ISO completion time when the stage's finally block executes.
+
+
+#### `lifecyclePlans`
+
+Lifecycle plan hashes used by this attempt for later review.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OperationReceipt"></a>
+
+## [INTERFACE] `OperationReceipt`
+
+Persisted release/bootstrap execution state and lifecycle plan hashes.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -5332,7 +8634,44 @@ const config = parseSiteOperationsConfig({ sites: [] })
 
 Convert a nonempty hyphen-separated identifier into concatenated capitalized segments.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/utils`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function pascalCase(id: string): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Validated identifier with nonempty hyphen-separated segments. |
+
+### Returns
+
+`string`
+
+The concatenated PascalCase identifier.
+
+### Errors and rejections
+
+Empty segments cause a TypeError; validate untrusted identifiers first.
+
+### Example
+
+```typescript
+import { pascalCase } from '@alneas/eaos-cli/plugin-tools'
+const typeName = pascalCase('notes-api')
+```
+
+<a id="api-pascalCase"></a>
+
+## [FUNCTION] `pascalCase`
+
+Convert a nonempty hyphen-separated identifier into concatenated capitalized segments.
+
+Imports: `@alneas/eaos-cli/plugin-tools/utils`.
 
 ### Signature
 
@@ -5369,7 +8708,62 @@ const typeName = pascalCase('notes-api')
 
 Inspect release/bootstrap inputs and produce an execution plan without importing host operation code.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function planPlatformOperation(root: string, operation: 'release' | 'bootstrap', options?: PlatformOperationOptions): Promise<{
+    mode: "plan-only";
+    operation: "release" | "bootstrap";
+    inputSha256: string;
+    preset: string | undefined;
+    roles: {
+        role: "backend" | "frontend" | "worker";
+        image: string;
+        version: string;
+    }[];
+    stages: string[];
+    selectedPlugins: {
+        owner: string;
+        id: string;
+    }[];
+    requires: string;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Existing application root whose real path and immutable inputs are checked. |
+| `operation` | `'release' \| 'bootstrap'` | Yes | release plans deployment roles; bootstrap requires a supported preset. |
+| `options` | `PlatformOperationOptions` | No | Optional config/operations paths and stack selection; no operation callback is executed. |
+
+### Returns
+
+`Promise<{     mode: "plan-only";     operation: "release" \| "bootstrap";     inputSha256: string;     preset: string \| undefined;     roles: {         role: "backend" \| "frontend" \| "worker";         image: string;         version: string;     }[];     stages: string[];     selectedPlugins: {         owner: string;         id: string;     }[];     requires: string; }>`
+
+Plan-only metadata, input hash, roles, stages and selected plugins.
+
+### Errors and rejections
+
+Rejects missing/invalid inputs, unsupported bootstrap configuration or inconsistent role/image selections.
+
+### Example
+
+```typescript
+import { planPlatformOperation } from '@alneas/eaos-cli/platform'
+export function reviewRelease(root: string) { return planPlatformOperation(root, 'release') }
+```
+
+<a id="api-planPlatformOperation"></a>
+
+## [FUNCTION] `planPlatformOperation`
+
+Inspect release/bootstrap inputs and produce an execution plan without importing host operation code.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -5424,7 +8818,133 @@ export function reviewRelease(root: string) { return planPlatformOperation(root,
 
 Non-secret image, database and deployment-target selections for platform generation.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/render`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface PlatformDeployment {
+    images: {
+        backend: string;
+        frontend: string;
+        worker?: string;
+        agentRuntime?: string;
+        nginx?: string;
+        kratos?: string;
+        postgres?: string;
+    };
+    database?: {
+        volumeName: string;
+        external: boolean;
+    };
+    target?: 'compose' | 'kamal' | 'both';
+    kamal?: KamalDeployment;
+    placements?: DeploymentPlacements;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `images` | `{     backend: string;     frontend: string;     worker?: string;     agentRuntime?: string;     nginx?: string;     kratos?: string;     postgres?: string; }` | Yes | Explicit application image names plus optional infrastructure images; release execution rejects unreviewed mutable tags. |
+| `database` | `{     volumeName: string;     external: boolean; }` | No | Database volume/external-provider selection; omitted settings use generator defaults. |
+| `target` | `'compose' \| 'kamal' \| 'both'` | No | Output transport selection; defaults to compose. Kamal settings require kamal or both. |
+| `kamal` | `KamalDeployment` | No | Kamal SSH hosts, role configuration and runtime file bindings for that target. |
+| `placements` | `DeploymentPlacements` | No | Explicit component-to-destination catalog; unresolved required placements fail generation. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[resolveManifest](#api-resolveManifest) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `images`
+
+Explicit application image names plus optional infrastructure images; release execution rejects unreviewed mutable tags.
+
+
+#### `images.backend`
+
+Required backend container image; Kamal requires an explicit tag, and release execution rejects dev/local/latest tags.
+
+
+#### `images.frontend`
+
+Required frontend container image; Kamal requires an explicit tag, and release execution rejects dev/local/latest tags.
+
+
+#### `images.worker`
+
+Optional worker application image; must be configured together with kamal.worker.
+
+
+#### `images.agentRuntime`
+
+Optional remote agent image; must be configured together with kamal.agentRuntime and upgraded through a separate reviewed operation.
+
+
+#### `images.nginx`
+
+Reverse-proxy image; defaults to nginx:1.30-alpine when omitted.
+
+
+#### `images.kratos`
+
+Identity service/migration image; defaults to oryd/kratos:v26.2.0 when omitted.
+
+
+#### `images.postgres`
+
+Local Kratos database image; defaults to postgres:16-alpine when omitted.
+
+
+#### `database`
+
+Database volume/external-provider selection; omitted settings use generator defaults.
+
+
+#### `database.volumeName`
+
+Named Kratos database volume; omission of the whole database object defaults to appName + -kratos-data.
+
+
+#### `database.external`
+
+Host supplies an external identity database when true; defaults to false only when the whole object is omitted.
+
+
+#### `target`
+
+Output transport selection; defaults to compose. Kamal settings require kamal or both.
+
+
+#### `kamal`
+
+Kamal SSH hosts, role configuration and runtime file bindings for that target.
+
+
+#### `placements`
+
+Explicit component-to-destination catalog; unresolved required placements fail generation.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PlatformDeployment"></a>
+
+## [INTERFACE] `PlatformDeployment`
+
+Non-secret image, database and deployment-target selections for platform generation.
+
+Imports: `@alneas/eaos-cli/platform/render`.
 
 ### Signature
 
@@ -5550,7 +9070,103 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Reviewed image version, transport and host credentials for a real image deployment.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/deploy`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface PlatformImageDeployOptions {
+    configFile: string;
+    version: string;
+    transport?: 'kamal' | 'openssh';
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+    registry?: {
+        server: string;
+        username: string;
+        password: string;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `configFile` | `string` | Yes | Explicit reviewed Kamal configuration filename. |
+| `version` | `string` | Yes | Immutable selected image version; latest and invalid version tokens are rejected. |
+| `transport` | `'kamal' \| 'openssh'` | No | Kamal by default; openssh selects the constrained single-host transport. |
+| `cwd` | `string` | No | Trusted command working directory; defaults to process.cwd(). |
+| `env` | `NodeJS.ProcessEnv` | No | Subprocess environment; defaults to process.env and may contain real secret bindings. |
+| `registry` | `{     server: string;     username: string;     password: string; }` | No | Optional trusted registry server/username/password consumed only by the OpenSSH transport; Kamal uses its own configuration/environment. Never serialize these credentials in a receipt. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[deployPlatformImage](#api-deployPlatformImage) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `configFile`
+
+Explicit reviewed Kamal configuration filename.
+
+
+#### `version`
+
+Immutable selected image version; latest and invalid version tokens are rejected.
+
+
+#### `transport`
+
+Kamal by default; openssh selects the constrained single-host transport.
+
+
+#### `cwd`
+
+Trusted command working directory; defaults to process.cwd().
+
+
+#### `env`
+
+Subprocess environment; defaults to process.env and may contain real secret bindings.
+
+
+#### `registry`
+
+Optional trusted registry server/username/password consumed only by the OpenSSH transport; Kamal uses its own configuration/environment. Never serialize these credentials in a receipt.
+
+
+#### `registry.server`
+
+Registry hostname that must exactly match the reviewed Kamal image registry before OpenSSH login.
+
+
+#### `registry.username`
+
+Nonempty host registry username passed to Docker login over the OpenSSH transport.
+
+
+#### `registry.password`
+
+Nonempty registry secret passed through SSH stdin to docker login --password-stdin; not used by the Kamal transport.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PlatformImageDeployOptions"></a>
+
+## [INTERFACE] `PlatformImageDeployOptions`
+
+Reviewed image version, transport and host credentials for a real image deployment.
+
+Imports: `@alneas/eaos-cli/platform/deploy`.
 
 ### Signature
 
@@ -5646,7 +9262,84 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Host application configuration whose explicit selections determine generated platform files.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/render`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface PlatformManifest {
+    siteOperations?: SiteOperationsConfig;
+    runtime?: PlatformRuntimeConfig;
+    packages?: PlatformPackage[];
+    platform: PlatformConfig;
+    overrides?: PlatformConfigOverrides;
+    deployment: PlatformDeployment;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `siteOperations` | `SiteOperationsConfig` | No | Optional registered local site and control-service capabilities. |
+| `runtime` | `PlatformRuntimeConfig` | No | Optional explicit tenant/database runtime placement catalog. |
+| `packages` | `PlatformPackage[]` | No | Explicit acquired code registrations; each is bound to a verified inventory. |
+| `platform` | `PlatformConfig` | Yes | Core platform service/domain/identity configuration. |
+| `overrides` | `PlatformConfigOverrides` | No | Supported host overrides applied while resolving the platform contract. |
+| `deployment` | `PlatformDeployment` | Yes | Non-secret image, transport, database and placement selection. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[resolveManifest](#api-resolveManifest) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `siteOperations`
+
+Optional registered local site and control-service capabilities.
+
+
+#### `runtime`
+
+Optional explicit tenant/database runtime placement catalog.
+
+
+#### `packages`
+
+Explicit acquired code registrations; each is bound to a verified inventory.
+
+
+#### `platform`
+
+Core platform service/domain/identity configuration.
+
+
+#### `overrides`
+
+Supported host overrides applied while resolving the platform contract.
+
+
+#### `deployment`
+
+Non-secret image, transport, database and placement selection.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PlatformManifest"></a>
+
+## [INTERFACE] `PlatformManifest`
+
+Host application configuration whose explicit selections determine generated platform files.
+
+Imports: `@alneas/eaos-cli/platform/render`.
 
 ### Signature
 
@@ -5723,7 +9416,70 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Application configuration, operation module and plan/stack selections.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface PlatformOperationOptions {
+    config?: string;
+    operations?: string;
+    plan?: boolean;
+    stack?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `config` | `string` | No | Workspace-relative application manifest path; defaults to eaos.platform.json. |
+| `operations` | `string` | No | Trusted operation module path; defaults to eaos.operations.ts. |
+| `plan` | `boolean` | No | When true, inspect inputs/stages without importing live host operation code. |
+| `stack` | `string` | No | Explicit Pulumi stack required for bootstrap execution. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[planPlatformOperation](#api-planPlatformOperation) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `config`
+
+Workspace-relative application manifest path; defaults to eaos.platform.json.
+
+
+#### `operations`
+
+Trusted operation module path; defaults to eaos.operations.ts.
+
+
+#### `plan`
+
+When true, inspect inputs/stages without importing live host operation code.
+
+
+#### `stack`
+
+Explicit Pulumi stack required for bootstrap execution.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PlatformOperationOptions"></a>
+
+## [INTERFACE] `PlatformOperationOptions`
+
+Application configuration, operation module and plan/stack selections.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -5786,7 +9542,297 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Trusted live host capabilities required to execute reviewed release/bootstrap operations.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface PlatformOperations {
+    formatVersion: 1;
+    environment: string;
+    withLock<T>(context: ReleaseContext, action: () => Promise<T>): Promise<T>;
+    lifecycle: LifecycleProject;
+    migrations: Array<{
+        backendId: string;
+        tenantId: string;
+        pluginIds: string[];
+    }>;
+    deploy?: (input: {
+        context: ReleaseContext;
+        role: 'worker' | 'backend' | 'frontend';
+        image: string;
+        version: string;
+        configFile: string;
+    }) => Promise<void>;
+    baselines?: Array<{
+        backendId: string;
+        baseline: DataContractBaseline;
+    }>;
+    health: Array<{
+        role: 'worker' | 'backend' | 'frontend';
+        url: string;
+    }>;
+    bootstrap?: {
+        provisionInfrastructure?: (context: ReleaseContext, stack: string) => Promise<void>;
+        initializeControlDatabase(context: ReleaseContext): Promise<void>;
+        startIdentity(context: ReleaseContext): Promise<void>;
+        issueAdminRegistration(context: ReleaseContext): Promise<void>;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `formatVersion` | `1` | Yes | Host operations contract format; must be 1. |
+| `environment` | `string` | Yes | Nonblank host environment identity used to bind locks, journals and health checks. |
+| `withLock` | `Promise<T>` | Yes | Hold an environment-wide exclusive lock across the awaited action; lock ownership and recovery are host responsibilities. |
+| `lifecycle` | `LifecycleProject` | Yes | Real Lifecycle project with shared durable state, migration executors and current admission. |
+| `migrations` | `Array<{     backendId: string;     tenantId: string;     pluginIds: string[]; }>` | Yes | Explicit backend/tenant/plugin selections for reviewed release application; does not enable new tenants. |
+| `deploy` | `(input: {     context: ReleaseContext;     role: 'worker' \| 'backend' \| 'frontend';     image: string;     version: string;     configFile: string; }) => Promise<void>` | No | Optional live role deployment callback receiving immutable image/version/config and the current release context. |
+| `baselines` | `Array<{     backendId: string;     baseline: DataContractBaseline; }>` | No | Optional reviewed database baseline descriptors bound to their exact backend IDs. |
+| `health` | `Array<{     role: 'worker' \| 'backend' \| 'frontend';     url: string; }>` | Yes | Role-specific readiness URLs whose release headers must match the requested deployed versions. |
+| `bootstrap` | `{     provisionInfrastructure?: (context: ReleaseContext, stack: string) => Promise<void>;     initializeControlDatabase(context: ReleaseContext): Promise<void>;     startIdentity(context: ReleaseContext): Promise<void>;     issueAdminRegistration(context: ReleaseContext): Promise<void>; }` | No | Optional real infrastructure, control-DB, identity and administrator-code capabilities required for bootstrap. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[definePlatformOperations](#api-definePlatformOperations) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `formatVersion`
+
+Host operations contract format; must be 1.
+
+
+#### `environment`
+
+Nonblank host environment identity used to bind locks, journals and health checks.
+
+
+#### `withLock`
+
+Hold an environment-wide exclusive lock across the awaited action; lock ownership and recovery are host responsibilities.
+
+Parameters:
+
+- `context`: Reviewed release identity and input hash; the object is not frozen and must not be mutated.
+- `action`: Async host operation to await without releasing the exclusive environment lock.
+
+Returns: The action result after the host lock implementation completes.
+
+### Type parameters
+
+- `T`: Result produced by the action while the environment lock is held.
+
+### Remarks
+
+The host must release only its own lock and must not silently expire an interrupted writer.
+
+### Errors and rejections
+
+Host lock acquisition, action and cleanup failures propagate.
+
+Example:
+
+```typescript
+import type { PlatformOperations, ReleaseContext } from '@alneas/eaos-cli/platform';
+export async function inspectLocked(operations: PlatformOperations, context: ReleaseContext) {
+  return operations.withLock(context, async () => operations.lifecycle.store.read());
+}
+```
+
+
+#### `lifecycle`
+
+Real Lifecycle project with shared durable state, migration executors and current admission.
+
+
+#### `migrations`
+
+Explicit backend/tenant/plugin selections for reviewed release application; does not enable new tenants.
+
+
+#### `migrations[].backendId`
+
+Registered backend ID matching the runtime/lifecycle target.
+
+
+#### `migrations[].tenantId`
+
+Concrete verified tenant ID; wildcards are rejected.
+
+
+#### `migrations[].pluginIds`
+
+Nonempty unique plugin IDs whose dependencies are migrated in order.
+
+
+#### `deploy`
+
+Optional live role deployment callback receiving immutable image/version/config and the current release context.
+
+
+#### `deploy.input.context`
+
+Current locked release context and retained operation identity for this deployment.
+
+
+#### `deploy.input.role`
+
+Reviewed worker, backend or frontend service selected for this live release step.
+
+
+#### `deploy.input.image`
+
+Exact reviewed immutable application image reference for the selected role.
+
+
+#### `deploy.input.version`
+
+Reviewed image/deployment version passed to the host deploy adapter.
+
+
+#### `deploy.input.configFile`
+
+Generated role-specific deployment configuration path selected by the reviewed release plan.
+
+
+#### `baselines`
+
+Optional reviewed database baseline descriptors bound to their exact backend IDs.
+
+
+#### `baselines[].backendId`
+
+Declared migration backend whose database owns this baseline.
+
+
+#### `baselines[].baseline`
+
+Reviewed baseline whose target must match the lifecycle contract catalog.
+
+
+#### `health`
+
+Role-specific readiness URLs whose release headers must match the requested deployed versions.
+
+
+#### `health[].role`
+
+Deployed role; release requires exactly one endpoint for each selected role.
+
+
+#### `health[].url`
+
+HTTPS or loopback HTTP URL without credentials/query/fragment; response x-eaos-release must match the selected version.
+
+
+#### `bootstrap`
+
+Optional real infrastructure, control-DB, identity and administrator-code capabilities required for bootstrap.
+
+
+#### `bootstrap.provisionInfrastructure`
+
+Optional host provisioning callback receiving reviewed context and explicit Pulumi stack; resolves with no value. Omission runs the local Pulumi project through the selected runner.
+
+
+#### `bootstrap.initializeControlDatabase`
+
+Initializes the real host control database during bootstrap.
+
+Parameters:
+
+- `context`: Reviewed operation identity and input hash.
+
+Returns: No value; resolves after host initialization.
+
+### Errors and rejections
+
+Host initialization errors stop bootstrap without undoing earlier stages.
+
+Example:
+
+```typescript
+import type { PlatformOperations, ReleaseContext } from '@alneas/eaos-cli/platform';
+export async function reviewedBootstrap(operations: PlatformOperations, context: ReleaseContext) {
+  if (!operations.bootstrap) throw new Error("Real bootstrap capabilities required");
+  // Invoke only after the host approves this operation and preceding stages.
+  await operations.bootstrap.initializeControlDatabase(context);
+}
+```
+
+
+#### `bootstrap.startIdentity`
+
+Starts/configures the host identity service after control database initialization.
+
+Parameters:
+
+- `context`: Reviewed operation identity and input hash.
+
+Returns: No value; resolves after host identity setup.
+
+### Errors and rejections
+
+Host setup errors stop bootstrap without undoing earlier stages.
+
+Example:
+
+```typescript
+import type { PlatformOperations, ReleaseContext } from '@alneas/eaos-cli/platform';
+export async function reviewedBootstrap(operations: PlatformOperations, context: ReleaseContext) {
+  if (!operations.bootstrap) throw new Error("Real bootstrap capabilities required");
+  // Invoke only after the host approves this operation and preceding stages.
+  await operations.bootstrap.startIdentity(context);
+}
+```
+
+
+#### `bootstrap.issueAdminRegistration`
+
+Delivers the host's short-lived single-use administrator registration code directly.
+
+Parameters:
+
+- `context`: Reviewed operation identity and input hash.
+
+Returns: No value; credentials must not be returned for inclusion in receipts.
+
+### Errors and rejections
+
+Delivery/setup errors stop bootstrap; the host must reconcile any code already issued.
+
+Example:
+
+```typescript
+import type { PlatformOperations, ReleaseContext } from '@alneas/eaos-cli/platform';
+export async function reviewedBootstrap(operations: PlatformOperations, context: ReleaseContext) {
+  if (!operations.bootstrap) throw new Error("Real bootstrap capabilities required");
+  // Invoke only after the host approves this operation and preceding stages.
+  await operations.bootstrap.issueAdminRegistration(context);
+}
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PlatformOperations"></a>
+
+## [INTERFACE] `PlatformOperations`
+
+Trusted live host capabilities required to execute reviewed release/bootstrap operations.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -6116,7 +10162,44 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Derive a lifecycle-safe package bundle identifier from the exact package identity bytes.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function platformPackageBundleId(packageId: string): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `packageId` | `string` | Yes | Nonblank package identity, including an optional npm scope; nonblank input is not trimmed before hashing. |
+
+### Returns
+
+`string`
+
+package- followed by the SHA-256 hexadecimal digest.
+
+### Errors and rejections
+
+If the package identity is blank.
+
+### Example
+
+```typescript
+import { platformPackageBundleId } from '@alneas/eaos-cli/platform'
+const bundleId = platformPackageBundleId('@example/notes')
+```
+
+<a id="api-platformPackageBundleId"></a>
+
+## [FUNCTION] `platformPackageBundleId`
+
+Derive a lifecycle-safe package bundle identifier from the exact package identity bytes.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -6318,7 +10401,201 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Source-inspected plugin metadata and explicit unresolved issues, without executing plugin code.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/inspect`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+interface PluginInspection {
+    apiPrefix?: string;
+    targets?: string[];
+    dataContracts?: Record<string, string>;
+    pluginId: string;
+    tables: string[];
+    tools: {
+        name: string;
+        parametersHash: string;
+        inputSchema?: Record<string, unknown>;
+        contract?: {
+            version: string;
+            permission: string;
+            sideEffect: 'read' | 'write' | 'external';
+            outputSchema?: Record<string, unknown>;
+        };
+    }[];
+    policies: Record<string, {
+        requiredRole?: string;
+        riskLevel?: string;
+        requireHumanApproval?: boolean;
+    }>;
+    contracts: string[];
+    secrets: string[];
+    storagePolicy?: PluginStoragePolicy;
+    issues: {
+        code: string;
+        message: string;
+    }[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `apiPrefix` | `string` | No | Statically declared API route prefix when it can be resolved. |
+| `targets` | `string[]` | No | Statically declared supported runtime/client targets. |
+| `dataContracts` | `Record<string, string>` | No | Declared Data Contract identities and compatible version ranges. |
+| `pluginId` | `string` | Yes | Validated plugin identity read from source declarations. |
+| `tables` | `string[]` | Yes | Table names inferred from source contracts; not proof of installed physical schemas. |
+| `tools` | `{     name: string;     parametersHash: string;     inputSchema?: Record<string, unknown>;     contract?: {         version: string;         permission: string;         sideEffect: 'read' \| 'write' \| 'external';         outputSchema?: Record<string, unknown>;     }; }[]` | Yes | Statically inspected tool names, input hashes/schema and optional execution contracts. |
+| `policies` | `Record<string, {     requiredRole?: string;     riskLevel?: string;     requireHumanApproval?: boolean; }>` | Yes | Resolved per-tool role, risk and human-approval metadata; runtime hosts still enforce live authorization. |
+| `contracts` | `string[]` | Yes | Source contract declarations found by the static reader. |
+| `secrets` | `string[]` | Yes | Declared secret names, never resolved secret values. |
+| `storagePolicy` | `PluginStoragePolicy` | No | Optional declared plugin storage limits and placement rules. |
+| `issues` | `{     code: string;     message: string; }[]` | Yes | Unresolved/unsupported source findings; callers must not silently treat them as a complete executable contract. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[inspectPlugin](#api-inspectPlugin) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `apiPrefix`
+
+Statically declared API route prefix when it can be resolved.
+
+
+#### `targets`
+
+Statically declared supported runtime/client targets.
+
+
+#### `dataContracts`
+
+Declared Data Contract identities and compatible version ranges.
+
+
+#### `pluginId`
+
+Validated plugin identity read from source declarations.
+
+
+#### `tables`
+
+Table names inferred from source contracts; not proof of installed physical schemas.
+
+
+#### `tools`
+
+Statically inspected tool names, input hashes/schema and optional execution contracts.
+
+
+#### `tools[].name`
+
+Statically resolved MCP tool name from the inspected plugin source.
+
+
+#### `tools[].parametersHash`
+
+SHA-256 of JSON.stringify applied to the statically resolved input schema; source object key order therefore affects compatibility comparisons.
+
+
+#### `tools[].inputSchema`
+
+Optional source-resolved JSON Schema for tool arguments; unresolved expressions are reported as inspection issues.
+
+
+#### `tools[].contract`
+
+Optional statically resolved execution contract describing version, permission, effects, and output validation.
+
+
+#### `tools[].contract.version`
+
+Declared execution-contract version string used for compatibility comparisons.
+
+
+#### `tools[].contract.permission`
+
+Declared permission key required by the execution contract; inspection does not enforce it.
+
+
+#### `tools[].contract.sideEffect`
+
+Declared effect category: read, write, or external; runtime hosts must enforce the corresponding execution boundary.
+
+
+#### `tools[].contract.outputSchema`
+
+Optional statically resolved result JSON Schema; absence does not imply result validation.
+
+
+#### `policies`
+
+Resolved per-tool role, risk and human-approval metadata; runtime hosts still enforce live authorization.
+
+
+#### `policies.requiredRole`
+
+Optional source-declared role requirement; live runtime authorization remains host-owned.
+
+
+#### `policies.riskLevel`
+
+Optional source-declared tool risk label, without a runtime policy decision from inspection.
+
+
+#### `policies.requireHumanApproval`
+
+Optional source declaration indicating whether the tool requests human approval.
+
+
+#### `contracts`
+
+Source contract declarations found by the static reader.
+
+
+#### `secrets`
+
+Declared secret names, never resolved secret values.
+
+
+#### `storagePolicy`
+
+Optional declared plugin storage limits and placement rules.
+
+
+#### `issues`
+
+Unresolved/unsupported source findings; callers must not silently treat them as a complete executable contract.
+
+
+#### `issues[].code`
+
+Stable diagnostic category identifying unsupported, unresolved, or conflicting inspected source.
+
+
+#### `issues[].message`
+
+Human-readable diagnostic context; callers must review these findings before treating metadata as complete.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PluginInspection"></a>
+
+## [INTERFACE] `PluginInspection`
+
+Source-inspected plugin metadata and explicit unresolved issues, without executing plugin code.
+
+Imports: `@alneas/eaos-cli/plugin-tools/inspect`.
 
 ### Signature
 
@@ -6594,7 +10871,96 @@ export function finalizeStaging(directory: string) { return preparePluginDeploym
 
 Supported OCI preset selections layered over a host platform manifest.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/preset`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface PresetManifest extends Omit<PlatformManifest, 'deployment'> {
+    preset: 'oci-adb' | 'oci-adb-standard';
+    plugins?: string[];
+    corporatePackages?: Array<{
+        id: string;
+        path: string;
+        tenants: string[];
+    }>;
+    deployment?: Omit<Partial<PlatformManifest['deployment']>, 'images'> & {
+        images?: Partial<PlatformManifest['deployment']['images']>;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `preset` | `'oci-adb' \| 'oci-adb-standard'` | Yes | Explicit supported infrastructure preset; oci-adb-standard is the accepted alias of oci-adb. |
+| `plugins` | `string[]` | No | Unique installed npm package or module subpath identities selected for this host; code selection is not activation. |
+| `corporatePackages` | `Array<{     id: string;     path: string;     tenants: string[]; }>` | No | Explicit local private package paths and tenant allowlists selected by the host. |
+| `deployment` | `Omit<Partial<PlatformManifest['deployment']>, 'images'> & {     images?: Partial<PlatformManifest['deployment']['images']>; }` | No | Optional deployment overrides layered over the preset's local Compose defaults. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[expandPreset](#api-expandPreset) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `preset`
+
+Explicit supported infrastructure preset; oci-adb-standard is the accepted alias of oci-adb.
+
+
+#### `plugins`
+
+Unique installed npm package or module subpath identities selected for this host; code selection is not activation.
+
+
+#### `corporatePackages`
+
+Explicit local private package paths and tenant allowlists selected by the host.
+
+
+#### `corporatePackages[].id`
+
+Expected package owner identifier, required to match its deployment inventory.
+
+
+#### `corporatePackages[].path`
+
+Project-contained directory containing the acquired package deployment.json and verified assets.
+
+
+#### `corporatePackages[].tenants`
+
+Explicit nonempty tenant allowlist for the package registration, validated by platform package rules.
+
+
+#### `deployment`
+
+Optional deployment overrides layered over the preset's local Compose defaults.
+
+
+#### `deployment.images`
+
+Optional per-role image overrides merged over local appName-backend:dev and appName-frontend:dev tags before platform defaults are resolved.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-PresetManifest"></a>
+
+## [INTERFACE] `PresetManifest`
+
+Supported OCI preset selections layered over a host platform manifest.
+
+Imports: `@alneas/eaos-cli/platform/preset`.
 
 ### Signature
 
@@ -6781,7 +11147,49 @@ export function readManifest(path: string) { return readJson(path) }
 
 Read registered package metadata from the application manifest.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function readPlatformPackages(root: string, config?: string): Promise<PlatformPackage[]>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root. |
+| `config` | `string` | No | Workspace-relative manifest path; defaults to eaos.platform.json. |
+
+### Returns
+
+`Promise<PlatformPackage[]>`
+
+The resolved application package registrations.
+
+### Remarks
+
+Reads and resolves metadata without importing runtime factories or activating plugins.
+
+### Errors and rejections
+
+Rejects invalid manifest paths, declarations or package metadata; filesystem errors propagate.
+
+### Example
+
+```typescript
+import { readPlatformPackages } from '@alneas/eaos-cli/platform'
+export function readHost(root: string) { return readPlatformPackages(root) }
+```
+
+<a id="api-readPlatformPackages"></a>
+
+## [FUNCTION] `readPlatformPackages`
+
+Read registered package metadata from the application manifest.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -6823,7 +11231,49 @@ export function readHost(root: string) { return readPlatformPackages(root) }
 
 Read runtime placement configuration from the application manifest.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function readPlatformRuntime(root: string, config?: string): Promise<PlatformRuntimeConfig | undefined>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root. |
+| `config` | `string` | No | Workspace-relative manifest path; defaults to eaos.platform.json. |
+
+### Returns
+
+`Promise<PlatformRuntimeConfig \| undefined>`
+
+The resolved optional runtime configuration.
+
+### Remarks
+
+Reads and resolves metadata without importing runtime factories or activating plugins.
+
+### Errors and rejections
+
+Rejects invalid manifest paths, declarations or package metadata; filesystem errors propagate.
+
+### Example
+
+```typescript
+import { readPlatformRuntime } from '@alneas/eaos-cli/platform'
+export function readHost(root: string) { return readPlatformRuntime(root) }
+```
+
+<a id="api-readPlatformRuntime"></a>
+
+## [FUNCTION] `readPlatformRuntime`
+
+Read runtime placement configuration from the application manifest.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -6865,7 +11315,87 @@ export function readHost(root: string) { return readPlatformRuntime(root) }
 
 Append reviewed deployment evidence under an exclusive journal writer lock without executing its task.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/deployment-status`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function recordDeploymentResult(root: string, options: {
+    inventory: string;
+    receipt: string;
+    result: DeploymentResult;
+    config?: string;
+    destination?: string;
+}): Promise<{
+    receipt: string;
+    recorded: DeploymentResult;
+    executed: boolean;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted workspace root used to validate the receipt path. |
+| `options` | `{     inventory: string;     receipt: string;     result: DeploymentResult;     config?: string;     destination?: string; }` | Yes | Inventory, relative receipt path and actual observed result; placement-bound work also supplies config/destination. |
+
+### Returns
+
+`Promise<{     receipt: string;     recorded: DeploymentResult;     executed: boolean; }>`
+
+The receipt path, recorded result and executed=false.
+
+### Remarks
+
+The host supplies truthful evidence. Writes a temporary journal then renames it; no task, migration or tenant activation runs.
+
+### Errors and rejections
+
+Rejects changed artifacts, wrong release/target/placement evidence, immutable-asset receipt paths, existing writer locks, oversized journals and filesystem errors.
+
+### Public members
+
+#### `options.inventory`
+
+Path to the immutable deployment inventory whose owner, asset hashes and task declaration bind this result.
+
+
+#### `options.receipt`
+
+Workspace-relative mutable evidence journal path; must remain separate from the immutable inventory and packaged assets.
+
+
+#### `options.result`
+
+Truthful host/operator-observed task result with actor, timestamp, evidence and required scope; recording does not execute or independently verify its task.
+
+
+#### `options.config`
+
+Optional workspace-relative application manifest supplying reviewed placements; required for destination-bound evidence.
+
+
+#### `options.destination`
+
+Optional destination ID assigned to this nonartifact task; requires config with compatible explicit placements.
+
+
+
+### Example
+
+```typescript
+import { recordDeploymentResult } from '@alneas/eaos-cli/platform'
+export function appendEvidence(root: string, options: Parameters<typeof recordDeploymentResult>[1]) { return recordDeploymentResult(root, options) }
+```
+
+<a id="api-recordDeploymentResult"></a>
+
+## [FUNCTION] `recordDeploymentResult`
+
+Append reviewed deployment evidence under an exclusive journal writer lock without executing its task.
+
+Imports: `@alneas/eaos-cli/platform/deployment-status`.
 
 ### Signature
 
@@ -6945,7 +11475,50 @@ export function appendEvidence(root: string, options: Parameters<typeof recordDe
 
 Read an external Autonomous Database resource without importing it into managed state.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/database`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function referenceOciAutonomousDatabase(name: string, id: pulumi.Input<string>, options?: Omit<pulumi.CustomResourceOptions, 'import'>): _pulumi_oci_database_autonomousDatabase.AutonomousDatabase;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Pulumi logical lookup name. |
+| `id` | `pulumi.Input<string>` | Yes | Existing database resource ID supplied by the host; may be an Output. |
+| `options` | `Omit<pulumi.CustomResourceOptions, 'import'>` | No | Optional resource options excluding import. |
+
+### Returns
+
+`_pulumi_oci_database_autonomousDatabase.AutonomousDatabase`
+
+The referenced native AutonomousDatabase resource.
+
+### Remarks
+
+Requires Pulumi/OCI provider configuration. This lookup is not resource adoption, database migration or wallet creation.
+
+### Errors and rejections
+
+Provider lookup errors propagate.
+
+### Example
+
+```typescript
+import { referenceOciAutonomousDatabase } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function referenceHost(id: Parameters<typeof referenceOciAutonomousDatabase>[1]) { return referenceOciAutonomousDatabase('existing-db', id) }
+```
+
+<a id="api-referenceOciAutonomousDatabase"></a>
+
+## [FUNCTION] `referenceOciAutonomousDatabase`
+
+Read an external Autonomous Database resource without importing it into managed state.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/database`.
 
 ### Signature
 
@@ -7160,7 +11733,82 @@ registerLifecycleCommands(program)
 
 Acquire verified artifact bytes and atomically register code without executing package factories.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function registerPlatformPackage(root: string, options: {
+    directory: string;
+    tenantIds: string[];
+    settings?: Record<string, unknown>;
+    config?: string;
+}): Promise<{
+    entry: PlatformPackage;
+    verifiedAssets: number;
+    activated: boolean;
+    restartRequired: boolean;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Application workspace root. |
+| `options` | `{     directory: string;     tenantIds: string[];     settings?: Record<string, unknown>;     config?: string; }` | Yes | Already built/downloaded directory, explicit tenantIds, optional settings and manifest path. |
+
+### Returns
+
+`Promise<{     entry: PlatformPackage;     verifiedAssets: number;     activated: boolean;     restartRequired: boolean; }>`
+
+The registration, verified asset count, activated=false and restartRequired=true.
+
+### Remarks
+
+Writes immutable retained files and the application manifest under a registration lock. Partial acquisition may remain after failure; no database application or tenant activation occurs.
+
+### Errors and rejections
+
+Rejects invalid hashes, duplicate package identities, mismatched retained assets, registration locks or filesystem failures.
+
+### Public members
+
+#### `options.directory`
+
+Already built/downloaded artifact directory containing deployment.json and its checksummed assets; resolved against the process working directory.
+
+
+#### `options.tenantIds`
+
+Explicit nonempty verified concrete tenant catalog to register for this package; registration never activates these tenants.
+
+
+#### `options.settings`
+
+Optional nonsecret settings object retained in the package registration; actual durable/authentication bindings stay host-owned.
+
+
+#### `options.config`
+
+Workspace-relative application manifest to update under the registration lock; defaults to eaos.platform.json.
+
+
+
+### Example
+
+```typescript
+import { registerPlatformPackage } from '@alneas/eaos-cli/platform'
+export function acquireReviewed(root: string, directory: string, tenantIds: string[]) { return registerPlatformPackage(root, { directory, tenantIds }) }
+```
+
+<a id="api-registerPlatformPackage"></a>
+
+## [FUNCTION] `registerPlatformPackage`
+
+Acquire verified artifact bytes and atomically register code without executing package factories.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -7342,7 +11990,63 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Execution identity and reviewed input hash passed to trusted release callbacks; hosts must preserve these values.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface ReleaseContext {
+    root: string;
+    id: string;
+    inputSha256: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Canonical application root associated with the reviewed inputs. |
+| `id` | `string` | Yes | Unique operation UUID shared by its steps and durable receipt. |
+| `inputSha256` | `string` | Yes | SHA-256 binding the operation to its reviewed source, package and configuration inputs. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[executePlatformOperation](#api-executePlatformOperation) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `root`
+
+Canonical application root associated with the reviewed inputs.
+
+
+#### `id`
+
+Unique operation UUID shared by its steps and durable receipt.
+
+
+#### `inputSha256`
+
+SHA-256 binding the operation to its reviewed source, package and configuration inputs.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ReleaseContext"></a>
+
+## [INTERFACE] `ReleaseContext`
+
+Execution identity and reviewed input hash passed to trusted release callbacks; hosts must preserve these values.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -7398,7 +12102,49 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Serialize inspected contract metadata into a delimited generated AGENTS block.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function renderAgentMetadata(info: PluginInspection): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `info` | `PluginInspection` | Yes | Reviewed source-inspection result; issues are omitted from serialized contract metadata. |
+
+### Returns
+
+`string`
+
+Markdown with exact generated block markers and a JSON contract payload.
+
+### Remarks
+
+Serialization alone does not reject unresolved issues or validate runtime authorization.
+
+### Errors and rejections
+
+JSON serialization failures propagate.
+
+### Example
+
+```typescript
+import { renderAgentMetadata } from '@alneas/eaos-cli/plugin-tools'
+import { inspectPlugin } from '@alneas/eaos-cli/plugin-tools/inspect'
+export function metadata(root: string) { return renderAgentMetadata(inspectPlugin(root, 'notes')) }
+```
+
+<a id="api-renderAgentMetadata"></a>
+
+## [FUNCTION] `renderAgentMetadata`
+
+Serialize inspected contract metadata into a delimited generated AGENTS block.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
 
 ### Signature
 
@@ -7440,7 +12186,66 @@ export function metadata(root: string) { return renderAgentMetadata(inspectPlugi
 
 Render deployment completeness and optional remaining-task details as a Markdown report.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/deployment-status`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function renderDeploymentStatusMarkdown(status: Awaited<ReturnType<typeof inspectDeploymentStatus>>, options?: {
+    remaining?: boolean;
+    view?: 'plugin' | 'destination';
+}): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | `Awaited<ReturnType<typeof inspectDeploymentStatus>>` | Yes | Verified status from inspectDeploymentStatus. |
+| `options` | `{     remaining?: boolean;     view?: 'plugin' \| 'destination'; }` | No | remaining omits already succeeded work from detailed task sections. |
+
+### Returns
+
+`string`
+
+Markdown status text with table cells escaped.
+
+### Remarks
+
+Rendering is presentation only; it neither revalidates evidence nor performs an operation.
+
+### Errors and rejections
+
+Malformed caller-supplied status objects can fail during rendering.
+
+### Public members
+
+#### `options.remaining`
+
+When true, omit succeeded work from detailed sections; false/omitted includes all task states.
+
+
+#### `options.view`
+
+Plugin view by default; destination requires placement-aware status with destinations and shared artifact executions.
+
+
+
+### Example
+
+```typescript
+import { renderDeploymentStatusMarkdown } from '@alneas/eaos-cli/platform'
+import { inspectDeploymentStatus } from '@alneas/eaos-cli/platform/deployment-status'
+export async function report(inventory: string) { return renderDeploymentStatusMarkdown(await inspectDeploymentStatus([inventory]), { remaining: true }) }
+```
+
+<a id="api-renderDeploymentStatusMarkdown"></a>
+
+## [FUNCTION] `renderDeploymentStatusMarkdown`
+
+Render deployment completeness and optional remaining-task details as a Markdown report.
+
+Imports: `@alneas/eaos-cli/platform/deployment-status`.
 
 ### Signature
 
@@ -7561,7 +12366,48 @@ export function renderHost(...args: Parameters<typeof renderKamal>) { return ren
 
 Render a Kamal 2 secrets template that resolves host bindings without embedding credential values.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/kamal-secrets`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function renderKamalSecretsScript(options?: KamalSecretsTemplateOptions): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `KamalSecretsTemplateOptions` | No | Registry identity and Pulumi directory settings; see KamalSecretsTemplateOptions for defaults. |
+
+### Returns
+
+`string`
+
+Dotenv template text for .kamal/secrets; rendering performs no credential lookup or filesystem writes.
+
+### Remarks
+
+Requires Kamal 2.12+ and Node.js 22+ when consumed. Nonempty host environment values take precedence: KAMAL_REGISTRY_USERNAME, KAMAL_REGISTRY_PASSWORD (then OCI_AUTH_TOKEN), ADB_CONNECT_STRING and mandatory ADB_PASSWORD. Resolved values must be nonblank single-line strings without NUL, CR or LF. Registry username can fall back to the supplied identity; token can fall back to the selected Pulumi output, and connection can fall back to bindings.databaseConnection. Pulumi reads are bounded to 30 seconds and 1 MiB each; no update is run. Missing/invalid bindings and failed lookups stop Kamal through its inline secrets extractor. Dollar signs and shell-looking secret content remain data. Database passwords are never guessed or exported from Pulumi by this template. Do not log the resolved secrets or commit them as plaintext.
+
+### Errors and rejections
+
+If options contain non-string values, control characters or an invalid token-output name; diagnostics omit supplied values.
+
+### Example
+
+```typescript
+import { renderKamalSecretsScript } from '@alneas/eaos-cli/platform'
+const text = renderKamalSecretsScript({ pulumiDir: 'pulumi' })
+```
+
+<a id="api-renderKamalSecretsScript"></a>
+
+## [FUNCTION] `renderKamalSecretsScript`
+
+Render a Kamal 2 secrets template that resolves host bindings without embedding credential values.
+
+Imports: `@alneas/eaos-cli/platform/kamal-secrets`.
 
 ### Signature
 
@@ -7602,7 +12448,48 @@ const text = renderKamalSecretsScript({ pulumiDir: 'pulumi' })
 
 Render the initial host-owned Pulumi source files for the OCI ADB preset.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb`, `@alneas/eaos-cli/presets/oci-adb/template`.
+Imports: `@alneas/eaos-cli/presets/oci-adb`.
+
+### Signature
+
+```typescript
+declare function renderOciAdbTemplate(appName: string): Record<string, string>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `appName` | `string` | Yes | Lowercase resource prefix beginning with a letter and containing at most 49 letters/digits/hyphens. |
+
+### Returns
+
+`Record<string, string>`
+
+Relative Pulumi filenames and complete generated UTF-8 text.
+
+### Remarks
+
+Does not write files, access Pulumi configuration or create resources. The generated project depends on the selected published CLI/Pulumi versions and requires real host configuration.
+
+### Errors and rejections
+
+If the application name does not match the resource-prefix grammar.
+
+### Example
+
+```typescript
+import { renderOciAdbTemplate } from '@alneas/eaos-cli/presets/oci-adb'
+const files = renderOciAdbTemplate('example-platform')
+```
+
+<a id="api-renderOciAdbTemplate"></a>
+
+## [FUNCTION] `renderOciAdbTemplate`
+
+Render the initial host-owned Pulumi source files for the OCI ADB preset.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/template`.
 
 ### Signature
 
@@ -8255,7 +13142,59 @@ export function parseHost(input: unknown) { return resolveManifest(input) }
 
 Resolve an application manifest and installed package contributions into a deployment configuration.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/preset`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function resolveProjectManifest(root: string, input: unknown): Promise<{
+    manifest: any;
+    resolved: {
+        config: _alneas_eaos_core_platform_config.ResolvedPlatformConfig;
+        deployment: ResolvedDeployment;
+        packages: PlatformPackage[];
+        runtime?: _alneas_eaos_server_platform.PlatformRuntimeConfig;
+    };
+    inventories: string[];
+    npmArtifacts: Omit<PlatformPackage, "tenantIds">[];
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root used to resolve package inventories. |
+| `input` | `unknown` | Yes | Application manifest or supported preset declaration. |
+
+### Returns
+
+`Promise<{     manifest: any;     resolved: {         config: _alneas_eaos_core_platform_config.ResolvedPlatformConfig;         deployment: ResolvedDeployment;         packages: PlatformPackage[];         runtime?: _alneas_eaos_server_platform.PlatformRuntimeConfig;     };     inventories: string[];     npmArtifacts: Omit<PlatformPackage, "tenantIds">[]; }>`
+
+Resolved manifest/configuration and verified package contribution metadata.
+
+### Remarks
+
+Package selection does not grant a tenant access or execute runtime factories.
+
+### Errors and rejections
+
+Rejects invalid declarations, unavailable package inventories or incompatible placements.
+
+### Example
+
+```typescript
+import { resolveProjectManifest } from '@alneas/eaos-cli/platform'
+export function resolveHost(root: string, input: unknown) { return resolveProjectManifest(root, input) }
+```
+
+<a id="api-resolveProjectManifest"></a>
+
+## [FUNCTION] `resolveProjectManifest`
+
+Resolve an application manifest and installed package contributions into a deployment configuration.
+
+Imports: `@alneas/eaos-cli/platform/preset`.
 
 ### Signature
 
@@ -8477,6 +13416,44 @@ import { selectAdbConnectionProfile } from '@alneas/eaos-cli/presets/oci-adb/inf
 export function connection(groups: Parameters<typeof selectAdbConnectionProfile>[0]) { return selectAdbConnectionProfile(groups) }
 ```
 
+<a id="api-selectClientBindings"></a>
+
+## [FUNCTION] `selectClientBindings`
+
+Select static pluginId registrations and their reachable host client adapters.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function selectClientBindings(source: string, selectedIds: readonly string[]): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `source` | `string` | Yes | Trusted TS/TSX host adapter module; registrations use literal pluginId fields. |
+| `selectedIds` | `readonly string[]` | Yes | Exact build adoption IDs. |
+
+### Returns
+
+`string`
+
+TypeScript source with unselected registration rows and unreachable imports/declarations removed.
+
+### Remarks
+
+Does not execute the source. Dynamic peer choices may still reference additional features; hosts must validate remaining official import identities against their adoption set.
+
+### Example
+
+```typescript
+import { selectClientBindings } from '@alneas/eaos-cli/platform'
+const source = selectClientBindings("export const pages=[{pluginId:'one'}]", ['one'])
+```
+
 <a id="api-selectImage"></a>
 
 ## [FUNCTION] `selectImage`
@@ -8522,7 +13499,49 @@ const imageId = selectImage([{ id: 'example-image', displayName: 'reviewed', tim
 
 Resolve the selected provider connection profile from an Autonomous Database Output.
 
-Imports: `@alneas/eaos-cli/presets/oci-adb/infra`, `@alneas/eaos-cli/presets/oci-adb/infra/database`.
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra`.
+
+### Signature
+
+```typescript
+declare function selectOciAdbConnectionString(database: Pick<oci.database.AutonomousDatabase, 'connectionStrings'>, selection?: OciAdbConnectionSelection): pulumi.Output<string>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `database` | `Pick<oci.database.AutonomousDatabase, 'connectionStrings'>` | Yes | Resource reference exposing provider-supplied connectionStrings. |
+| `selection` | `OciAdbConnectionSelection` | No | Copied filter settings; defaults are those of selectAdbConnectionProfile. |
+
+### Returns
+
+`pulumi.Output<string>`
+
+A Pulumi Output resolving to the unchanged matching DSN.
+
+### Remarks
+
+Does not mark its return secret itself; hosts must wrap sensitive connection values when exporting or storing them.
+
+### Errors and rejections
+
+Provider Output failures and unmatched/ambiguous profiles reject during resolution.
+
+### Example
+
+```typescript
+import { selectOciAdbConnectionString } from '@alneas/eaos-cli/presets/oci-adb/infra'
+export function connection(database: Parameters<typeof selectOciAdbConnectionString>[0]) { return selectOciAdbConnectionString(database) }
+```
+
+<a id="api-selectOciAdbConnectionString"></a>
+
+## [FUNCTION] `selectOciAdbConnectionString`
+
+Resolve the selected provider connection profile from an Autonomous Database Output.
+
+Imports: `@alneas/eaos-cli/presets/oci-adb/infra/database`.
 
 ### Signature
 
@@ -8623,7 +13642,190 @@ const network = selectServiceNetwork([{ id: 'example-service', name: 'All Exampl
 
 Rendered application/accessory/migration service configuration shared by Compose and Kamal outputs.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/render`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface ServiceDefinition {
+    name: string;
+    image: string;
+    command?: string[];
+    environment?: Record<string, string>;
+    files?: Array<{
+        source: string;
+        target: string;
+    }>;
+    runtimeFiles?: Array<{
+        binding: string;
+        target: string;
+    }>;
+    ports?: string[];
+    dependsOn?: Record<string, {
+        condition: 'service_healthy';
+    }>;
+    healthcheck?: {
+        test: string[];
+        interval: string;
+        timeout: string;
+        retries: number;
+    };
+    volume?: {
+        source: string;
+        target: string;
+    };
+    role: 'app' | 'accessory' | 'migration';
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Stable service name used for generated dependency and role configuration. |
+| `image` | `string` | Yes | Selected container image; actual execution requires a reviewed immutable version. |
+| `command` | `string[]` | No | Optional explicit argument vector for the service command. |
+| `environment` | `Record<string, string>` | No | Non-secret generated environment values; credentials belong in trusted runtime bindings. |
+| `files` | `Array<{     source: string;     target: string; }>` | No | Generated file mounts with source and container target paths. |
+| `runtimeFiles` | `Array<{     binding: string;     target: string; }>` | No | Host-owned sensitive/runtime file bindings and their container targets. |
+| `ports` | `string[]` | No | Explicit host/container port mappings rendered for the selected transport. |
+| `dependsOn` | `Record<string, {     condition: 'service_healthy'; }>` | No | Dependencies whose service_healthy condition gates startup. |
+| `healthcheck` | `{     test: string[];     interval: string;     timeout: string;     retries: number; }` | No | Explicit test argv, interval, timeout and retry count. |
+| `volume` | `{     source: string;     target: string; }` | No | Optional persistent volume source and container mount target. |
+| `role` | `'app' \| 'accessory' \| 'migration'` | Yes | Application, accessory or migration role used to render the correct lifecycle behavior. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[renderPlatform](#api-renderPlatform) for the canonical usage example and runtime requirements.
+
+### Public members
+
+#### `name`
+
+Stable service name used for generated dependency and role configuration.
+
+
+#### `image`
+
+Selected container image; actual execution requires a reviewed immutable version.
+
+
+#### `command`
+
+Optional explicit argument vector for the service command.
+
+
+#### `environment`
+
+Non-secret generated environment values; credentials belong in trusted runtime bindings.
+
+
+#### `files`
+
+Generated file mounts with source and container target paths.
+
+
+#### `files[].source`
+
+Generated configuration filename beneath the platform output, rendered as a read-only container mount.
+
+
+#### `files[].target`
+
+Container destination path for the generated configuration mount.
+
+
+#### `runtimeFiles`
+
+Host-owned sensitive/runtime file bindings and their container targets.
+
+
+#### `runtimeFiles[].binding`
+
+Host runtime-binding key resolved to a trusted file/directory path during rendering.
+
+
+#### `runtimeFiles[].target`
+
+Container destination path receiving the bound host file/directory.
+
+
+#### `ports`
+
+Explicit host/container port mappings rendered for the selected transport.
+
+
+#### `dependsOn`
+
+Dependencies whose service_healthy condition gates startup.
+
+
+#### `dependsOn.condition`
+
+Require the dependency to become service_healthy before starting this service.
+
+
+#### `healthcheck`
+
+Explicit test argv, interval, timeout and retry count.
+
+
+#### `healthcheck.test`
+
+Container health-check command vector.
+
+
+#### `healthcheck.interval`
+
+Container duration string between checks.
+
+
+#### `healthcheck.timeout`
+
+Container duration string limiting one check.
+
+
+#### `healthcheck.retries`
+
+Failed-check count used by the container health configuration.
+
+
+#### `volume`
+
+Optional persistent volume source and container mount target.
+
+
+#### `volume.source`
+
+Named persistent volume identifier rendered into the service mount.
+
+
+#### `volume.target`
+
+Container mount path at which the persistent volume is attached.
+
+
+#### `role`
+
+Application, accessory or migration role used to render the correct lifecycle behavior.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ServiceDefinition"></a>
+
+## [INTERFACE] `ServiceDefinition`
+
+Rendered application/accessory/migration service configuration shared by Compose and Kamal outputs.
+
+Imports: `@alneas/eaos-cli/platform/render`.
 
 ### Signature
 
@@ -9038,13 +14240,161 @@ import { squashSqliteContract } from '@alneas/eaos-cli/baseline'
 export function compileSqlite(contract: Parameters<typeof squashSqliteContract>[0]) { return squashSqliteContract(contract) }
 ```
 
+<a id="api-stageFrontendArtifacts"></a>
+
+## [FUNCTION] `stageFrontendArtifacts`
+
+Generate verified privateNavigation/privatePages imports from selected artifacts.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function stageFrontendArtifacts(root: string, options: StageFrontendOptions): Promise<{
+    pluginIds: string[];
+    routes: string[];
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root. |
+| `options` | `StageFrontendOptions` | Yes | Catalog, output module and host-owned reserved route selection. |
+
+### Returns
+
+`Promise<{     pluginIds: string[];     routes: string[]; }>`
+
+Selected plugin IDs and exact contributed routes in catalog order.
+
+### Remarks
+
+Validates every contribution before atomically replacing output. Never executes contributed modules, activates features or grants API permission.
+
+### Errors and rejections
+
+For invalid selection, exports, checksums, paths or concurrent operations.
+
+### Example
+
+```typescript
+import { stageFrontendArtifacts } from '@alneas/eaos-cli/platform'
+export const stage = (root: string) => stageFrontendArtifacts(root, { output: 'web/private.js', reservedRoutes: ['/'] })
+```
+
+<a id="api-StageFrontendOptions"></a>
+
+## [INTERFACE] `StageFrontendOptions`
+
+Host-selected frontend catalog and generated namespace module destination.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface StageFrontendOptions {
+    config?: string;
+    output: string;
+    reservedRoutes: readonly string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `config` | `string` | No | Existing project-relative catalog; defaults to frontend.packages.json. |
+| `output` | `string` | Yes | Project-relative generated module, outside acquired immutable artifact storage. |
+| `reservedRoutes` | `readonly string[]` | Yes | Exact host-owned routes unavailable to contributed pages. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+stageFrontendArtifacts
+
+### Public members
+
+#### `config`
+
+Existing project-relative catalog; defaults to frontend.packages.json.
+
+
+#### `output`
+
+Project-relative generated module, outside acquired immutable artifact storage.
+
+
+#### `reservedRoutes`
+
+Exact host-owned routes unavailable to contributed pages.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-stagePlatformPackages"></a>
 
 ## [FUNCTION] `stagePlatformPackages`
 
 Copy only registered, checksum-verified assets into a fresh image staging tree.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function stagePlatformPackages(root: string, directory: string, config?: string): Promise<{
+    directory: string;
+    packages: number;
+    activated: boolean;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root. |
+| `directory` | `string` | Yes | Separate empty staging destination. |
+| `config` | `string` | No | Workspace-relative manifest path; defaults to eaos.platform.json. |
+
+### Returns
+
+`Promise<{     directory: string;     packages: number;     activated: boolean; }>`
+
+The staging directory, copied package count and activated=false.
+
+### Remarks
+
+Uses exclusive file creation and does not execute package modules; a failed staging attempt may leave partial files for inspection.
+
+### Errors and rejections
+
+Rejects reused destinations, changed hashes, invalid paths/registrations or filesystem errors.
+
+### Example
+
+```typescript
+import { stagePlatformPackages } from '@alneas/eaos-cli/platform'
+export function stageImage(root: string, directory: string) { return stagePlatformPackages(root, directory) }
+```
+
+<a id="api-stagePlatformPackages"></a>
+
+## [FUNCTION] `stagePlatformPackages`
+
+Copy only registered, checksum-verified assets into a fresh image staging tree.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -9152,7 +14502,49 @@ export function startLocal(root: string) { return startPluginDev(root, { config:
 
 Synchronize only the generated metadata block of a plugin AGENTS.md file.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function syncAgentsMd(root: string, options: CommandOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted workspace root. |
+| `options` | `CommandOptions` | Yes | plugin is required; check performs equality verification without writing. |
+
+### Returns
+
+`Promise<void>`
+
+Resolves without a value when the document matches or has been updated.
+
+### Remarks
+
+Preserves text outside the generated block and does not alter unrelated agent instructions.
+
+### Errors and rejections
+
+Rejects symlink documents, unresolved inspected contracts, malformed blocks, stale checks or filesystem failures.
+
+### Example
+
+```typescript
+import { syncAgentsMd } from '@alneas/eaos-cli/plugin-tools'
+export async function checkAgents(root: string) { await syncAgentsMd(root, { plugin: 'notes', check: true }) }
+```
+
+<a id="api-syncAgentsMd"></a>
+
+## [FUNCTION] `syncAgentsMd`
+
+Synchronize only the generated metadata block of a plugin AGENTS.md file.
+
+Imports: `@alneas/eaos-cli/plugin-tools/commands/sync-agents-md`.
 
 ### Signature
 
@@ -9305,7 +14697,56 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Remove a package code registration only after every owned plugin is uninstalled and disabled.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function unregisterPlatformPackage(root: string, id: string, store: LifecycleStore, config?: string): Promise<{
+    id: string;
+    retainedArtifacts: boolean;
+    retainedDatabase: boolean;
+    restartRequired: boolean;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Application workspace root. |
+| `id` | `string` | Yes | Exact registered package identity. |
+| `store` | `LifecycleStore` | Yes | Shared Lifecycle store used to inspect installations/activations under its writer lock. |
+| `config` | `string` | No | Workspace-relative manifest path; defaults to eaos.platform.json. |
+
+### Returns
+
+`Promise<{     id: string;     retainedArtifacts: boolean;     retainedDatabase: boolean;     restartRequired: boolean; }>`
+
+Removed identity and flags confirming retained artifacts/database plus restartRequired.
+
+### Remarks
+
+Retains database records, lifecycle history and artifact files. Do not infer deletion from code unregistration.
+
+### Errors and rejections
+
+Rejects missing registrations, remaining installations/enabled activations, lock contention or store/filesystem failures.
+
+### Example
+
+```typescript
+import { unregisterPlatformPackage } from '@alneas/eaos-cli/platform'
+export function unregisterReviewed(root: string, id: string, store: Parameters<typeof unregisterPlatformPackage>[2]) { return unregisterPlatformPackage(root, id, store) }
+```
+
+<a id="api-unregisterPlatformPackage"></a>
+
+## [FUNCTION] `unregisterPlatformPackage`
+
+Remove a package code registration only after every owned plugin is uninstalled and disabled.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -9354,7 +14795,76 @@ export function unregisterReviewed(root: string, id: string, store: Parameters<t
 
 Start the configured local Compose application after reviewing its generated runtime contract.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/operations`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function upPlatform(root: string, options?: {
+    config?: string;
+    plan?: boolean;
+}, run?: OperationRunner): Promise<{
+    mode: string;
+    command: string;
+    argv: string[];
+    status?: undefined;
+} | {
+    status: string;
+    mode?: undefined;
+    command?: undefined;
+    argv?: undefined;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Existing application project root. |
+| `options` | `{     config?: string;     plan?: boolean; }` | No | plan returns the startup plan without host execution. |
+| `run` | `OperationRunner` | No | Optional trusted argv-only command runner; defaults to the real subprocess runner. |
+
+### Returns
+
+`Promise<{     mode: string;     command: string;     argv: string[];     status?: undefined; } \| {     status: string;     mode?: undefined;     command?: undefined;     argv?: undefined; }>`
+
+The startup plan or local operation result after configured steps succeed.
+
+### Remarks
+
+Actual mode starts host processes/containers and may execute configured local setup operations. Existing credentials and volumes are not silently replaced.
+
+### Errors and rejections
+
+Rejects invalid startup contracts, missing password/TLS files, stale generated configuration or failed build/start/readiness commands.
+
+### Public members
+
+#### `options.config`
+
+Workspace-relative application manifest used for generation and startup contract checks; defaults to eaos.platform.json.
+
+
+#### `options.plan`
+
+When true, return Docker startup argv without executing generation or subprocess startup; false/omitted runs the reviewed local startup steps.
+
+
+
+### Example
+
+```typescript
+import { upPlatform } from '@alneas/eaos-cli/platform'
+export function inspectLocal(root: string) { return upPlatform(root, { plan: true }) }
+```
+
+<a id="api-upPlatform"></a>
+
+## [FUNCTION] `upPlatform`
+
+Start the configured local Compose application after reviewing its generated runtime contract.
+
+Imports: `@alneas/eaos-cli/platform/operations`.
 
 ### Signature
 
@@ -9423,7 +14933,78 @@ export function inspectLocal(root: string) { return upPlatform(root, { plan: tru
 
 Verify package registrations against inventory assets and optional runtime database targets.
 
-Imports: `@alneas/eaos-cli/platform`, `@alneas/eaos-cli/platform/packages`.
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function verifyPlatformPackages(root: string, packages: PlatformPackage[], runtime?: PlatformRuntimeConfig): Promise<{
+    databaseTargets: _alneas_eaos_server_lifecycle_engine.BackendTarget[];
+    contributions: {
+        tenantDatabases: {
+            tenantId: string;
+            targetId: string;
+            databaseId: string;
+        }[];
+        owner: string;
+        artifact: string;
+        inventorySha256: string;
+        runtime?: string;
+        functions: DeploymentInventory["functions"];
+        database?: DeploymentInventory["database"];
+        plugins: DeploymentInventory["plugins"];
+        coverage: "declared" | "legacy-unclassified";
+        verifiedAssets: number;
+    }[];
+    databasePolicy: string;
+    componentPlacements?: {
+        owner: string;
+        pluginId: string;
+        componentId: string;
+        destinationIds: string[];
+        adopted: boolean;
+    }[] | undefined;
+    destinations?: _alneas_eaos_server_platform.DeploymentDestination[] | undefined;
+    mode: string;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Application workspace root. |
+| `packages` | `PlatformPackage[]` | Yes | Explicit package registrations to verify. |
+| `runtime` | `PlatformRuntimeConfig` | No | Optional runtime catalog for tenant-to-database checks. |
+
+### Returns
+
+`Promise<{     databaseTargets: _alneas_eaos_server_lifecycle_engine.BackendTarget[];     contributions: {         tenantDatabases: {             tenantId: string;             targetId: string;             databaseId: string;         }[];         owner: string;         artifact: string;         inventorySha256: string;         runtime?: string;         functions: DeploymentInventory["functions"];         database?: DeploymentInventory["database"];         plugins: DeploymentInventory["plugins"];         coverage: "declared" \| "legacy-unclassified";         verifiedAssets: number;     }[];     databasePolicy: string;     componentPlacements?: {         owner: string;         pluginId: string;         componentId: string;         destinationIds: string[];         adopted: boolean;     }[] \| undefined;     destinations?: _alneas_eaos_server_platform.DeploymentDestination[] \| undefined;     mode: string; }>`
+
+The verified deployment plan with each contribution annotated by tenant database targets.
+
+### Remarks
+
+Does not execute registered modules or migrate a database.
+
+### Errors and rejections
+
+Rejects invalid registrations, runtime/lifecycle mismatches, hash failures or inconsistent database targets.
+
+### Example
+
+```typescript
+import { verifyPlatformPackages } from '@alneas/eaos-cli/platform'
+export function verifyHost(root: string, packages: Parameters<typeof verifyPlatformPackages>[1]) { return verifyPlatformPackages(root, packages) }
+```
+
+<a id="api-verifyPlatformPackages"></a>
+
+## [FUNCTION] `verifyPlatformPackages`
+
+Verify package registrations against inventory assets and optional runtime database targets.
+
+Imports: `@alneas/eaos-cli/platform/packages`.
 
 ### Signature
 
@@ -9562,7 +15143,50 @@ export function compileRelease(root: string) { return writeContractBaseline(root
 
 Write a generated draft or check exact equality without replacing a protected existing draft.
 
-Imports: `@alneas/eaos-cli/plugin-tools`, `@alneas/eaos-cli/plugin-tools/utils`.
+Imports: `@alneas/eaos-cli/plugin-tools`.
+
+### Signature
+
+```typescript
+declare function writeDraft(file: string, content: string, options: CommandOptions): void;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `file` | `string` | Yes | Destination file, resolved by the trusted caller. |
+| `content` | `string` | Yes | Complete desired UTF-8 content. |
+| `options` | `CommandOptions` | Yes | check compares without writing; otherwise write must be true to replace an existing file. |
+
+### Returns
+
+`void`
+
+No value; the draft matches or has been written.
+
+### Remarks
+
+Creates parent directories when writing; does not establish containment or inspect symlink components itself.
+
+### Errors and rejections
+
+When check finds missing/stale content, replacement lacks write, or filesystem access fails.
+
+### Example
+
+```typescript
+import { writeDraft } from '@alneas/eaos-cli/plugin-tools'
+export function checkDraft(file: string, content: string) { writeDraft(file, content, { check: true }) }
+```
+
+<a id="api-writeDraft"></a>
+
+## [FUNCTION] `writeDraft`
+
+Write a generated draft or check exact equality without replacing a protected existing draft.
+
+Imports: `@alneas/eaos-cli/plugin-tools/utils`.
 
 ### Signature
 

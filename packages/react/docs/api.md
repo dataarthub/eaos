@@ -33,6 +33,7 @@ tags: ["api", "generated"]
 | `@alneas/eaos-react/workspace-fields` | Typed public export |
 | `@alneas/eaos-react/plugin-gate` | Typed public export |
 | `@alneas/eaos-react/plugin-runtime` | Typed public export |
+| `@alneas/eaos-react/workspace-application` | Typed public export |
 | `@alneas/eaos-react/workspace-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-react/docs/user-guides/workspace.md` | Packaged Markdown guide asset; resolve this exported path with the host loader |
 
@@ -2506,6 +2507,52 @@ Optional host denial reason used to select unavailable/upgrade UI.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-projectWorkspaceNavigation"></a>
+
+## [FUNCTION] `projectWorkspaceNavigation`
+
+Projects current admitted plugin links intersected with shipped owner routes.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+declare function projectWorkspaceNavigation<T extends WorkspaceContext>(options: WorkspaceNavigationOptions<T>): WorkspaceNavigationGroup[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `WorkspaceNavigationOptions<T>` | Yes | Verified session, current tenant snapshot, registrations and optional labels. |
+
+### Returns
+
+`WorkspaceNavigationGroup[]`
+
+Fresh ordered groups; stale, loading or denied plugins contribute no links.
+
+### Type parameters
+
+- `T`: Host tenant display and admission contract.
+
+### Remarks
+
+UI presentation only; the Host must authorize every backend request.
+
+### Errors and rejections
+
+Error when multiple plugins claim one registered path.
+
+### Example
+
+```typescript
+import {projectWorkspaceNavigation, type WorkspaceNavigationOptions} from '@alneas/eaos-react/workspace-application';
+export function links(options:WorkspaceNavigationOptions){return projectWorkspaceNavigation(options);}
+```
+
+
 <a id="api-recordFormSchema"></a>
 
 ## [FUNCTION] `recordFormSchema`
@@ -4837,6 +4884,205 @@ validateDownloadFilename('report.csv');
 ```
 
 
+<a id="api-WorkspaceApplication"></a>
+
+## [FUNCTION] `WorkspaceApplication`
+
+Mounts standard Workspace presentation under a Host-supplied Appkit provider frame.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+declare function WorkspaceApplication<T extends WorkspaceContext>(props: WorkspaceApplicationProps<T>): ReactElement;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `props` | `WorkspaceApplicationProps<T>` | Yes | Stable tenant store/frame, router bindings, shipped pages and presentation settings. |
+
+### Returns
+
+`ReactElement`
+
+The existing tenant provider and connected workspace UI.
+
+### Type parameters
+
+- `T`: Host tenant display and admission contract.
+
+### Remarks
+
+Requires public Appkit 0.2 auth/theme/sidebar providers and its production CSS in frame.
+Optimistic sessions never admit protected content. This component controls presentation only.
+
+### Example
+
+```tsx
+import {WorkspaceApplication, type WorkspaceApplicationProps, type WorkspaceContext} from '@alneas/eaos-react/workspace-application';
+export function Host(props:WorkspaceApplicationProps<WorkspaceContext>){return <WorkspaceApplication {...props}/>;}
+```
+
+
+<a id="api-WorkspaceApplicationProps"></a>
+
+## [INTERFACE] `WorkspaceApplicationProps`
+
+Standard composition settings; concrete providers and router remain Host-owned.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceApplicationProps<T extends WorkspaceContext = WorkspaceContext> {
+    store: TenantModuleStore<T>;
+    frame: ComponentType<WorkspaceFrameProps>;
+    router: {
+        pathname: string;
+        navigate: (path: string) => void;
+        outlet: ReactNode;
+    };
+    pages: readonly WorkspacePageRegistration[];
+    navigation?: Pick<WorkspaceNavigationOptions<T>, 'resolveNavigation'>;
+    login?: Omit<WorkspaceLoginScreenProps, 'onRegisterClick'>;
+    branding?: Pick<WorkspaceHeaderProps, 'title' | 'logo'>;
+    routes?: Partial<Record<'home' | 'account' | 'platform' | 'signup', string>>;
+    publicAuthPaths?: readonly string[];
+    refreshEvents?: readonly string[];
+    notice?: ReactNode;
+    loading?: ReactNode;
+    unavailable?: ReactNode;
+    renderError?: (error: Error, retry: () => void) => ReactNode;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `store` | `TenantModuleStore<T>` | Yes | Stable Host-owned tenant store. |
+| `frame` | `ComponentType<WorkspaceFrameProps>` | Yes | Stable component mounting existing Appkit providers around all slots. |
+| `router` | `{     pathname: string;     navigate: (path: string) => void;     outlet: ReactNode; }` | Yes | Current router bindings and descendant outlet. |
+| `pages` | `readonly WorkspacePageRegistration[]` | Yes | Effective shipped page registrations. |
+| `navigation` | `Pick<WorkspaceNavigationOptions<T>, 'resolveNavigation'>` | No | Optional owner label resolver. |
+| `login` | `Omit<WorkspaceLoginScreenProps, 'onRegisterClick'>` | No | Authentication presentation; methods/flows remain provider-owned. |
+| `branding` | `Pick<WorkspaceHeaderProps, 'title' \| 'logo'>` | No | Header brand overrides. |
+| `routes` | `Partial<Record<'home' \| 'account' \| 'platform' \| 'signup', string>>` | No | Exact navigation destinations; defaults match the existing shell. |
+| `publicAuthPaths` | `readonly string[]` | No | Exact public auth paths; defaults to signup, recovery, verification and callback. |
+| `refreshEvents` | `readonly string[]` | No | Window refresh events; defaults to focus. |
+| `notice` | `ReactNode` | No | Host notice rendered only with a ready matching identity. |
+| `loading` | `ReactNode` | No | Loading presentation override. |
+| `unavailable` | `ReactNode` | No | Missing/mismatched tenant presentation override. |
+| `renderError` | `(error: Error, retry: () => void) => ReactNode` | No | Accessible error renderer with a tenant retry action. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Host tenant display and admission contract.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `store`
+
+Stable Host-owned tenant store.
+
+
+#### `frame`
+
+Stable component mounting existing Appkit providers around all slots.
+
+
+#### `router`
+
+Current router bindings and descendant outlet.
+
+
+#### `router.pathname`
+
+Current exact location pathname.
+
+
+#### `router.navigate`
+
+Host navigation callback.
+
+
+#### `router.outlet`
+
+Existing router outlet.
+
+
+#### `pages`
+
+Effective shipped page registrations.
+
+
+#### `navigation`
+
+Optional owner label resolver.
+
+
+#### `login`
+
+Authentication presentation; methods/flows remain provider-owned.
+
+
+#### `branding`
+
+Header brand overrides.
+
+
+#### `routes`
+
+Exact navigation destinations; defaults match the existing shell.
+
+
+#### `publicAuthPaths`
+
+Exact public auth paths; defaults to signup, recovery, verification and callback.
+
+
+#### `refreshEvents`
+
+Window refresh events; defaults to focus.
+
+
+#### `notice`
+
+Host notice rendered only with a ready matching identity.
+
+
+#### `loading`
+
+Loading presentation override.
+
+
+#### `unavailable`
+
+Missing/mismatched tenant presentation override.
+
+
+#### `renderError`
+
+Accessible error renderer with a tenant retry action.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-WorkspaceClient"></a>
 
 ## [INTERFACE] `WorkspaceClient`
@@ -4923,6 +5169,226 @@ export async function executeWorkspace<T>(client: WorkspaceClient<T>, operation:
  return client.execute(operation, input); // Include the operation's required revision and validated fields.
 }
 ```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceContext"></a>
+
+## [INTERFACE] `WorkspaceContext`
+
+Authenticated tenant snapshot augmented with workspace display metadata.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceContext extends PluginTenantContext {
+    tenantName?: string;
+    isSuperAdmin?: boolean;
+    plugins?: readonly WorkspacePluginMetadata[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantName` | `string` | No | Human-readable workspace name. |
+| `isSuperAdmin` | `boolean` | No | Explicit platform privilege; never inferred from tenant roles. |
+| `plugins` | `readonly WorkspacePluginMetadata[]` | No | Current server-admitted plugins. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `tenantName`
+
+Human-readable workspace name.
+
+
+#### `isSuperAdmin`
+
+Explicit platform privilege; never inferred from tenant roles.
+
+
+#### `plugins`
+
+Current server-admitted plugins.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceFeatureBoundary"></a>
+
+## [FUNCTION] `WorkspaceFeatureBoundary`
+
+Admits a feature only for the verified matching identity and current plugin snapshot.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+declare function WorkspaceFeatureBoundary(props: WorkspaceFeatureBoundaryProps): ReactElement | null;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `props` | `WorkspaceFeatureBoundaryProps` | Yes | Plugin ID, protected children and optional state presentation. |
+
+### Returns
+
+`ReactElement \| null`
+
+Protected children through PluginGate, or a loading/error/denied presentation.
+
+### Remarks
+
+Mount below the same auth and tenant providers as WorkspaceApplication. Backend authorization is mandatory.
+
+### Example
+
+```tsx
+import {WorkspaceFeatureBoundary} from '@alneas/eaos-react/workspace-application';
+export function Reports(){return <WorkspaceFeatureBoundary pluginId="reports"><p>Reports</p></WorkspaceFeatureBoundary>;}
+```
+
+
+<a id="api-WorkspaceFeatureBoundaryProps"></a>
+
+## [INTERFACE] `WorkspaceFeatureBoundaryProps`
+
+Feature presentation gate; backend authorization remains mandatory.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceFeatureBoundaryProps {
+    pluginId: string;
+    children: ReactNode;
+    loading?: ReactNode;
+    unavailable?: ReactNode;
+    renderError?: (error: Error, retry: () => void) => ReactNode;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Plugin owning protected children. |
+| `children` | `ReactNode` | Yes | Content mounted only after verified admission. |
+| `loading` | `ReactNode` | No | Loading presentation override. |
+| `unavailable` | `ReactNode` | No | Denied presentation override. |
+| `renderError` | `(error: Error, retry: () => void) => ReactNode` | No | Accessible error renderer with a tenant retry action. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `pluginId`
+
+Plugin owning protected children.
+
+
+#### `children`
+
+Content mounted only after verified admission.
+
+
+#### `loading`
+
+Loading presentation override.
+
+
+#### `unavailable`
+
+Denied presentation override.
+
+
+#### `renderError`
+
+Accessible error renderer with a tenant retry action.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceFrameProps"></a>
+
+## [INTERFACE] `WorkspaceFrameProps`
+
+Slots rendered under the Host's existing auth/theme/sidebar provider frame.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceFrameProps {
+    header: ReactNode;
+    leftSidebar: ReactNode;
+    children: ReactNode;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `header` | `ReactNode` | Yes | Connected standard header. |
+| `leftSidebar` | `ReactNode` | Yes | Connected standard sidebar. |
+| `children` | `ReactNode` | Yes | Connected lifecycle and content. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `header`
+
+Connected standard header.
+
+
+#### `leftSidebar`
+
+Connected standard sidebar.
+
+
+#### `children`
+
+Connected lifecycle and content.
 
 
 
@@ -5257,6 +5723,203 @@ const groups = workspaceNavigation({ isTenantAdmin: false, routes: { home: '/wor
 ```
 
 
+<a id="api-WorkspaceNavigationDefinition"></a>
+
+## [INTERFACE] `WorkspaceNavigationDefinition`
+
+Owner-supplied display labels intersected with shipped page registrations.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceNavigationDefinition {
+    label?: string;
+    children?: readonly {
+        path: string;
+        label: string;
+    }[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `label` | `string` | No | Optional navigation heading. |
+| `children` | `readonly {     path: string;     label: string; }[]` | No | Ordered display links; unregistered paths are omitted. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `label`
+
+Optional navigation heading.
+
+
+#### `children`
+
+Ordered display links; unregistered paths are omitted.
+
+
+#### `children[].path`
+
+Exact registered route path.
+
+
+#### `children[].label`
+
+Visible link text.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceNavigationGroup"></a>
+
+## [INTERFACE] `WorkspaceNavigationGroup`
+
+Fresh navigation projection accepted by the existing workspace sidebar.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceNavigationGroup {
+    title: string;
+    items: {
+        label: string;
+        path: string;
+        icon: null;
+    }[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | Yes | Group heading. |
+| `items` | `{     label: string;     path: string;     icon: null; }[]` | Yes | Ordered unique links, with icons supplied by the canonical shell. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `title`
+
+Group heading.
+
+
+#### `items`
+
+Ordered unique links, with icons supplied by the canonical shell.
+
+
+#### `items[].label`
+
+Visible link text.
+
+
+#### `items[].path`
+
+Registered route destination.
+
+
+#### `items[].icon`
+
+Shell supplies the default icon.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceNavigationOptions"></a>
+
+## [INTERFACE] `WorkspaceNavigationOptions`
+
+Inputs to fail-closed navigation projection.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceNavigationOptions<T extends WorkspaceContext = WorkspaceContext> {
+    session: WorkspaceSession;
+    tenant: TenantSnapshot<T>;
+    pages: readonly WorkspacePageRegistration[];
+    resolveNavigation?: (plugin: WorkspacePluginMetadata) => WorkspaceNavigationDefinition | undefined;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `session` | `WorkspaceSession` | Yes | Current canonical session. |
+| `tenant` | `TenantSnapshot<T>` | Yes | Current canonical tenant snapshot. |
+| `pages` | `readonly WorkspacePageRegistration[]` | Yes | Effective shipped page registrations. |
+| `resolveNavigation` | `(plugin: WorkspacePluginMetadata) => WorkspaceNavigationDefinition \| undefined` | No | Owner label resolver; undefined falls back to server navigation. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Host tenant display and admission contract.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `session`
+
+Current canonical session.
+
+
+#### `tenant`
+
+Current canonical tenant snapshot.
+
+
+#### `pages`
+
+Effective shipped page registrations.
+
+
+#### `resolveNavigation`
+
+Owner label resolver; undefined falls back to server navigation.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-WorkspaceNavigationOptions"></a>
 
 ## [INTERFACE] `WorkspaceNavigationOptions`
@@ -5412,6 +6075,118 @@ export function AmountField() { const [value, setValue] = React.useState(NaN); r
 ```
 
 
+<a id="api-WorkspacePageRegistration"></a>
+
+## [INTERFACE] `WorkspacePageRegistration`
+
+Build-time registration; actual page components remain router-owned.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspacePageRegistration {
+    pluginId: string;
+    path: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Plugin owning the page. |
+| `path` | `string` | Yes | Exact registered route path. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `pluginId`
+
+Plugin owning the page.
+
+
+#### `path`
+
+Exact registered route path.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspacePluginMetadata"></a>
+
+## [INTERFACE] `WorkspacePluginMetadata`
+
+Server-admitted plugin display metadata, without executable components.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspacePluginMetadata {
+    id: string;
+    name: string;
+    navigation?: {
+        web?: WorkspaceNavigationDefinition;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Canonical plugin identifier, including existing legacy keys. |
+| `name` | `string` | Yes | Default navigation heading. |
+| `navigation` | `{     web?: WorkspaceNavigationDefinition; }` | No | Optional server display navigation. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `id`
+
+Canonical plugin identifier, including existing legacy keys.
+
+
+#### `name`
+
+Default navigation heading.
+
+
+#### `navigation`
+
+Optional server display navigation.
+
+
+#### `navigation.web`
+
+Optional browser navigation labels.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-WorkspaceProviderProps"></a>
 
 ## [INTERFACE] `WorkspaceProviderProps`
@@ -5479,6 +6254,88 @@ Stable authenticated transport replaced when its host scope changes.
 #### `children`
 
 Workspace content rendered only when a session is ready.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceSession"></a>
+
+## [INTERFACE] `WorkspaceSession`
+
+Display session derived from the canonical Appkit auth provider; never server authority.
+
+Imports: `@alneas/eaos-react/workspace-application`.
+
+### Signature
+
+```typescript
+interface WorkspaceSession {
+    user: {
+        id: string;
+        name?: string;
+        email?: string;
+    } | null;
+    loading: boolean;
+    verified: boolean;
+    error: Error | null;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `user` | `{     id: string;     name?: string;     email?: string; } \| null` | Yes | Current displayed identity; cached identities require separate verification. |
+| `loading` | `boolean` | Yes | Whether session initialization is pending. |
+| `verified` | `boolean` | Yes | True only after the current session has been verified by its provider. |
+| `error` | `Error \| null` | Yes | Authentication failure, if any. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceApplication
+
+### Public members
+
+#### `user`
+
+Current displayed identity; cached identities require separate verification.
+
+
+#### `user.id`
+
+Verified identity key once the session is verified.
+
+
+#### `user.name`
+
+Optional display name.
+
+
+#### `user.email`
+
+Optional display email.
+
+
+#### `loading`
+
+Whether session initialization is pending.
+
+
+#### `verified`
+
+True only after the current session has been verified by its provider.
+
+
+#### `error`
+
+Authentication failure, if any.
 
 
 

@@ -17,7 +17,7 @@ assert.equal(manifest.sourceHash,await sourceHash(root),'Candidate source change
 const consumer=await mkdtemp(join(tmpdir(),'eaos-public-consumer-'))
 let server,browser
 try {
-  const dependencies={react:'19.3.1','react-dom':'19.3.1','@alneas/appkit-core':'0.2.0','@alneas/appkit-react':'0.2.0',typescript:'6.0.3','@types/react':'19.3.0','@types/node':'22.20.5'}
+  const dependencies={hono:'4.13.13',react:'19.3.1','react-dom':'19.3.1','@alneas/appkit-core':'0.2.0','@alneas/appkit-react':'0.2.0',typescript:'6.0.3','@types/react':'19.3.0','@types/react-dom':'19.3.0','@tanstack/react-query':'5.104.4',tailwindcss:'4.3.1','@types/node':'22.20.5'}
   for(const item of manifest.archives) {
     assert.ok(item.archive===item.archive.split(/[\\/]/).at(-1)&&!item.archive.includes('..'))
     const archive=join(bundle,item.archive),bytes=await readFile(archive)
@@ -75,6 +75,9 @@ console.log('Packed CLI stages only requested collection modules with public exp
   execFileSync(process.execPath,['selection.mjs'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
   await writeFile(join(consumer,'types.ts'),`import {definePlugin} from '@alneas/eaos-core';\nimport type {StorageAdapter} from '@alneas/eaos-server/storage';\nimport type {DataAccessAdapter} from '@alneas/appkit-core/data/types';\nimport {WorkspaceHeader} from '@alneas/eaos-react/workspace-layout';\nexport {definePlugin,WorkspaceHeader}; export type {StorageAdapter,DataAccessAdapter};\n`)
   execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','types.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+  await writeFile(join(consumer,'standard-host.ts'),await readFile(join(root,'scripts/fixtures/standard-host-consumer.ts'),'utf8'))
+  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--types','node','standard-host.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+  execFileSync(process.execPath,['standard-host.ts'],{cwd:consumer,stdio:'inherit'})
   const readmeExamples=[]
   const readmes=[{name:'monorepo',text:await readFile(join(root,'README.md'),'utf8')}]
   for(const archive of manifest.archives)for(const filename of ['README.md','README.ja.md']) {
@@ -93,16 +96,19 @@ console.log('Packed CLI stages only requested collection modules with public exp
   assert.ok(readmeExamples.length>=8,'All owning README examples required')
   // This is the exact host CSS declaration documented in the React README;
   // esbuild below must still resolve and emit the real exported stylesheet.
-  await writeFile(join(consumer,'appkit-styles.d.ts'),"declare module '@alneas/appkit-react/styles';\n")
+  await writeFile(join(consumer,'appkit-styles.d.ts'),"declare module '@alneas/appkit-react/styles';\ndeclare module '*.css';\n")
   execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--skipLibCheck','--strict','--jsx','react-jsx','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','appkit-styles.d.ts',...readmeExamples.map(x=>x.filename)],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
   console.log(`${readmeExamples.length} README examples type-check in the isolated installed-artifact consumer`)
   await writeFile(join(consumer,'browser.tsx'),`import React from 'react';import {createRoot} from 'react-dom/client';import {ThemeProvider} from '@alneas/appkit-react/tools/core';import {SidebarProvider} from '@alneas/appkit-react/tools/sidebar';import '@alneas/appkit-react/styles';import {WorkspaceHeader} from '@alneas/eaos-react/workspace-layout';const config=new URLSearchParams(location.search);createRoot(document.getElementById('root')!).render(<ThemeProvider defaultTheme={config.get("mode") as "light"|"dark"} defaultColorTheme={config.get("palette")!}><SidebarProvider><WorkspaceHeader title="EAOS archive consumer" currentLanguage="en" onLanguageChange={()=>{document.documentElement.dataset.language='ja'}}/></SidebarProvider><section aria-label="Theme contrast samples">{['background','primary','secondary','accent','muted','destructive','card','popover'].map(token=><p key={token} style={{backgroundColor:'var(--'+token+')',color:'var(--'+(token==='background'?'foreground':token+'-foreground')+')'}}>{token} foreground and background</p>)}</section></ThemeProvider>);`)
+  await writeFile(join(consumer,'application.tsx'),await readFile(join(root,'scripts/fixtures/workspace-application-consumer.tsx'),'utf8'))
+  await writeFile(join(consumer,'application-base.css'),await readFile(join(root,'scripts/fixtures/workspace-application-consumer.css'),'utf8'))
+  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--jsx','react-jsx','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','appkit-styles.d.ts','application.tsx'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
   const out=join(consumer,'web');await mkdir(out)
-  await build({absWorkingDir:consumer,entryPoints:['browser.tsx'],bundle:true,platform:'browser',format:'esm',outdir:out,define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'})
+  await build({absWorkingDir:consumer,entryPoints:['browser.tsx','application.tsx'],bundle:true,platform:'browser',format:'esm',outdir:out,define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'})
   server=createServer(async(req,res)=>{
     try {
-      if(req.url?.split('?')[0]==='/'){res.setHeader('content-type','text/html');res.end('<!doctype html><html lang="ja"><head><title>EAOS archive consumer</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/browser.css"></head><body style="margin:0"><main><div id="root"></div></main><script type="module" src="/browser.js"></script></body></html>');return}
-      const file=req.url==='/browser.js'?'browser.js':req.url==='/browser.css'?'browser.css':null
+      if(['/', '/application'].includes(req.url?.split('?')[0])){res.setHeader('content-type','text/html');res.end('<!doctype html><html lang="ja"><head><title>EAOS archive consumer</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/'+(req.url.startsWith('/application')?'application':'browser')+'.css"></head><body style="margin:0"><main><div id="root"></div></main><script type="module" src="/'+(req.url.startsWith('/application')?'application':'browser')+'.js"></script></body></html>');return}
+      const file=['/browser.js','/browser.css','/application.js','/application.css'].includes(req.url)?req.url.slice(1):null
       if(!file){res.statusCode=404;res.end();return}
       res.setHeader('content-type',file.endsWith('.js')?'text/javascript':'text/css');res.end(await readFile(join(out,file)))
     }catch{res.statusCode=500;res.end()}
@@ -205,7 +211,36 @@ console.log('Packed CLI stages only requested collection modules with public exp
     assert.ok(await page.getByRole('dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),label+' dialog text clipping')
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Horizontal overflow')
     assert.deepEqual(errors,[],'Browser errors')
-    cases.push({viewport,mode,palette,colors,audits,states:['header','help-open']})
+    let signedIn=true
+    await page.route('**/fixture/session',route=>route.fulfill({json:signedIn?{id:'reader',email:'reader@example.test',name:'Reader'}:null}))
+    await page.route('**/fixture/context',route=>route.fulfill({json:{tenantId:'workspace',userId:'reader',tenantName:'Archive workspace',enabledModules:['reports'],pluginAccess:{reports:{allowed:true}},plugins:[{id:'reports',name:'Reports',navigation:{web:{children:[{path:'/reports',label:'Reports page'}]}}}]}}))
+    await page.route('**/fixture/logout',route=>{signedIn=false;return route.fulfill({json:{}})})
+    await page.goto(origin+`/application?mode=${mode}&palette=${palette}`)
+    await page.getByRole('heading',{name:'Report editor',exact:true}).waitFor()
+    await page.getByRole('textbox',{name:'Draft',exact:true}).fill('Preserved draft')
+    await page.evaluate(()=>window.dispatchEvent(new Event('fixture-session')))
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')))
+    await page.getByRole('heading',{name:'Report editor',exact:true}).waitFor()
+    assert.equal(await page.getByRole('textbox',{name:'Draft',exact:true}).inputValue(),'Preserved draft')
+    await audit()
+    await page.getByRole('button',{name:'ワークスペースのヘルプ',exact:true}).click()
+    await page.getByRole('dialog').waitFor()
+    await page.waitForFunction(()=>document.activeElement?.closest('[role="dialog"]'))
+    await page.getByRole('dialog').evaluate(async el=>{await Promise.all(el.getAnimations({subtree:true}).map(animation=>animation.finished))})
+    await audit();await page.keyboard.press('Escape')
+    await page.getByRole('dialog').waitFor({state:'hidden'})
+    if(viewport.width<768){await page.getByRole('button',{name:'Toggle Sidebar',exact:true}).click()}
+    await page.getByRole('button',{name:'Reports page',exact:true}).first().click()
+    assert.ok(await page.getByRole('textbox',{name:'Draft',exact:true}).isVisible())
+    if(viewport.width<768){await page.getByRole('button',{name:'Toggle Sidebar',exact:true}).click()}
+    await page.getByRole('button',{name:'ログアウト',exact:true}).click()
+    await page.getByRole('button',{name:'Googleでサインイン',exact:true}).waitFor()
+    assert.equal(await page.locator('input[type=email],input[type=password]').count(),0)
+    assert.equal(await page.locator('input[aria-label="Draft"]').count(),0)
+    await audit()
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Application horizontal overflow')
+    assert.deepEqual(errors,[],'Application browser errors')
+    cases.push({viewport,mode,palette,colors,audits,states:['header','help-open','application-ready','application-help','application-logout']})
     await context.close()
   }
   const result={runId:process.env.EAOS_VERIFICATION_RUN,sourceHash:manifest.sourceHash,archives:manifest.archives.map(({name,version,sha256})=>({name,version,sha256})),node:process.version,entries:entries.length,typescript:'NodeNext',readmeExamples:readmeExamples.map(x=>x.readme),browser:{name:'Chromium',version:browser.version(),revision:chromium.executablePath().match(/(?:chromium|chromium_headless_shell)-(\d+)/)?.[1]??null,platform:process.platform,arch:process.arch,osRelease:osRelease(),cases},verifiedAt:new Date().toISOString()}

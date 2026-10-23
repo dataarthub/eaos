@@ -74,6 +74,10 @@
     "./plugin-runtime": {
       "types": "./dist/plugin-runtime.d.ts",
       "import": "./dist/plugin-runtime.js"
+    },
+    "./workspace-application": {
+      "types": "./dist/workspace-application.d.ts",
+      "import": "./dist/workspace-application.js"
     }
   },
   "files": [
@@ -87,7 +91,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "bun test"
+    "test": "bun test --preload ./tests/dom-environment.ts"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
