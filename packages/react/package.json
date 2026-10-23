@@ -82,6 +82,14 @@
     "./workspace-binding": {
       "types": "./dist/workspace-binding.d.ts",
       "import": "./dist/workspace-binding.js"
+    },
+    "./workspace-binding/record": {
+      "types": "./dist/workspace-binding/record.d.ts",
+      "import": "./dist/workspace-binding/record.js"
+    },
+    "./workspace-binding/command": {
+      "types": "./dist/workspace-binding/command.d.ts",
+      "import": "./dist/workspace-binding/command.js"
     }
   },
   "files": [

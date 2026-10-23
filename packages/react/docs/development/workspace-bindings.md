@@ -58,6 +58,24 @@ checks both current grants and adoption, cancels on scope change/unmount and
 discards stale responses. It holds no tenant or snapshot cache. Existing
 workspace Providers retain their canonical response-order and revision checks.
 
+### Reuse record and command composition
+
+The `/workspace-binding/record` entry provides `createRecordWorkspaceClient`,
+`createRecordReferenceClient` and `createRecordWorkspacePages`. Supply the exact
+owner list command, declared routes and existing Providers. References require
+an explicit selected owner/list catalog and current feature admission.
+
+The `/workspace-binding/command` entry provides `createCommandWorkspaceClient`,
+`createCommandWorkspacePages` and `WorkspaceScope`. Owners declare their aggregate
+route and any query field, resource label and submit label. Scope values stay
+pinned through command/reload, and changing the chosen resource remounts its
+content, discarding the previous draft and cancelling connected work.
+
+Command adapters check tenant, record ID and revision and normalize raw or
+enveloped snapshots. Their generic data type is the owner's transport contract,
+not runtime validation of arbitrary business fields. Owners keep their canonical
+DTO validation. These composition helpers do not import feature implementations.
+
 ## Verification
 
 Test identity change during reads and command/reload chains, revoked grants,

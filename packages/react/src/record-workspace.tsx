@@ -3,7 +3,7 @@ import * as React from 'react'
 import {CoreWorkspaceHelp} from './user-guide'
 import { DataTable } from '@alneas/appkit-react/tools/data-table'
 import { EnhancedDetailPage } from '@alneas/appkit-react/tools/form'
-import type { JSONSchema } from '@alneas/appkit-react/tools/schema'
+type JSONSchema = React.ComponentProps<typeof EnhancedDetailPage>['schema']
 import { createWorkspaceReactBindings, createWorkspaceSession, type WorkspaceClient, type WorkspaceSnapshot } from './index'
 
 type Schema = { properties?: Readonly<Record<string, any>>; required?: readonly string[]; [key: string]: any }

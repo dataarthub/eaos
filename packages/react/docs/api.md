@@ -35,6 +35,8 @@ tags: ["api", "generated"]
 | `@alneas/eaos-react/plugin-runtime` | Typed public export |
 | `@alneas/eaos-react/workspace-application` | Typed public export |
 | `@alneas/eaos-react/workspace-binding` | Typed public export |
+| `@alneas/eaos-react/workspace-binding/record` | Typed public export |
+| `@alneas/eaos-react/workspace-binding/command` | Typed public export |
 | `@alneas/eaos-react/workspace-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-react/docs/user-guides/workspace.md` | Packaged Markdown guide asset; resolve this exported path with the host loader |
 
@@ -514,6 +516,162 @@ export function commandInput(definition: CommandWorkspaceDefinition, operation: 
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-CommandWorkspaceDefinition"></a>
+
+## [INTERFACE] `CommandWorkspaceDefinition`
+
+Explicit command aggregate identity and immutable query scope.
+
+Imports: `@alneas/eaos-react/workspace-binding/command`.
+
+### Signature
+
+```typescript
+interface CommandWorkspaceDefinition {
+    pluginId: string;
+    recordId?: string;
+    scope?: Readonly<Record<string, string>>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical feature owner. |
+| `recordId` | `string` | No | Aggregate record identity; defaults to state. |
+| `scope` | `Readonly<Record<string, string>>` | No | Scope values override caller command input and remain pinned through reload. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createCommandWorkspaceClient
+
+### Public members
+
+#### `pluginId`
+
+Canonical feature owner.
+
+
+#### `recordId`
+
+Aggregate record identity; defaults to state.
+
+
+#### `scope`
+
+Scope values override caller command input and remain pinned through reload.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-CommandWorkspacePageDefinition"></a>
+
+## [INTERFACE] `CommandWorkspacePageDefinition`
+
+Connected aggregate route, scope and canonical owner Provider.
+
+Imports: `@alneas/eaos-react/workspace-binding/command`.
+
+### Signature
+
+```typescript
+interface CommandWorkspacePageDefinition<T> {
+    pluginId: string;
+    path: string;
+    label: string;
+    scope?: {
+        name: string;
+        label: string;
+        submitLabel?: string;
+    };
+    Page: ComponentType;
+    Provider: ComponentType<WorkspaceProviderProps<T>>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical feature owner. |
+| `path` | `string` | Yes | Declared application route. |
+| `label` | `string` | Yes | Owner navigation fallback. |
+| `scope` | `{     name: string;     label: string;     submitLabel?: string; }` | No | Optional explicit query resource field and labels. |
+| `Page` | `ComponentType` | Yes | Raw owner page. |
+| `Provider` | `ComponentType<WorkspaceProviderProps<T>>` | Yes | Existing canonical context Provider. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Owner snapshot data contract.
+
+### See also
+
+createCommandWorkspacePages
+
+### Public members
+
+#### `pluginId`
+
+Canonical feature owner.
+
+
+#### `path`
+
+Declared application route.
+
+
+#### `label`
+
+Owner navigation fallback.
+
+
+#### `scope`
+
+Optional explicit query resource field and labels.
+
+
+#### `scope.name`
+
+Query parameter name.
+
+
+#### `scope.label`
+
+Accessible resource label.
+
+
+#### `scope.submitLabel`
+
+Optional submit button label.
+
+
+#### `Page`
+
+Raw owner page.
+
+
+#### `Provider`
+
+Existing canonical context Provider.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-ComputeWorkerPort"></a>
 
 ## [INTERFACE] `ComputeWorkerPort`
@@ -770,6 +928,88 @@ import { CoreWorkspaceHelp } from '@alneas/eaos-react/user-guide';
 export function Help() { return <CoreWorkspaceHelp/>; }
 ```
 
+
+<a id="api-createCommandWorkspaceClient"></a>
+
+## [FUNCTION] `createCommandWorkspaceClient`
+
+Adapt aggregate snapshot and command/reload sequencing to the existing owner client.
+T is the owner's DTO contract, not a claim that this adapter validates its business fields.
+Identity, record/revision and embedded tenant are checked here; owners retain domain validation.
+
+Imports: `@alneas/eaos-react/workspace-binding/command`.
+
+### Signature
+
+```typescript
+declare function createCommandWorkspaceClient<T = unknown>(connection: WorkspaceConnection, definition: CommandWorkspaceDefinition): WorkspaceClient<T>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `connection` | `WorkspaceConnection` | Yes | Current verified browser connection. |
+| `definition` | `CommandWorkspaceDefinition` | Yes | Owner aggregate and pinned query scope. |
+
+### Returns
+
+`WorkspaceClient<T>`
+
+Load/execute client rejecting foreign or malformed snapshot envelopes.
+
+### Type parameters
+
+- `T`: Owner DTO type asserted at the transport boundary.
+
+### Errors and rejections
+
+Methods reject invalid envelopes, conflicts, transport failures and expired requests.
+
+### Example
+
+```tsx
+import {createCommandWorkspaceClient} from '@alneas/eaos-react/workspace-binding/command'
+export const connect=(...args:Parameters<typeof createCommandWorkspaceClient>)=>createCommandWorkspaceClient(...args)
+```
+
+<a id="api-createCommandWorkspacePages"></a>
+
+## [FUNCTION] `createCommandWorkspacePages`
+
+Connect a typed owner Provider without importing another feature's implementation.
+
+Imports: `@alneas/eaos-react/workspace-binding/command`.
+
+### Signature
+
+```typescript
+declare function createCommandWorkspacePages<T>(environment: WorkspaceBindingEnvironment, definition: CommandWorkspacePageDefinition<T>): readonly ConnectedWorkspacePage[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Canonical Host identity, API and router ports. |
+| `definition` | `CommandWorkspacePageDefinition<T>` | Yes | Explicit page, Provider, route and optional resource query. |
+
+### Returns
+
+`readonly ConnectedWorkspacePage[]`
+
+One connected route using the current scoped connection.
+
+### Type parameters
+
+- `T`: Owner DTO type; owners retain domain response validation.
+
+### Example
+
+```tsx
+import {createCommandWorkspacePages} from '@alneas/eaos-react/workspace-binding/command'
+export const connect=(...args:Parameters<typeof createCommandWorkspacePages>)=>createCommandWorkspacePages(...args)
+```
 
 <a id="api-createFileDownloader"></a>
 
@@ -1217,6 +1457,119 @@ export function routeReports(server: PluginExecutor) {
 }
 ```
 
+
+<a id="api-createRecordReferenceClient"></a>
+
+## [FUNCTION] `createRecordReferenceClient`
+
+Resolve only an explicitly declared, currently admitted reference list operation.
+
+Imports: `@alneas/eaos-react/workspace-binding/record`.
+
+### Signature
+
+```typescript
+declare function createRecordReferenceClient(connection: WorkspaceConnection, declarations: readonly RecordWorkspaceDefinition[], reference: RecordWorkspaceReference): WorkspaceClient<unknown>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `connection` | `WorkspaceConnection` | Yes | Current verified browser scope. |
+| `declarations` | `readonly RecordWorkspaceDefinition[]` | Yes | Explicit selected feature/list catalog. |
+| `reference` | `RecordWorkspaceReference` | Yes | Owner page's declared reference selector. |
+
+### Returns
+
+`WorkspaceClient<unknown>`
+
+Client restricted to that exact list operation.
+
+### Errors and rejections
+
+Unknown/revoked references throw immediately; other operations reject before transport.
+
+### Example
+
+```tsx
+import {createRecordReferenceClient} from '@alneas/eaos-react/workspace-binding/record'
+export const connect=(...args:Parameters<typeof createRecordReferenceClient>)=>createRecordReferenceClient(...args)
+```
+
+<a id="api-createRecordWorkspaceClient"></a>
+
+## [FUNCTION] `createRecordWorkspaceClient`
+
+Wrap domain results in the existing owner's UI envelope; domain data remains unknown.
+
+Imports: `@alneas/eaos-react/workspace-binding/record`.
+
+### Signature
+
+```typescript
+declare function createRecordWorkspaceClient(connection: WorkspaceConnection, definition: RecordWorkspaceDefinition): WorkspaceClient<unknown>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `connection` | `WorkspaceConnection` | Yes | Current verified and adopted request scope. |
+| `definition` | `RecordWorkspaceDefinition` | Yes | Exact owner list mapping and optional input. |
+
+### Returns
+
+`WorkspaceClient<unknown>`
+
+Load/execute client with owner record identity and revision zero.
+
+### Errors and rejections
+
+Operations reject transport failures, expired scopes and foreign embedded tenants.
+
+### Example
+
+```tsx
+import {createRecordWorkspaceClient} from '@alneas/eaos-react/workspace-binding/record'
+export const connect=(...args:Parameters<typeof createRecordWorkspaceClient>)=>createRecordWorkspaceClient(...args)
+```
+
+<a id="api-createRecordWorkspacePages"></a>
+
+## [FUNCTION] `createRecordWorkspacePages`
+
+Compose only this owner's declared routes; reference declarations are explicit inputs.
+
+Imports: `@alneas/eaos-react/workspace-binding/record`.
+
+### Signature
+
+```typescript
+declare function createRecordWorkspacePages(environment: WorkspaceBindingEnvironment, definition: RecordWorkspaceDefinition, routes: readonly RecordWorkspaceRoute[], references?: readonly RecordWorkspaceDefinition[]): readonly ConnectedWorkspacePage[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Canonical Host context and configured API. |
+| `definition` | `RecordWorkspaceDefinition` | Yes | Owner list/record mapping. |
+| `routes` | `readonly RecordWorkspaceRoute[]` | Yes | Raw pages and their existing Providers. |
+| `references` | `readonly RecordWorkspaceDefinition[]` | No | Explicit adopted reference lists, defaulting to none. |
+
+### Returns
+
+`readonly ConnectedWorkspacePage[]`
+
+Connected pages still requiring live WorkspaceFeatureBoundary admission.
+
+### Example
+
+```tsx
+import {createRecordWorkspacePages} from '@alneas/eaos-react/workspace-binding/record'
+export const connect=(...args:Parameters<typeof createRecordWorkspacePages>)=>createRecordWorkspacePages(...args)
+```
 
 <a id="api-createTenantModuleStore"></a>
 
@@ -3122,6 +3475,104 @@ Optional authorized foreign-key catalogs used by forms and display labels.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-RecordWorkspaceDefinition"></a>
+
+## [INTERFACE] `RecordWorkspaceDefinition`
+
+Owner-declared list operation; no implementation discovery or tenant defaults.
+
+Imports: `@alneas/eaos-react/workspace-binding/record`.
+
+### Signature
+
+```typescript
+interface RecordWorkspaceDefinition {
+    pluginId: string;
+    listOperation: string;
+    loadInput?: Record<string, unknown>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical feature owner. |
+| `listOperation` | `string` | Yes | Owner-declared list command name. |
+| `loadInput` | `Record<string, unknown>` | No | Explicit list input; absent uses limit 100 while an empty object stays empty. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createRecordWorkspaceClient
+
+### Public members
+
+#### `pluginId`
+
+Canonical feature owner.
+
+
+#### `listOperation`
+
+Owner-declared list command name.
+
+
+#### `loadInput`
+
+Explicit list input; absent uses limit 100 while an empty object stays empty.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-RecordWorkspaceEnvironment"></a>
+
+## [INTERFACE] `RecordWorkspaceEnvironment`
+
+Build-selected data-only reference catalog, never an all-feature implementation barrel.
+
+Imports: `@alneas/eaos-react/workspace-binding/record`.
+
+### Signature
+
+```typescript
+interface RecordWorkspaceEnvironment extends WorkspaceBindingEnvironment {
+    referenceCatalog?: readonly RecordWorkspaceDefinition[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `referenceCatalog` | `readonly RecordWorkspaceDefinition[]` | No | Explicit selected owner/list declarations used by reference selectors. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createRecordWorkspacePages
+
+### Public members
+
+#### `referenceCatalog`
+
+Explicit selected owner/list declarations used by reference selectors.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-RecordWorkspaceProps"></a>
 
 ## [INTERFACE] `RecordWorkspaceProps`
@@ -3331,6 +3782,69 @@ Optional child catalogs resolving foreign-key display fields; nested loading req
 ### Remarks
 
 Related labels, resolved through separately authorized catalogs (for example a room's property).
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-RecordWorkspaceRoute"></a>
+
+## [INTERFACE] `RecordWorkspaceRoute`
+
+Owner-declared browser page and its canonical Provider.
+
+Imports: `@alneas/eaos-react/workspace-binding/record`.
+
+### Signature
+
+```typescript
+interface RecordWorkspaceRoute {
+    path: string;
+    label: string;
+    Page: ComponentType<RecordWorkspaceProps>;
+    Provider: ComponentType<WorkspaceProviderProps<unknown>>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `path` | `string` | Yes | Declared application route. |
+| `label` | `string` | Yes | Navigation fallback supplied by the feature. |
+| `Page` | `ComponentType<RecordWorkspaceProps>` | Yes | Raw owner page accepting optional authorized reference catalogs. |
+| `Provider` | `ComponentType<WorkspaceProviderProps<unknown>>` | Yes | Existing owner context Provider; no replacement context is created. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createRecordWorkspacePages
+
+### Public members
+
+#### `path`
+
+Declared application route.
+
+
+#### `label`
+
+Navigation fallback supplied by the feature.
+
+
+#### `Page`
+
+Raw owner page accepting optional authorized reference catalogs.
+
+
+#### `Provider`
+
+Existing owner context Provider; no replacement context is created.
 
 
 
@@ -6922,6 +7436,110 @@ Stable authenticated transport replaced when its host scope changes.
 #### `children`
 
 Workspace content rendered only when a session is ready.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceScope"></a>
+
+## [FUNCTION] `WorkspaceScope`
+
+Explicit router query scope, without an invented resource identity.
+
+Imports: `@alneas/eaos-react/workspace-binding/command`.
+
+### Signature
+
+```typescript
+declare function WorkspaceScope({ environment, name, label, submitLabel, children }: WorkspaceScopeProps): react.JSX.Element;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `{ environment, name, label, submitLabel, children }` | `WorkspaceScopeProps` | Yes | Query field/labels and resource render callback. |
+
+### Returns
+
+`react.JSX.Element`
+
+Resource chooser plus keyed content only after explicit selection.
+
+### Example
+
+```tsx
+import * as React from 'react'
+import {WorkspaceScope,type WorkspaceScopeProps} from '@alneas/eaos-react/workspace-binding/command'
+export function Scope(props:WorkspaceScopeProps){return <WorkspaceScope {...props}/>}
+```
+
+<a id="api-WorkspaceScopeProps"></a>
+
+## [INTERFACE] `WorkspaceScopeProps`
+
+One explicitly chosen query resource and its descendant render function.
+
+Imports: `@alneas/eaos-react/workspace-binding/command`.
+
+### Signature
+
+```typescript
+interface WorkspaceScopeProps {
+    environment: WorkspaceBindingEnvironment;
+    name: string;
+    label: string;
+    submitLabel?: string;
+    children: (id: string) => ReactNode;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Host-owned current query and replacement adapter. |
+| `name` | `string` | Yes | URL query field declared by the owning feature. |
+| `label` | `string` | Yes | Accessible resource field label supplied by its owner. |
+| `submitLabel` | `string` | No | Submit button label, defaulting to Open. |
+| `children` | `(id: string) => ReactNode` | Yes | Render the chosen resource; descendants remount when it changes. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+WorkspaceScope
+
+### Public members
+
+#### `environment`
+
+Host-owned current query and replacement adapter.
+
+
+#### `name`
+
+URL query field declared by the owning feature.
+
+
+#### `label`
+
+Accessible resource field label supplied by its owner.
+
+
+#### `submitLabel`
+
+Submit button label, defaulting to Open.
+
+
+#### `children`
+
+Render the chosen resource; descendants remount when it changes.
 
 
 
