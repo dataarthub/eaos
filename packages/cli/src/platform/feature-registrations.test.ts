@@ -58,3 +58,24 @@ test('invalid feature contracts and missing dependency adoption fail before writ
     await expect(generateFeatureRegistrations(root, { descriptors: [descriptor('one'), descriptor('one')], selectedIds: ['one'], outputs })).rejects.toThrow('Duplicate')
   } finally { await rm(root, { recursive: true, force: true }) }
 })
+
+test('connected output selects each factory once and rejects incomplete, duplicate or reserved routes', async()=>{
+ const root=await mkdtemp(join(tmpdir(),'eaos-connected-'))
+ try{
+  const one=descriptor('one'),two=descriptor('two')
+  const workspace={entry:'@example/features/one/workspace',exportName:'createWorkspacePages',label:'One'}
+  one.clients[0].workspace=workspace
+  one.clients.push({...one.clients[0],path:'/second'})
+  const outputs={manifests:'m.ts',lifecycle:'l.ts',web:'w.ts',bindings:'b.tsx'}
+  const options={descriptors:[one,two],selectedIds:['one'],outputs}
+  await generateFeatureRegistrations(root,options)
+  const text=await readFile(join(root,'b.tsx'),'utf8')
+  expect(text.match(/from "@example\/features\/one\/workspace"/g)?.length).toBe(1)
+  expect(text).toContain('WorkspaceFactoryOptions<typeof factories>');expect(text).toContain('composeWorkspacePages');expect(text).not.toContain('two')
+  await generateFeatureRegistrations(root,options);await generateFeatureRegistrations(root,{...options,check:true})
+  for(const change of [{reservedRoutes:['/second']},{descriptors:[{...one,clients:[...one.clients,one.clients[0]]}]},{selectedIds:['two']},{descriptors:[{...one,clients:[{...one.clients[0],workspace:{...workspace,entry:'@example/features/one/server'}}]}]}])await expect(generateFeatureRegistrations(root,{...options,...change})).rejects.toThrow()
+  await writeFile(join(root,'b.tsx'),text+'// edited\n')
+  await expect(generateFeatureRegistrations(root,options)).rejects.toThrow('edited')
+  expect(await readFile(join(root,'b.tsx'),'utf8')).toBe(text+'// edited\n')
+ }finally{await rm(root,{recursive:true,force:true})}
+})

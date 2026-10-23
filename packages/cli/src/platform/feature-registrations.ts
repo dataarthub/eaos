@@ -1,8 +1,5 @@
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
-import { randomUUID } from 'node:crypto'
 import ts from 'typescript'
-import { safePath } from './files'
+import { writeGeneratedFiles } from './generated-files'
 
 /** Data-only package declarations; no functions, source paths or host credentials.
  * @see generateFeatureRegistrations
@@ -39,6 +36,20 @@ export interface OfficialFeatureDescriptor {
     providerEntry?: string
     /** Export name of the client context provider. */
     providerExport?: string
+    /** Owner factory contract; false explicitly marks a raw-only route. */
+    workspace?: false | {
+      /** Published browser-only factory entry. */
+      entry: string
+      /** Factory export name. */
+      exportName: string
+      /** Exact owner navigation fallback. */
+      label: string
+      /** Optional canonical reference list declaration. */
+      reference?: {
+        /** Owner-declared list operation. */
+        listOperation: string
+      }
+    }
   }>
 }
 /** Explicit application adoption and separate generated modules.
@@ -57,9 +68,13 @@ export interface FeatureRegistrationOptions {
     lifecycle: string
     /** Browser-safe client metadata module. */
     web: string
+    /** Optional connected browser factory module. */
+    bindings?: string
   }
   /** Validate exact current output without repairing it. */
   check?: boolean
+  /** Application-owned routes unavailable to connected feature pages. */
+  reservedRoutes?: readonly string[]
 }
 const quote = JSON.stringify
 const entryPattern = /^(?:@[a-z0-9_-]+\/)?[a-z0-9_-]+(?:\/[A-Za-z0-9_.-]+)*$/
@@ -81,14 +96,15 @@ export async function generateFeatureRegistrations(root: string, options: Featur
   if (byId.size !== options.descriptors.length || new Set(options.selectedIds).size !== options.selectedIds.length) throw Error('Duplicate feature identity')
   const selected = options.selectedIds.map(id => { const feature = byId.get(id); if (!feature) throw Error('Unknown selected feature: ' + id); return feature })
   for (const feature of selected) {
-    if (!feature.id || !/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(feature.version) || !feature.lifecycle || !Array.isArray(feature.clients)) throw Error('Invalid feature version/lifecycle/client declarations: ' + feature.id)
-    for (const entry of [feature.manifest, feature.server, feature.lifecycle.entry, ...feature.clients.flatMap(client => [client.entry, client.providerEntry])].filter((value): value is string => value !== undefined)) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(feature.id) || !/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(feature.version) || !feature.lifecycle || !Array.isArray(feature.clients)) throw Error('Invalid feature version/lifecycle/client declarations: ' + feature.id)
+    for (const entry of [feature.manifest, feature.server, feature.lifecycle.entry, ...feature.clients.flatMap(client => [client.entry, client.providerEntry, client.workspace ? client.workspace.entry : undefined])].filter((value): value is string => value !== undefined)) {
       if (!entryPattern.test(entry) || entry.split('/').some(segment => segment === '.' || segment === '..')) throw Error('Invalid feature package export')
     }
     if (!symbolPattern.test(feature.lifecycle.exportName)) throw Error('Invalid lifecycle export')
     for (const id of feature.dependencies ?? []) if (!options.selectedIds.includes(id)) throw Error(`Selected feature ${feature.id} requires explicit adoption of ${id}`)
     for (const client of feature.clients) {
       if (!symbolPattern.test(client.exportName) || client.providerExport && !symbolPattern.test(client.providerExport) || !/^\/[A-Za-z0-9/_-]*$/.test(client.path) || client.entry.split('/').includes('server')) throw Error('Invalid client export or route')
+      if(client.workspace&&(!symbolPattern.test(client.workspace.exportName)||!client.workspace.label||client.workspace.entry.split('/').includes('server')||client.workspace.reference&&!client.workspace.reference.listOperation))throw Error('Invalid workspace factory declaration')
     }
   }
   const manifests: string[] = [], lifecycle: string[] = []
@@ -99,34 +115,33 @@ export async function generateFeatureRegistrations(root: string, options: Featur
   manifests.push(`export const officialManifests=[${selected.map((_, i) => 'manifest' + i).join(',')}]`)
   lifecycle.push(`export const officialReleases=[${selected.map((_, i) => 'release' + i).join(',')}]`)
   const web = `export const selectedOfficialPluginIds=${quote(options.selectedIds)} as const\nexport const officialFeatureClients=${quote(selected.flatMap(feature => feature.clients.filter(client => client.target === 'web').map(client => ({ pluginId: feature.id, ...client }))))} as const\n`
-  const entries = await Promise.all([[options.outputs.manifests, manifests.join('\n') + '\n'], [options.outputs.lifecycle, lifecycle.join('\n') + '\n'], [options.outputs.web, web]].map(async ([path, text]) => ({ path: await safePath(root, path), text })))
-  if (new Set(entries.map(item => item.path)).size !== entries.length) throw Error('Generated feature outputs must be distinct')
-  if (options.check) {
-    for (const item of entries) if (await readFile(item.path, 'utf8').catch(error => { if (error.code !== 'ENOENT') throw error; return null }) !== item.text) throw Error('Stale generated feature output: ' + item.path)
-    return
-  }
-  const lock = await safePath(root, '.eaos/feature-register.lock')
-  await mkdir(dirname(lock), { recursive: true }); await writeFile(lock, 'feature registration\n', { flag: 'wx' })
-  const previous = new Map<string, string | null>(), staged = new Map<string, string>(), replaced: string[] = []
-  try {
-    for (const item of entries) {
-      previous.set(item.path, await readFile(item.path, 'utf8').catch(error => { if (error.code !== 'ENOENT') throw error; return null }))
-      await mkdir(dirname(item.path), { recursive: true })
-      const temporary = item.path + '.new-' + randomUUID()
-      staged.set(item.path, temporary); await writeFile(temporary, item.text, { flag: 'wx' })
+  const files=[{path:options.outputs.manifests,text:manifests.join('\n')+'\n'},{path:options.outputs.lifecycle,text:lifecycle.join('\n')+'\n'},{path:options.outputs.web,text:web}]
+  if(options.outputs.bindings){
+    const paths=new Set(options.reservedRoutes??[]),factories:string[]=[],imports:string[]=[],declarations:unknown[]=[],references:unknown[]=[]
+    for(const feature of selected){
+      const clients=feature.clients.filter(client=>client.target==='web'&&client.workspace!==false)
+      if(!clients.length)continue
+      if(clients.some(client=>!client.workspace))throw Error('Missing workspace factory declaration: '+feature.id)
+      const binding=clients[0].workspace
+      if(!binding)throw Error('Missing workspace factory')
+      const routes=clients.map(client=>{
+        if(!client.workspace||client.workspace.entry!==binding.entry||client.workspace.exportName!==binding.exportName)throw Error('Inconsistent workspace factory')
+        if(paths.has(client.path))throw Error('Duplicate or reserved workspace route: '+client.path)
+        paths.add(client.path)
+        if(client.workspace.reference)references.push({pluginId:feature.id,...client.workspace.reference})
+        return {path:client.path,label:client.workspace.label}
+      })
+      const name='bind'+imports.length
+      imports.push(`import { ${binding.exportName} as ${name} } from ${quote(binding.entry)}`)
+      factories.push(`[${quote(feature.id)}]:${name}`)
+      declarations.push({pluginId:feature.id,routes})
     }
-    for (const item of entries) { await rename(staged.get(item.path)!, item.path); replaced.push(item.path) }
-  } catch (error) {
-    for (const path of replaced.reverse()) {
-      const value = previous.get(path)!
-      if (value === null) await rm(path, { force: true })
-      else await writeFile(path, value)
-    }
-    throw error
-  } finally {
-    for (const temporary of staged.values()) await rm(temporary, { force: true })
-    await rm(lock)
+    const uniqueReferences=[...new Map(references.map(value=>[quote(value),value])).values()]
+    const text=`import {composeWorkspacePages,type WorkspaceBindingEnvironment,type WorkspaceFactoryOptions} from '@alneas/eaos-react/workspace-binding'\n${imports.join('\n')}\nconst factories={${factories.join(',')}}\nexport type OfficialWorkspaceOptions=WorkspaceFactoryOptions<typeof factories>\nexport function createOfficialWorkspacePages(environment:WorkspaceBindingEnvironment,options:OfficialWorkspaceOptions){return composeWorkspacePages(environment,factories,${quote(declarations)},options,${quote(uniqueReferences)})}\n`
+    files.push({path:options.outputs.bindings,text})
   }
+  await writeGeneratedFiles(root,files,options.check)
+
 }
 
 /**

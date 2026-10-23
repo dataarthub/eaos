@@ -17,6 +17,15 @@ export interface WorkspaceBindingIdentity {
  /** Currently admitted features, intersected with explicit build selection. */
  enabledPluginIds:readonly string[]
 }
+/** Explicit adopted owner/list declaration for reference selectors.
+ * @see composeWorkspacePages
+ */
+export interface WorkspaceReferenceDeclaration {
+ /** Canonical selected owner. */
+ pluginId:string
+ /** Owner-declared reference list command. */
+ listOperation:string
+}
 /** Browser capabilities supplied by the adopting Host, without a second identity cache.
  * @see useWorkspaceConnection
  */
@@ -27,6 +36,8 @@ export interface WorkspaceBindingEnvironment {
  api:WorkspaceApi
  /** Explicit build adoption; never the whole installed catalog by default. */
  selectedIds:readonly string[]
+ /** Selected data-only reference list declarations. */
+ referenceCatalog?:readonly WorkspaceReferenceDeclaration[]
  /** Router-owned query access; returns the search string and replaces it explicitly. */
  query:{
   /** Read current URL search text. */
@@ -89,3 +100,5 @@ export function useWorkspaceConnection(environment:WorkspaceBindingEnvironment):
   }
  },[session,environment.api,key])
 }
+
+export {composeWorkspacePages,type WorkspaceFactoryOptions,type WorkspacePageDeclaration} from './workspace-binding/composition'

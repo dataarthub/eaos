@@ -3219,8 +3219,10 @@ interface FeatureRegistrationOptions {
         manifests: string;
         lifecycle: string;
         web: string;
+        bindings?: string;
     };
     check?: boolean;
+    reservedRoutes?: readonly string[];
 }
 ```
 
@@ -3230,8 +3232,9 @@ interface FeatureRegistrationOptions {
 | --- | --- | --- | --- |
 | `descriptors` | `readonly OfficialFeatureDescriptor[]` | Yes | Trusted owner descriptors; duplicate identities are rejected. |
 | `selectedIds` | `readonly string[]` | Yes | Exact reviewed build selection, including required dependencies. |
-| `outputs` | `{     manifests: string;     lifecycle: string;     web: string; }` | Yes | Distinct project-relative generated module destinations. |
+| `outputs` | `{     manifests: string;     lifecycle: string;     web: string;     bindings?: string; }` | Yes | Distinct project-relative generated module destinations. |
 | `check` | `boolean` | No | Validate exact current output without repairing it. |
+| `reservedRoutes` | `readonly string[]` | No | Application-owned routes unavailable to connected feature pages. |
 
 ### Returns
 
@@ -3273,9 +3276,19 @@ Server-only lifecycle import module.
 Browser-safe client metadata module.
 
 
+#### `outputs.bindings`
+
+Optional connected browser factory module.
+
+
 #### `check`
 
 Validate exact current output without repairing it.
+
+
+#### `reservedRoutes`
+
+Application-owned routes unavailable to connected feature pages.
 
 
 
@@ -8110,6 +8123,14 @@ interface OfficialFeatureDescriptor {
         path: string;
         providerEntry?: string;
         providerExport?: string;
+        workspace?: false | {
+            entry: string;
+            exportName: string;
+            label: string;
+            reference?: {
+                listOperation: string;
+            };
+        };
     }>;
 }
 ```
@@ -8124,7 +8145,7 @@ interface OfficialFeatureDescriptor {
 | `server` | `string` | No | Optional supported runtime entry, never imported by generated browser metadata. |
 | `lifecycle` | `{     entry: string;     exportName: string; }` | No | Supported lifecycle export required for an adopted feature. |
 | `dependencies` | `readonly string[]` | No | Other feature IDs that must be explicitly adopted together. |
-| `clients` | `Array<{     target: string;     entry: string;     exportName: string;     path: string;     providerEntry?: string;     providerExport?: string; }>` | Yes | Owner-declared client entrypoints without host credentials or implementations. |
+| `clients` | `Array<{     target: string;     entry: string;     exportName: string;     path: string;     providerEntry?: string;     providerExport?: string;     workspace?: false \| {         entry: string;         exportName: string;         label: string;         reference?: {             listOperation: string;         };     }; }>` | Yes | Owner-declared client entrypoints without host credentials or implementations. |
 
 ### Returns
 
@@ -8209,6 +8230,36 @@ Optional package subpath providing its client context.
 #### `clients[].providerExport`
 
 Export name of the client context provider.
+
+
+#### `clients[].workspace`
+
+Owner factory contract; false explicitly marks a raw-only route.
+
+
+#### `clients[].workspace.entry`
+
+Published browser-only factory entry.
+
+
+#### `clients[].workspace.exportName`
+
+Factory export name.
+
+
+#### `clients[].workspace.label`
+
+Exact owner navigation fallback.
+
+
+#### `clients[].workspace.reference`
+
+Optional canonical reference list declaration.
+
+
+#### `clients[].workspace.reference.listOperation`
+
+Owner-declared list operation.
 
 
 

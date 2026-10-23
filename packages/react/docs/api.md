@@ -704,6 +704,55 @@ Existing canonical context Provider.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-composeWorkspacePages"></a>
+
+## [FUNCTION] `composeWorkspacePages`
+
+Compose selected owner factories and verify their exact declared route sets.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+declare function composeWorkspacePages<T extends Factories>(environment: WorkspaceBindingEnvironment, factories: T, declarations: readonly WorkspacePageDeclaration[], options: WorkspaceFactoryOptions<T>, references?: readonly WorkspaceReferenceDeclaration[]): readonly ConnectedWorkspacePage[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Canonical Host identity and browser ports. |
+| `factories` | `T` | Yes | Explicit selected factory imports; no runtime feature discovery. |
+| `declarations` | `readonly WorkspacePageDeclaration[]` | Yes | Complete owner/path/label contracts. |
+| `options` | `WorkspaceFactoryOptions<T>` | Yes | Factory-specific ports, including required second arguments. |
+| `references` | `readonly WorkspaceReferenceDeclaration[]` | No | Selected data-only reference list declarations. |
+
+### Returns
+
+`readonly ConnectedWorkspacePage[]`
+
+Connected pages whose identities and routes match the declarations.
+
+### Type parameters
+
+- `T`: Explicit selected factory map.
+
+### Remarks
+
+Factories are trusted installed code. This validates composition contracts, not server authorization.
+
+### Errors and rejections
+
+Before rendering on unknown options, unadopted owners or incompatible factory output.
+
+### Example
+
+```typescript
+import {composeWorkspacePages,type WorkspaceBindingEnvironment} from '@alneas/eaos-react/workspace-binding'
+export const emptyPages=(environment:WorkspaceBindingEnvironment)=>composeWorkspacePages(environment,{},[],{})
+```
+
 <a id="api-ComputeWorkerPort"></a>
 
 ## [INTERFACE] `ComputeWorkerPort`
@@ -6117,6 +6166,7 @@ interface WorkspaceBindingEnvironment {
     useIdentity: () => WorkspaceBindingIdentity | null;
     api: WorkspaceApi;
     selectedIds: readonly string[];
+    referenceCatalog?: readonly WorkspaceReferenceDeclaration[];
     query: {
         read: () => string;
         replace: (search: string) => void;
@@ -6131,6 +6181,7 @@ interface WorkspaceBindingEnvironment {
 | `useIdentity` | `() => WorkspaceBindingIdentity \| null` | Yes | Read the canonical verified identity hook; null while unavailable. |
 | `api` | `WorkspaceApi` | Yes | Configured credentialed transport. |
 | `selectedIds` | `readonly string[]` | Yes | Explicit build adoption; never the whole installed catalog by default. |
+| `referenceCatalog` | `readonly WorkspaceReferenceDeclaration[]` | No | Selected data-only reference list declarations. |
 | `query` | `{     read: () => string;     replace: (search: string) => void; }` | Yes | Router-owned query access; returns the search string and replaces it explicitly. |
 
 ### Returns
@@ -6156,6 +6207,11 @@ Configured credentialed transport.
 #### `selectedIds`
 
 Explicit build adoption; never the whole installed catalog by default.
+
+
+#### `referenceCatalog`
+
+Selected data-only reference list declarations.
 
 
 #### `query`
@@ -6441,6 +6497,46 @@ Explicit platform privilege; never inferred from tenant roles.
 Current server-admitted plugins.
 
 
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceFactoryOptions"></a>
+
+## [TYPE] `WorkspaceFactoryOptions`
+
+Factory-specific options, preserving mandatory ports for the selected owners.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+type WorkspaceFactoryOptions<T extends Factories> = {
+    [K in RequiredKeys<T>]: Tail<T[K]>[0];
+} & {
+    [K in Exclude<OptionalKeys<T>, RequiredKeys<T>>]?: Tail<T[K]>[0];
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Explicit selected factory map.
+
+### See also
+
+composeWorkspacePages
 
 ### Example
 
@@ -7289,6 +7385,68 @@ export function AmountField() { const [value, setValue] = React.useState(NaN); r
 ```
 
 
+<a id="api-WorkspacePageDeclaration"></a>
+
+## [INTERFACE] `WorkspacePageDeclaration`
+
+Selected owner routes used to verify factory output without loading a catalog.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+interface WorkspacePageDeclaration {
+    pluginId: string;
+    routes: readonly {
+        path: string;
+        label: string;
+    }[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical adopted owner. |
+| `routes` | `readonly {     path: string;     label: string; }[]` | Yes | Complete connected route set for that owner. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+composeWorkspacePages
+
+### Public members
+
+#### `pluginId`
+
+Canonical adopted owner.
+
+
+#### `routes`
+
+Complete connected route set for that owner.
+
+
+#### `routes[].path`
+
+Absolute application route.
+
+
+#### `routes[].label`
+
+Owner navigation fallback.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-WorkspacePageRegistration"></a>
 
 ## [INTERFACE] `WorkspacePageRegistration`
@@ -7468,6 +7626,55 @@ Stable authenticated transport replaced when its host scope changes.
 #### `children`
 
 Workspace content rendered only when a session is ready.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceReferenceDeclaration"></a>
+
+## [INTERFACE] `WorkspaceReferenceDeclaration`
+
+Explicit adopted owner/list declaration for reference selectors.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+interface WorkspaceReferenceDeclaration {
+    pluginId: string;
+    listOperation: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical selected owner. |
+| `listOperation` | `string` | Yes | Owner-declared reference list command. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+composeWorkspacePages
+
+### Public members
+
+#### `pluginId`
+
+Canonical selected owner.
+
+
+#### `listOperation`
+
+Owner-declared reference list command.
 
 
 

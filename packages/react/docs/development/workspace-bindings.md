@@ -76,6 +76,16 @@ enveloped snapshots. Their generic data type is the owner's transport contract,
 not runtime validation of arbitrary business fields. Owners keep their canonical
 DTO validation. These composition helpers do not import feature implementations.
 
+### Compose generated owner factories
+
+`composeWorkspacePages` accepts explicit selected factory imports, complete
+owner/path/label declarations and factory-specific options. The mapped
+`WorkspaceFactoryOptions` type retains required ports such as workers. Unknown
+options, missing or extra routes and foreign owner identities fail before pages
+are rendered. React memo, lazy and forwarded components remain supported.
+Reference declarations contain only selected owner/list data. Factories are
+trusted code, and server admission remains mandatory.
+
 ## Verification
 
 Test identity change during reads and command/reload chains, revoked grants,

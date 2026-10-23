@@ -62,3 +62,25 @@ Registration and compilation are separate from deployment and tenant activation.
 - A held operation lock requires reconciling the task that owns it; do not silently overwrite another writer.
 - Changed checksums, invalid component exports, duplicate routes and reserved routes must be fixed at their owning artifact/declaration.
 - Explicitly adopt required feature dependencies; new catalog entries are never adopted automatically.
+
+## Connected workspace generation
+
+Add `outputs.bindings` to `generateFeatureRegistrations` to emit a connected
+browser module. Every selected web route requires `workspace` metadata naming
+its published factory, export and exact fallback label. `workspace: false`
+explicitly retains a raw-only route outside standard composition; headless
+features have no browser routes. A missing declaration fails generation.
+
+The generated `createOfficialWorkspacePages(environment, options)` calls the
+public React composition contract. Its options type preserves each selected
+factory's required ports. Multi-route owners import one factory. Configure
+`reservedRoutes` with application-owned paths; duplicates are rejected.
+Generated browser modules import selected factories only and never server
+entries. Hosts must install the matching React and feature peers.
+
+All outputs update under one exclusive project lock with staged replacements
+and rollback on failure. Ownership hashes reject unmanaged or hand-edited
+outputs. Review and back up old unmanaged outputs before a one-time migration;
+normal generation has no force-overwrite mode. Check mode compares exact bytes
+without creating directories or locks. The trusted project directory must not
+be concurrently replaced with symlinks by another process.
