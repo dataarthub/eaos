@@ -3223,6 +3223,10 @@ interface FeatureRegistrationOptions {
     };
     check?: boolean;
     reservedRoutes?: readonly string[];
+    workspacePorts?: Readonly<Record<string, {
+        entry: string;
+        exportName: string;
+    }>>;
 }
 ```
 
@@ -3235,6 +3239,7 @@ interface FeatureRegistrationOptions {
 | `outputs` | `{     manifests: string;     lifecycle: string;     web: string;     bindings?: string; }` | Yes | Distinct project-relative generated module destinations. |
 | `check` | `boolean` | No | Validate exact current output without repairing it. |
 | `reservedRoutes` | `readonly string[]` | No | Application-owned routes unavailable to connected feature pages. |
+| `workspacePorts` | `Readonly<Record<string, {     entry: string;     exportName: string; }>>` | No | Optional Host-owned port modules, imported only for selected connected owners. |
 
 ### Returns
 
@@ -3289,6 +3294,21 @@ Validate exact current output without repairing it.
 #### `reservedRoutes`
 
 Application-owned routes unavailable to connected feature pages.
+
+
+#### `workspacePorts`
+
+Optional Host-owned port modules, imported only for selected connected owners.
+
+
+#### `workspacePorts.entry`
+
+Browser module path relative to the generated bindings module, starting with ./ .
+
+
+#### `workspacePorts.exportName`
+
+Named export supplying that owner's required ports.
 
 
 

@@ -75,6 +75,13 @@ export interface FeatureRegistrationOptions {
   check?: boolean
   /** Application-owned routes unavailable to connected feature pages. */
   reservedRoutes?: readonly string[]
+  /** Optional Host-owned port modules, imported only for selected connected owners. */
+  workspacePorts?: Readonly<Record<string,{
+    /** Browser module path relative to the generated bindings module, starting with ./ . */
+    entry:string
+    /** Named export supplying that owner's required ports. */
+    exportName:string
+  }>>
 }
 const quote = JSON.stringify
 const entryPattern = /^(?:@[a-z0-9_-]+\/)?[a-z0-9_-]+(?:\/[A-Za-z0-9_.-]+)*$/
@@ -117,7 +124,7 @@ export async function generateFeatureRegistrations(root: string, options: Featur
   const web = `export const selectedOfficialPluginIds=${quote(options.selectedIds)} as const\nexport const officialFeatureClients=${quote(selected.flatMap(feature => feature.clients.filter(client => client.target === 'web').map(client => ({ pluginId: feature.id, ...client }))))} as const\n`
   const files=[{path:options.outputs.manifests,text:manifests.join('\n')+'\n'},{path:options.outputs.lifecycle,text:lifecycle.join('\n')+'\n'},{path:options.outputs.web,text:web}]
   if(options.outputs.bindings){
-    const paths=new Set(options.reservedRoutes??[]),factories:string[]=[],imports:string[]=[],declarations:unknown[]=[],references:unknown[]=[]
+    const paths=new Set(options.reservedRoutes??[]),factories:string[]=[],imports:string[]=[],declarations:unknown[]=[],references:unknown[]=[],ports:string[]=[],portImports:string[]=[]
     for(const feature of selected){
       const clients=feature.clients.filter(client=>client.target==='web'&&client.workspace!==false)
       if(!clients.length)continue
@@ -135,9 +142,16 @@ export async function generateFeatureRegistrations(root: string, options: Featur
       imports.push(`import { ${binding.exportName} as ${name} } from ${quote(binding.entry)}`)
       factories.push(`[${quote(feature.id)}]:${name}`)
       declarations.push({pluginId:feature.id,routes})
+      const port=options.workspacePorts?.[feature.id]
+      if(port){
+        if(!/^\.\/[A-Za-z0-9_/-]+$/.test(port.entry)||port.entry.includes('//')||!symbolPattern.test(port.exportName))throw Error('Invalid Host workspace port module')
+        const name='ports'+portImports.length
+        portImports.push(`import { ${port.exportName} as ${name} } from ${quote(port.entry)}`)
+        ports.push(`[${quote(feature.id)}]:${name}`)
+      }
     }
     const uniqueReferences=[...new Map(references.map(value=>[quote(value),value])).values()]
-    const text=`import {composeWorkspacePages,type WorkspaceBindingEnvironment,type WorkspaceFactoryOptions} from '@alneas/eaos-react/workspace-binding'\n${imports.join('\n')}\nconst factories={${factories.join(',')}}\nexport type OfficialWorkspaceOptions=WorkspaceFactoryOptions<typeof factories>\nexport function createOfficialWorkspacePages(environment:WorkspaceBindingEnvironment,options:OfficialWorkspaceOptions){return composeWorkspacePages(environment,factories,${quote(declarations)},options,${quote(uniqueReferences)})}\n`
+    const text=`import {composeWorkspacePages,type WorkspaceBindingEnvironment,type WorkspaceFactoryOptions} from '@alneas/eaos-react/workspace-binding'\n${imports.join('\n')}\n${portImports.join('\n')}\nconst factories={${factories.join(',')}}\nexport type OfficialWorkspaceOptions=WorkspaceFactoryOptions<typeof factories>\n${options.workspacePorts?`export const officialWorkspaceOptions={${ports.join(',')}} satisfies OfficialWorkspaceOptions\n`:''}export function createOfficialWorkspacePages(environment:WorkspaceBindingEnvironment,options:OfficialWorkspaceOptions){return composeWorkspacePages(environment,factories,${quote(declarations)},options,${quote(uniqueReferences)})}\n`
     files.push({path:options.outputs.bindings,text})
   }
   await writeGeneratedFiles(root,files,options.check)

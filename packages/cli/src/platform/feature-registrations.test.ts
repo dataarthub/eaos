@@ -79,3 +79,12 @@ test('connected output selects each factory once and rejects incomplete, duplica
   expect(await readFile(join(root,'b.tsx'),'utf8')).toBe(text+'// edited\n')
  }finally{await rm(root,{recursive:true,force:true})}
 })
+
+test('selected Host port imports exclude unadopted workers and retain compile-time required options',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'eaos-host-ports-'))
+ try{
+  const one=descriptor('one');one.clients[0].workspace={entry:'@example/features/one/workspace',exportName:'createWorkspacePages',label:'One'}
+  await generateFeatureRegistrations(root,{descriptors:[one],selectedIds:['one'],outputs:{manifests:'m.ts',lifecycle:'l.ts',web:'w.ts',bindings:'b.tsx'},workspacePorts:{one:{entry:'./ports/one',exportName:'ports'},two:{entry:'./ports/unused-worker',exportName:'ports'}}})
+  const source=await readFile(join(root,'b.tsx'),'utf8');expect(source).toContain('./ports/one');expect(source).not.toContain('unused-worker');expect(source).toContain('satisfies OfficialWorkspaceOptions')
+ }finally{await rm(root,{recursive:true,force:true})}
+})

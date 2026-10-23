@@ -84,3 +84,11 @@ outputs. Review and back up old unmanaged outputs before a one-time migration;
 normal generation has no force-overwrite mode. Check mode compares exact bytes
 without creating directories or locks. The trusted project directory must not
 be concurrently replaced with symlinks by another process.
+
+For bundler-specific Host capabilities, set `workspacePorts` to owner-keyed
+`{entry: './workspace-ports/example', exportName: 'ports'}` declarations relative
+to the generated bindings module. Only selected connected owners import those
+modules. The generated `officialWorkspaceOptions` uses
+`satisfies OfficialWorkspaceOptions`, so missing mandatory ports fail the Host
+typecheck. Keep domain API operations in the owning factory; these modules
+configure assets, transport origins and adopted presentation resources only.
