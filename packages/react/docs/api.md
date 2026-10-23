@@ -34,6 +34,7 @@ tags: ["api", "generated"]
 | `@alneas/eaos-react/plugin-gate` | Typed public export |
 | `@alneas/eaos-react/plugin-runtime` | Typed public export |
 | `@alneas/eaos-react/workspace-application` | Typed public export |
+| `@alneas/eaos-react/workspace-binding` | Typed public export |
 | `@alneas/eaos-react/workspace-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-react/docs/user-guides/workspace.md` | Packaged Markdown guide asset; resolve this exported path with the host loader |
 
@@ -629,6 +630,69 @@ Example:
 import type { ComputeWorkerPort } from '@alneas/eaos-react/client/compute';
 export function disposeOwnedWorker(worker: ComputeWorkerPort) { worker.terminate(); }
 ```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ConnectedWorkspacePage"></a>
+
+## [INTERFACE] `ConnectedWorkspacePage`
+
+A feature's connected, browser-only workspace route.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+interface ConnectedWorkspacePage {
+    pluginId: string;
+    path: string;
+    label: string;
+    component: ComponentType;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical feature owner. |
+| `path` | `string` | Yes | Declared application route. |
+| `label` | `string` | Yes | Owner-provided navigation fallback. |
+| `component` | `ComponentType` | Yes | Connected component, still wrapped in live WorkspaceFeatureBoundary admission. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+useWorkspaceConnection
+
+### Public members
+
+#### `pluginId`
+
+Canonical feature owner.
+
+
+#### `path`
+
+Declared application route.
+
+
+#### `label`
+
+Owner-provided navigation fallback.
+
+
+#### `component`
+
+Connected component, still wrapped in live WorkspaceFeatureBoundary admission.
 
 
 
@@ -1253,6 +1317,47 @@ export async function compute(workerUrl: URL) {
 }
 ```
 
+
+<a id="api-createWorkspaceApi"></a>
+
+## [FUNCTION] `createWorkspaceApi`
+
+Create a cancellable, credentialed JSON transport for explicit Host plugin routes.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+declare function createWorkspaceApi(options: WorkspaceApiOptions): WorkspaceApi;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `WorkspaceApiOptions` | Yes | Trusted endpoint, fetch/header adapters and optional bounded deadline. |
+
+### Returns
+
+`WorkspaceApi`
+
+REST and command methods; callers validate the returned DTO.
+
+### Remarks
+
+No retries or fallback. Cancellation discards replies; remote writes may already have committed.
+
+### Errors and rejections
+
+Invalid configuration throws immediately; methods reject unsafe paths, aborts, HTTP or JSON failures.
+
+### Example
+
+```typescript
+import {createWorkspaceApi} from '@alneas/eaos-react/client'
+export const api=createWorkspaceApi({endpoint:'/api/plugins'})
+```
 
 <a id="api-createWorkspaceClientBindings"></a>
 
@@ -4756,6 +4861,47 @@ export function useHostAdapter<T>(tenantId: string | null, sessionKey: string | 
 ```
 
 
+<a id="api-useWorkspaceConnection"></a>
+
+## [FUNCTION] `useWorkspaceConnection`
+
+Bind API calls to the current verified Host identity and selected/live feature grants.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+declare function useWorkspaceConnection(environment: WorkspaceBindingEnvironment): WorkspaceConnection;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Canonical Host context hook and explicit browser capabilities. |
+
+### Returns
+
+`WorkspaceConnection`
+
+Scoped requests, identity and cancellation signal, without storing snapshots.
+
+### Remarks
+
+Use inside connected page components. Owners still validate DTOs; backend authorization is mandatory.
+
+### Errors and rejections
+
+Request methods reject unavailable identities, unadopted/revoked owners and expired results.
+
+### Example
+
+```tsx
+import {useWorkspaceConnection,type WorkspaceBindingEnvironment} from '@alneas/eaos-react/workspace-binding'
+export function useReports(environment:WorkspaceBindingEnvironment){return useWorkspaceConnection(environment)}
+```
+
 <a id="api-useWorkspaceTask"></a>
 
 ## [FUNCTION] `useWorkspaceTask`
@@ -4883,6 +5029,333 @@ import { validateDownloadFilename } from '@alneas/eaos-react/client';
 validateDownloadFilename('report.csv');
 ```
 
+
+<a id="api-WorkspaceApi"></a>
+
+## [INTERFACE] `WorkspaceApi`
+
+Browser JSON transport; generic result types are caller assertions, not validators.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApi {
+    request<T = unknown>(input: WorkspaceApiRequest): Promise<T>;
+    command<T = unknown>(input: WorkspaceApiCommand): Promise<T>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `request` | `Promise<T>` | Yes | Perform one REST request without retries or destination fallback. |
+| `command` | `Promise<T>` | Yes | POST one command, without retrying uncertain remote effects. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `request`
+
+Perform one REST request without retries or destination fallback.
+
+Parameters:
+
+- `input`: Plugin-relative path, HTTP verb, optional body and cancellation.
+
+Returns: Parsed JSON; rejects HTTP, JSON, timeout and cancellation failures.
+
+### Type parameters
+
+- `T`: Caller-asserted DTO type, validated by its owner.
+
+Example:
+
+```typescript
+import {createWorkspaceApi} from '@alneas/eaos-react/client'
+export const read=()=>createWorkspaceApi({endpoint:'/api/plugins'}).request({pluginId:'reports',path:'/snapshot'})
+```
+
+
+#### `command`
+
+POST one command, without retrying uncertain remote effects.
+
+Parameters:
+
+- `input`: Owner operation, JSON input and optional cancellation.
+
+Returns: Parsed JSON; rejects transport/HTTP/JSON errors and expired requests.
+
+### Type parameters
+
+- `T`: Caller-asserted DTO type, validated by its owner.
+
+Example:
+
+```typescript
+import {createWorkspaceApi} from '@alneas/eaos-react/client'
+export const refresh=()=>createWorkspaceApi({endpoint:'/api/plugins'}).command({pluginId:'reports',operation:'refresh',input:{}})
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceApiCommand"></a>
+
+## [INTERFACE] `WorkspaceApiCommand`
+
+JSON command request with an encoded operation path segment.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApiCommand {
+    pluginId: string;
+    operation: string;
+    input: unknown;
+    signal?: AbortSignal;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical plugin identifier. |
+| `operation` | `string` | Yes | Owner-declared command name. |
+| `input` | `unknown` | Yes | Owner-validated command input. |
+| `signal` | `AbortSignal` | No | Caller cancellation. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `pluginId`
+
+Canonical plugin identifier.
+
+
+#### `operation`
+
+Owner-declared command name.
+
+
+#### `input`
+
+Owner-validated command input.
+
+
+#### `signal`
+
+Caller cancellation.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceApiError"></a>
+
+## [CLASS] `WorkspaceApiError`
+
+Sanitized transport failure; structured status supports owner error presentation.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+declare class WorkspaceApiError extends Error {
+    readonly status: number;
+    constructor(status: number);
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | `number` | Yes | Failed HTTP response status. |
+
+### Returns
+
+`WorkspaceApiError`
+
+### See also
+
+createWorkspaceApi *
+
+### Constructor contract
+
+### Public members
+
+#### `status`
+
+HTTP status returned by the destination.
+
+
+
+### Example
+
+```typescript
+import {WorkspaceApiError} from '@alneas/eaos-react/client'
+export const isConflict=(error:unknown)=>error instanceof WorkspaceApiError&&error.status===409
+```
+
+<a id="api-WorkspaceApiOptions"></a>
+
+## [INTERFACE] `WorkspaceApiOptions`
+
+Configured browser endpoint; identity and authorization remain server-owned.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApiOptions {
+    endpoint: string;
+    fetch?: typeof fetch;
+    headers?: () => Record<string, string>;
+    timeoutMs?: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `endpoint` | `string` | Yes | Root-relative same-origin path or credential-free HTTPS URL without query/fragment. |
+| `fetch` | `typeof fetch` | No | Fetch boundary; defaults to the browser implementation. |
+| `headers` | `() => Record<string, string>` | No | Current session/CSRF headers, read for each request. |
+| `timeoutMs` | `number` | No | Positive request deadline in milliseconds; defaults to 15000. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `endpoint`
+
+Root-relative same-origin path or credential-free HTTPS URL without query/fragment.
+
+
+#### `fetch`
+
+Fetch boundary; defaults to the browser implementation.
+
+
+#### `headers`
+
+Current session/CSRF headers, read for each request.
+
+
+#### `timeoutMs`
+
+Positive request deadline in milliseconds; defaults to 15000.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceApiRequest"></a>
+
+## [INTERFACE] `WorkspaceApiRequest`
+
+JSON request to a plugin-relative REST route. Payload validation belongs to its owner.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApiRequest {
+    pluginId: string;
+    path: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    body?: unknown;
+    signal?: AbortSignal;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical plugin identifier. |
+| `path` | `string` | Yes | Absolute plugin-relative path; encode record IDs as individual segments. |
+| `method` | `'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE'` | No | HTTP verb, defaulting to GET. |
+| `body` | `unknown` | No | JSON body; omitted for read requests. |
+| `signal` | `AbortSignal` | No | Caller cancellation, combined with the configured deadline. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `pluginId`
+
+Canonical plugin identifier.
+
+
+#### `path`
+
+Absolute plugin-relative path; encode record IDs as individual segments.
+
+
+#### `method`
+
+HTTP verb, defaulting to GET.
+
+
+#### `body`
+
+JSON body; omitted for read requests.
+
+
+#### `signal`
+
+Caller cancellation, combined with the configured deadline.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-WorkspaceApplication"></a>
 
@@ -5083,6 +5556,152 @@ Accessible error renderer with a tenant retry action.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-WorkspaceBindingEnvironment"></a>
+
+## [INTERFACE] `WorkspaceBindingEnvironment`
+
+Browser capabilities supplied by the adopting Host, without a second identity cache.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+interface WorkspaceBindingEnvironment {
+    useIdentity: () => WorkspaceBindingIdentity | null;
+    api: WorkspaceApi;
+    selectedIds: readonly string[];
+    query: {
+        read: () => string;
+        replace: (search: string) => void;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `useIdentity` | `() => WorkspaceBindingIdentity \| null` | Yes | Read the canonical verified identity hook; null while unavailable. |
+| `api` | `WorkspaceApi` | Yes | Configured credentialed transport. |
+| `selectedIds` | `readonly string[]` | Yes | Explicit build adoption; never the whole installed catalog by default. |
+| `query` | `{     read: () => string;     replace: (search: string) => void; }` | Yes | Router-owned query access; returns the search string and replaces it explicitly. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+useWorkspaceConnection
+
+### Public members
+
+#### `useIdentity`
+
+Read the canonical verified identity hook; null while unavailable.
+
+
+#### `api`
+
+Configured credentialed transport.
+
+
+#### `selectedIds`
+
+Explicit build adoption; never the whole installed catalog by default.
+
+
+#### `query`
+
+Router-owned query access; returns the search string and replaces it explicitly.
+
+
+#### `query.read`
+
+Read current URL search text.
+
+
+#### `query.replace`
+
+Replace URL search text through the Host router/history.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceBindingIdentity"></a>
+
+## [INTERFACE] `WorkspaceBindingIdentity`
+
+Display identity from the canonical verified Host context; never server authority.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+interface WorkspaceBindingIdentity {
+    tenantId: string;
+    userId: string;
+    sessionKey: string;
+    roles: readonly string[];
+    enabledPluginIds: readonly string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantId` | `string` | Yes | Verified tenant identity. |
+| `userId` | `string` | Yes | Verified user identity. |
+| `sessionKey` | `string` | Yes | Host session generation; changes invalidate pending operations. |
+| `roles` | `readonly string[]` | Yes | Current role display/grants supplied by the Host. |
+| `enabledPluginIds` | `readonly string[]` | Yes | Currently admitted features, intersected with explicit build selection. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+useWorkspaceConnection
+
+### Public members
+
+#### `tenantId`
+
+Verified tenant identity.
+
+
+#### `userId`
+
+Verified user identity.
+
+
+#### `sessionKey`
+
+Host session generation; changes invalidate pending operations.
+
+
+#### `roles`
+
+Current role display/grants supplied by the Host.
+
+
+#### `enabledPluginIds`
+
+Currently admitted features, intersected with explicit build selection.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-WorkspaceClient"></a>
 
 ## [INTERFACE] `WorkspaceClient`
@@ -5169,6 +5788,55 @@ export async function executeWorkspace<T>(client: WorkspaceClient<T>, operation:
  return client.execute(operation, input); // Include the operation's required revision and validated fields.
 }
 ```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceConnection"></a>
+
+## [INTERFACE] `WorkspaceConnection`
+
+Cancellable request capabilities tied to one committed workspace identity.
+
+Imports: `@alneas/eaos-react/workspace-binding`.
+
+### Signature
+
+```typescript
+interface WorkspaceConnection extends WorkspaceApi {
+    identity: WorkspaceBindingIdentity | null;
+    readonly signal: AbortSignal;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `identity` | `WorkspaceBindingIdentity \| null` | Yes | Current verified identity, or null while unavailable. |
+| `signal` | `AbortSignal` | Yes | Aborted on scope change/unmount; remote effects may already have completed. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+useWorkspaceConnection
+
+### Public members
+
+#### `identity`
+
+Current verified identity, or null while unavailable.
+
+
+#### `signal`
+
+Aborted on scope change/unmount; remote effects may already have completed.
 
 
 

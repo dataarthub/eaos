@@ -78,6 +78,10 @@
     "./workspace-application": {
       "types": "./dist/workspace-application.d.ts",
       "import": "./dist/workspace-application.js"
+    },
+    "./workspace-binding": {
+      "types": "./dist/workspace-binding.d.ts",
+      "import": "./dist/workspace-binding.js"
     }
   },
   "files": [

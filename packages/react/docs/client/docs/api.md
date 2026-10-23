@@ -782,6 +782,47 @@ export async function compute(workerUrl: URL) {
 ```
 
 
+<a id="api-createWorkspaceApi"></a>
+
+## [FUNCTION] `createWorkspaceApi`
+
+Create a cancellable, credentialed JSON transport for explicit Host plugin routes.
+
+Imports: `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+declare function createWorkspaceApi(options: WorkspaceApiOptions): WorkspaceApi;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `WorkspaceApiOptions` | Yes | Trusted endpoint, fetch/header adapters and optional bounded deadline. |
+
+### Returns
+
+`WorkspaceApi`
+
+REST and command methods; callers validate the returned DTO.
+
+### Remarks
+
+No retries or fallback. Cancellation discards replies; remote writes may already have committed.
+
+### Errors and rejections
+
+Invalid configuration throws immediately; methods reject unsafe paths, aborts, HTTP or JSON failures.
+
+### Example
+
+```typescript
+import {createWorkspaceApi} from '@alneas/eaos-react/client'
+export const api=createWorkspaceApi({endpoint:'/api/plugins'})
+```
+
 <a id="api-fetchVerifiedComputeAsset"></a>
 
 ## [FUNCTION] `fetchVerifiedComputeAsset`
@@ -1769,4 +1810,331 @@ import { validateDownloadFilename } from '@alneas/eaos-react/client';
 validateDownloadFilename('report.csv');
 ```
 
+
+<a id="api-WorkspaceApi"></a>
+
+## [INTERFACE] `WorkspaceApi`
+
+Browser JSON transport; generic result types are caller assertions, not validators.
+
+Imports: `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApi {
+    request<T = unknown>(input: WorkspaceApiRequest): Promise<T>;
+    command<T = unknown>(input: WorkspaceApiCommand): Promise<T>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `request` | `Promise<T>` | Yes | Perform one REST request without retries or destination fallback. |
+| `command` | `Promise<T>` | Yes | POST one command, without retrying uncertain remote effects. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `request`
+
+Perform one REST request without retries or destination fallback.
+
+Parameters:
+
+- `input`: Plugin-relative path, HTTP verb, optional body and cancellation.
+
+Returns: Parsed JSON; rejects HTTP, JSON, timeout and cancellation failures.
+
+### Type parameters
+
+- `T`: Caller-asserted DTO type, validated by its owner.
+
+Example:
+
+```typescript
+import {createWorkspaceApi} from '@alneas/eaos-react/client'
+export const read=()=>createWorkspaceApi({endpoint:'/api/plugins'}).request({pluginId:'reports',path:'/snapshot'})
+```
+
+
+#### `command`
+
+POST one command, without retrying uncertain remote effects.
+
+Parameters:
+
+- `input`: Owner operation, JSON input and optional cancellation.
+
+Returns: Parsed JSON; rejects transport/HTTP/JSON errors and expired requests.
+
+### Type parameters
+
+- `T`: Caller-asserted DTO type, validated by its owner.
+
+Example:
+
+```typescript
+import {createWorkspaceApi} from '@alneas/eaos-react/client'
+export const refresh=()=>createWorkspaceApi({endpoint:'/api/plugins'}).command({pluginId:'reports',operation:'refresh',input:{}})
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceApiCommand"></a>
+
+## [INTERFACE] `WorkspaceApiCommand`
+
+JSON command request with an encoded operation path segment.
+
+Imports: `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApiCommand {
+    pluginId: string;
+    operation: string;
+    input: unknown;
+    signal?: AbortSignal;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical plugin identifier. |
+| `operation` | `string` | Yes | Owner-declared command name. |
+| `input` | `unknown` | Yes | Owner-validated command input. |
+| `signal` | `AbortSignal` | No | Caller cancellation. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `pluginId`
+
+Canonical plugin identifier.
+
+
+#### `operation`
+
+Owner-declared command name.
+
+
+#### `input`
+
+Owner-validated command input.
+
+
+#### `signal`
+
+Caller cancellation.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceApiError"></a>
+
+## [CLASS] `WorkspaceApiError`
+
+Sanitized transport failure; structured status supports owner error presentation.
+
+Imports: `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+declare class WorkspaceApiError extends Error {
+    readonly status: number;
+    constructor(status: number);
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | `number` | Yes | Failed HTTP response status. |
+
+### Returns
+
+`WorkspaceApiError`
+
+### See also
+
+createWorkspaceApi *
+
+### Constructor contract
+
+### Public members
+
+#### `status`
+
+HTTP status returned by the destination.
+
+
+
+### Example
+
+```typescript
+import {WorkspaceApiError} from '@alneas/eaos-react/client'
+export const isConflict=(error:unknown)=>error instanceof WorkspaceApiError&&error.status===409
+```
+
+<a id="api-WorkspaceApiOptions"></a>
+
+## [INTERFACE] `WorkspaceApiOptions`
+
+Configured browser endpoint; identity and authorization remain server-owned.
+
+Imports: `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApiOptions {
+    endpoint: string;
+    fetch?: typeof fetch;
+    headers?: () => Record<string, string>;
+    timeoutMs?: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `endpoint` | `string` | Yes | Root-relative same-origin path or credential-free HTTPS URL without query/fragment. |
+| `fetch` | `typeof fetch` | No | Fetch boundary; defaults to the browser implementation. |
+| `headers` | `() => Record<string, string>` | No | Current session/CSRF headers, read for each request. |
+| `timeoutMs` | `number` | No | Positive request deadline in milliseconds; defaults to 15000. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `endpoint`
+
+Root-relative same-origin path or credential-free HTTPS URL without query/fragment.
+
+
+#### `fetch`
+
+Fetch boundary; defaults to the browser implementation.
+
+
+#### `headers`
+
+Current session/CSRF headers, read for each request.
+
+
+#### `timeoutMs`
+
+Positive request deadline in milliseconds; defaults to 15000.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-WorkspaceApiRequest"></a>
+
+## [INTERFACE] `WorkspaceApiRequest`
+
+JSON request to a plugin-relative REST route. Payload validation belongs to its owner.
+
+Imports: `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+interface WorkspaceApiRequest {
+    pluginId: string;
+    path: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    body?: unknown;
+    signal?: AbortSignal;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `pluginId` | `string` | Yes | Canonical plugin identifier. |
+| `path` | `string` | Yes | Absolute plugin-relative path; encode record IDs as individual segments. |
+| `method` | `'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE'` | No | HTTP verb, defaulting to GET. |
+| `body` | `unknown` | No | JSON body; omitted for read requests. |
+| `signal` | `AbortSignal` | No | Caller cancellation, combined with the configured deadline. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Public members
+
+#### `pluginId`
+
+Canonical plugin identifier.
+
+
+#### `path`
+
+Absolute plugin-relative path; encode record IDs as individual segments.
+
+
+#### `method`
+
+HTTP verb, defaulting to GET.
+
+
+#### `body`
+
+JSON body; omitted for read requests.
+
+
+#### `signal`
+
+Caller cancellation, combined with the configured deadline.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
