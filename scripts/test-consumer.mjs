@@ -78,6 +78,11 @@ console.log('Packed CLI stages only requested collection modules with public exp
   await writeFile(join(consumer,'standard-host.ts'),await readFile(join(root,'scripts/fixtures/standard-host-consumer.ts'),'utf8'))
   execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--types','node','standard-host.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
   execFileSync(process.execPath,['standard-host.ts'],{cwd:consumer,stdio:'inherit'})
+  await writeFile(join(consumer,'workspace-binding.ts'),await readFile(join(root,'scripts/fixtures/workspace-binding-consumer.ts'),'utf8'))
+  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--types','node','workspace-binding.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+  execFileSync(process.execPath,['workspace-binding.ts'],{cwd:consumer,stdio:'inherit'})
+  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--types','node','generated/bindings.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+
   const readmeExamples=[]
   const readmes=[{name:'monorepo',text:await readFile(join(root,'README.md'),'utf8')}]
   for(const archive of manifest.archives)for(const filename of ['README.md','README.ja.md']) {

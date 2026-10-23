@@ -12,6 +12,8 @@ tags: ["eaos","explanation"]
 
 # Server execution and persistence
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js runtime](https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/learn/getting-started/introduction-to-nodejs) [![Hono server](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/)
+
 ## Elevator Pitch
 
 Host developers use Server to compose HTTP/MCP, lifecycle and durable data services.
@@ -51,3 +53,6 @@ console.log(canonical({ format: 1, operation: 'inspect' }))
 - [Architecture and boundaries](guide.md)
 - [API reference](api.md)
 - [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+- [Standard Host startup (development candidate)](https://github.com/dataarthub/eaos/blob/main/packages/server/docs/standard-host.md)
+
+English questions and issue reports are welcome in the [EAOS issue tracker](https://github.com/dataarthub/eaos/issues). Do not include private tenant data, credentials or operator receipts.

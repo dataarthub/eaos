@@ -5909,7 +5909,7 @@ interface WorkspaceApiRequest {
 | `pluginId` | `string` | Yes | Canonical plugin identifier. |
 | `path` | `string` | Yes | Absolute plugin-relative path; encode record IDs as individual segments. |
 | `method` | `'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE'` | No | HTTP verb, defaulting to GET. |
-| `body` | `unknown` | No | JSON body; omitted for read requests. |
+| `body` | `unknown` | No | JSON value or multipart FormData; omitted for read requests. |
 | `signal` | `AbortSignal` | No | Caller cancellation, combined with the configured deadline. |
 
 ### Returns
@@ -5939,7 +5939,7 @@ HTTP verb, defaulting to GET.
 
 #### `body`
 
-JSON body; omitted for read requests.
+JSON value or multipart FormData; omitted for read requests.
 
 
 #### `signal`
@@ -6592,6 +6592,7 @@ Imports: `@alneas/eaos-react/workspace-application`.
 
 ```typescript
 interface WorkspaceFeatureBoundaryProps {
+    tenantIds?: readonly string[];
     pluginId: string;
     children: ReactNode;
     loading?: ReactNode;
@@ -6604,6 +6605,7 @@ interface WorkspaceFeatureBoundaryProps {
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
+| `tenantIds` | `readonly string[]` | No | Explicit registered tenant scope for a private contribution; omission allows the Host's live admission. |
 | `pluginId` | `string` | Yes | Plugin owning protected children. |
 | `children` | `ReactNode` | Yes | Content mounted only after verified admission. |
 | `loading` | `ReactNode` | No | Loading presentation override. |
@@ -6619,6 +6621,11 @@ Type declaration; no runtime value.
 WorkspaceApplication
 
 ### Public members
+
+#### `tenantIds`
+
+Explicit registered tenant scope for a private contribution; omission allows the Host's live admission.
+
 
 #### `pluginId`
 

@@ -2127,7 +2127,7 @@ interface WorkspaceApiRequest {
 | `pluginId` | `string` | Yes | Canonical plugin identifier. |
 | `path` | `string` | Yes | Absolute plugin-relative path; encode record IDs as individual segments. |
 | `method` | `'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE'` | No | HTTP verb, defaulting to GET. |
-| `body` | `unknown` | No | JSON body; omitted for read requests. |
+| `body` | `unknown` | No | JSON value or multipart FormData; omitted for read requests. |
 | `signal` | `AbortSignal` | No | Caller cancellation, combined with the configured deadline. |
 
 ### Returns
@@ -2157,7 +2157,7 @@ HTTP verb, defaulting to GET.
 
 #### `body`
 
-JSON body; omitted for read requests.
+JSON value or multipart FormData; omitted for read requests.
 
 
 #### `signal`

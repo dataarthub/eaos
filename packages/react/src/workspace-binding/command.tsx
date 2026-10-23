@@ -66,7 +66,7 @@ export function WorkspaceScope({environment,name,label,submitLabel='Open',childr
  return <><form onSubmit={event=>{
   event.preventDefault();const value=new FormData(event.currentTarget).get('scope')
   if(typeof value!=='string'||!value.trim()||value.length>128)return
-  const next=value.trim(),query=new URLSearchParams(environment.query.read());query.set(name,next);environment.query.replace(query.toString());setId(next)
+  const next=value.trim(),query=new URLSearchParams(environment.query.read());query.set(name,next);environment.query.replace('?'+query.toString());setId(next)
  }}><label>{label}<input name="scope" required maxLength={128} defaultValue={id}/></label><button type="submit">{submitLabel}</button></form>{id&&<section key={id}>{children(id)}</section>}</>
 }
 /** Connected aggregate route, scope and canonical owner Provider.

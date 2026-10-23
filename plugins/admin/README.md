@@ -1,5 +1,9 @@
 # @alneas/eaos-plugins/admin
 
+[English](README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/plugins/admin/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Hono server](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/) [![React UI](https://img.shields.io/badge/React-149ECA?style=flat&logo=react&logoColor=white)](https://react.dev/learn)
+
 ## Elevator Pitch
 
 Administrators use the generic admin plugin to inspect explicitly exposed resources and audit history.
@@ -40,3 +44,5 @@ console.log(manifest.id, manifest.version)
 - [Host integration](docs/maintainer-guide.md)
 - [API reference](docs/api.md)
 - [Architecture](docs/guide.md)
+
+English questions and issue reports are welcome in the [EAOS issue tracker](https://github.com/dataarthub/eaos/issues). Do not include private tenant data, credentials or operator receipts.

@@ -117,6 +117,6 @@ export function WorkspaceFeatureBoundary(props:WorkspaceFeatureBoundaryProps):Re
  const session=useSession(),tenant=useTenantModule<WorkspaceContext>(),state=resolveWorkspaceState(session,tenant)
  if(session.error||tenant.error)return <Failure error={(session.error??tenant.error)!} retry={()=>void tenant.refetchContext()} renderError={props.renderError}/>
  if(state==='session-loading'||state==='tenant-loading')return <>{props.loading??loadingDefault}</>
- if(state!=='ready'||!tenant.context?.plugins?.some(plugin=>plugin.id===props.pluginId))return <>{props.unavailable??unavailableDefault}</>
+ if(state!=='ready'||props.tenantIds&&!props.tenantIds.includes(tenant.context?.tenantId??'')||!tenant.context?.plugins?.some(plugin=>plugin.id===props.pluginId))return <>{props.unavailable??unavailableDefault}</>
  return <PluginGate pluginId={props.pluginId} fallback={props.unavailable??unavailableDefault}>{props.children}</PluginGate>
 }

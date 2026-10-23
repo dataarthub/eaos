@@ -14501,6 +14501,7 @@ Imports: `@alneas/eaos-cli/platform`.
 ```typescript
 interface StageFrontendOptions {
     config?: string;
+    packageConfig?: string;
     output: string;
     reservedRoutes: readonly string[];
 }
@@ -14511,6 +14512,7 @@ interface StageFrontendOptions {
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
 | `config` | `string` | No | Existing project-relative catalog; defaults to frontend.packages.json. |
+| `packageConfig` | `string` | No | Optional application package registrations; preserves their explicit tenant scope. |
 | `output` | `string` | Yes | Project-relative generated module, outside acquired immutable artifact storage. |
 | `reservedRoutes` | `readonly string[]` | Yes | Exact host-owned routes unavailable to contributed pages. |
 
@@ -14527,6 +14529,11 @@ stageFrontendArtifacts
 #### `config`
 
 Existing project-relative catalog; defaults to frontend.packages.json.
+
+
+#### `packageConfig`
+
+Optional application package registrations; preserves their explicit tenant scope.
 
 
 #### `output`

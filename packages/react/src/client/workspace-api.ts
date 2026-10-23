@@ -22,7 +22,7 @@ export interface WorkspaceApiRequest {
  path:string
  /** HTTP verb, defaulting to GET. */
  method?:'GET'|'POST'|'PUT'|'PATCH'|'DELETE'
- /** JSON body; omitted for read requests. */
+ /** JSON value or multipart FormData; omitted for read requests. */
  body?:unknown
  /** Caller cancellation, combined with the configured deadline. */
  signal?:AbortSignal
@@ -116,6 +116,10 @@ export function createWorkspaceApi(options:WorkspaceApiOptions):WorkspaceApi {
   safePath(input.path)
   const method=input.method??'GET'
   if(!['GET','POST','PUT','PATCH','DELETE'].includes(method)||method==='GET'&&input.body!==undefined)throw Error('Invalid workspace request method/body')
+  const multipart=typeof FormData!=='undefined'&&input.body instanceof FormData
+  const headers=new Headers(options.headers?.())
+  headers.set('Accept','application/json');headers.set('X-EAOS-Request','plugin-command')
+  if(multipart)headers.delete('Content-Type');else headers.set('Content-Type','application/json')
   const controller=new AbortController(),abort=()=>controller.abort(input.signal?.reason)
   input.signal?.throwIfAborted();input.signal?.addEventListener('abort',abort,{once:true})
   let rejectAbort:(reason:unknown)=>void=()=>{}
@@ -127,8 +131,8 @@ export function createWorkspaceApi(options:WorkspaceApiOptions):WorkspaceApi {
    return await Promise.race([aborted,(async()=>{
    const response=await fetcher(`${endpoint.replace(/\/$/,'')}/${encodeURIComponent(input.pluginId)}${input.path}`,{
     method,credentials:'include',redirect:'error',cache:'no-store',signal:controller.signal,
-    headers:{...options.headers?.(),'Content-Type':'application/json',Accept:'application/json','X-EAOS-Request':'plugin-command'},
-    ...(input.body===undefined?{}:{body:JSON.stringify(input.body)}),
+    headers:Object.fromEntries(headers),
+    ...(input.body===undefined?{}:{body:multipart?input.body as FormData:JSON.stringify(input.body)}),
    })
    controller.signal.throwIfAborted()
    if(!response.ok)throw new WorkspaceApiError(response.status)

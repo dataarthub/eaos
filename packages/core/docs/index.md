@@ -12,6 +12,8 @@ tags: ["eaos","explanation"]
 
 # Core contracts and plugin SDK
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js runtime](https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/learn/getting-started/introduction-to-nodejs) [![Bun tooling](https://img.shields.io/badge/Bun-14151A?style=flat&logo=bun&logoColor=white)](https://bun.sh/docs)
+
 ## Elevator Pitch
 
 Plugin authors use Core to declare portable features, data ownership and entitlement contracts.
@@ -58,3 +60,5 @@ export const notes = definePlugin({
 - [Architecture and boundaries](guide.md)
 - [API reference](api.md)
 - [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+
+English questions and issue reports are welcome in the [EAOS issue tracker](https://github.com/dataarthub/eaos/issues). Do not include private tenant data, credentials or operator receipts.

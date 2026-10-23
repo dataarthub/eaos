@@ -19,6 +19,15 @@ and a credentialed backend that independently enforces membership, feature
 admission and resource permissions. Keep the existing authentication provider and
 tenant store. Page registration never activates a feature.
 
+## Public import
+
+Use `@alneas/eaos-react/client` for `createWorkspaceApi` and
+`@alneas/eaos-react/workspace-binding` for the connected environment and composition.
+Generic record and command helpers have the published
+`@alneas/eaos-react/workspace-binding/record` and
+`@alneas/eaos-react/workspace-binding/command` entries. Feature factories belong
+to their owning feature package; this package imports no business implementation.
+
 ## Step-by-Step Implementation
 
 Create a browser API through the public client entry:
@@ -101,3 +110,9 @@ defaults to 15000 ms; an abort cannot prove a remote write was rolled back.
   empty dataset. Reconcile uncertain writes before retrying them.
 - Keep server/database code and credentials outside browser entrypoints.
 - Feature-specific renderers and workers remain explicit adopter ports.
+
+Query replacement receives a URL search string, including its leading `?`.
+Hosts may append it directly to the current pathname. Scoped REST requests
+accept JSON values or `FormData` for multipart uploads; fetch supplies multipart
+boundaries, and configured Host headers and cancellation still apply. Response
+DTOs remain owner-validated JSON.

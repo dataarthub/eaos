@@ -48,3 +48,22 @@ test('origin-only HTTPS endpoints and percent-containing record IDs are valid',a
  await api.request({pluginId:'records',path:'/items/a%25b'})
  expect(urls).toEqual(['https://app.example.test/records/items/a%25b'])
 })
+
+test('multipart upload preserves browser boundaries and current Host headers',async()=>{
+ const form=new FormData();form.set('siteId','one');form.set('file',new Blob(['image'],{type:'image/png'}),'image.png')
+ let sent:RequestInit|undefined
+ const api=createWorkspaceApi({endpoint:'/api/plugins',headers:()=>({'X-Tenant-Id':'tenant-a','Content-Type':'application/json'}),fetch:async(_url,init)=>{sent=init;return Response.json({saved:true})}})
+ await api.request({pluginId:'content',path:'/media/upload',method:'POST',body:form})
+ expect(sent?.body).toBe(form)
+ expect(new Headers(sent?.headers).get('Content-Type')).toBeNull()
+ expect(new Headers(sent?.headers).get('X-Tenant-Id')).toBe('tenant-a')
+})
+
+test('transport headers retain the established plain-record adapter contract',async()=>{
+ const api=createWorkspaceApi({endpoint:'/api/plugins',fetch:async(_url,init)=>{
+  const forwarded={...init?.headers}
+  expect(new Headers(forwarded).get('X-EAOS-Request')).toBe('plugin-command')
+  return Response.json({})
+ }})
+ await api.command({pluginId:'records',operation:'save',input:{}})
+})

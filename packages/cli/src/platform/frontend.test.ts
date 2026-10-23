@@ -7,10 +7,10 @@ import { acquireFrontendArtifact, stageFrontendArtifacts } from './frontend'
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'eaos-frontend-'))
-  async function artifact(id: string, route = '/business/' + id) {
+  async function artifact(id: string, route = '/business/' + id, navigation = true) {
     const folder = join(root, 'inputs', id)
     await mkdir(folder, { recursive: true })
-    const source = 'export const Page = () => "fixture"; export const webNavigation = { label: "Business" };\n'
+    const source = 'export const Page = () => "fixture";' + (navigation ? ' export const webNavigation = { label: "Business" };' : '') + '\n'
     await writeFile(join(folder, 'index.js'), source)
     const inventory = { apiVersion: 1, owner: 'fixture-' + id, version: '1.0.0', runtime: 'index.js', functions: [], assets: [{ path: 'index.js', sha256: createHash('sha256').update(source).digest('hex') }], frontend: { pluginId: id, routes: [{ path: route, component: 'Page' }] } }
     const file = join(folder, 'deployment.json')
@@ -110,4 +110,35 @@ test('held operation locks and traversal fail without changing selected bytes', 
     await expect(stageFrontendArtifacts(f.root, { output: 'blocked/private.js', reservedRoutes: [] })).rejects.toThrow()
     expect(await readFile(join(f.root, 'frontend.packages.json'), 'utf8')).toBe(config)
   } finally { await f.close() }
+})
+
+test('registered mixed server/browser package stages its browser entry and explicit tenant scope',async()=>{
+ const f=await fixture()
+ try{
+  const file=await f.artifact('one'),folder=join(file,'..')
+  const inventory=JSON.parse(await readFile(file,'utf8'))
+  const browser=await readFile(join(folder,'index.js'),'utf8')
+  await writeFile(join(folder,'web.js'),browser)
+  await writeFile(join(folder,'index.js'),'export const createExtension=()=>({});\n')
+  inventory.assets=[{path:'web.js',sha256:createHash('sha256').update(browser).digest('hex')},{path:'index.js',sha256:createHash('sha256').update(await readFile(join(folder,'index.js'))).digest('hex')}]
+  inventory.frontend.runtime='web.js'
+  await writeFile(file,JSON.stringify(inventory))
+  await writeFile(join(f.root,'eaos.platform.json'),JSON.stringify({packages:[{id:'fixture-one',inventory:'inputs/one/deployment.json',module:'inputs/one/index.js',pluginIds:['one'],tenantIds:['tenant-a']}]}))
+  await stageFrontendArtifacts(f.root,{packageConfig:'eaos.platform.json',output:'web/private.js',reservedRoutes:[]})
+  const module=await import(join(f.root,'web/private.js'))
+  expect(module.privatePages[0].component()).toBe('fixture')
+  expect(module.privatePages[0].tenantIds).toEqual(['tenant-a'])
+ }finally{await f.close()}
+})
+
+test('optional navigation export does not break a strict generated TypeScript consumer',async()=>{
+ const f=await fixture()
+ try{
+  await acquireFrontendArtifact(f.root,await f.artifact('no-nav','/business/no-nav',false))
+  await stageFrontendArtifacts(f.root,{output:'web/private.ts',reservedRoutes:[]})
+  await writeFile(join(f.root,'tsconfig.json'),JSON.stringify({compilerOptions:{strict:true,allowJs:true,noEmit:true,skipLibCheck:true,types:[],target:'ES2022',module:'ESNext',moduleResolution:'bundler'},include:['web/private.ts']}))
+  const result=Bun.spawnSync(['bun',join(import.meta.dirname,'../../../../node_modules/typescript/bin/tsc'),'--project',join(f.root,'tsconfig.json')])
+  expect(result.stdout.toString()+result.stderr.toString()).toBe('')
+  expect(result.exitCode).toBe(0)
+ }finally{await f.close()}
 })

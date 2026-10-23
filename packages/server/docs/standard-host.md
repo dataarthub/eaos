@@ -4,13 +4,20 @@ description: "Start an explicitly adopted multitenant backend with injected auth
 sidebar:
   order: 35
 archetype: how-to
-project: eaos
+project: eaos-workspace
 tags: [server, host, authentication]
 ---
 
 # Compose an authenticated Host
 
 This guide describes an unreleased development candidate. Verify and adopt the exact tested archive before using the new `/host` entry. It is not a registry availability or deployment claim.
+
+## Prerequisites
+
+Use the exact tested public Server candidate and its declared runtime and peer
+dependencies. Supply real session verification, membership resolution, durable
+Lifecycle storage and tenant-aware database/provider adapters. An unconfigured
+Host must deny protected operations.
 
 ## Public import
 
@@ -30,7 +37,9 @@ export async function startApplication(options: StandardHostOptions) {
 
 Creating a Host opens no listener, creates no credentials/pools, applies no schema migrations and activates no tenants. The application owns its process listener and any public gateway outside the authenticated app.
 
-## Choose adopted features
+## Step-by-Step Implementation
+
+### Choose adopted features
 
 Supply `adoption.manifests` from the application's effective generated catalog, together with executable route factories and selected MCP IDs. `pluginIds` omitted means exactly that supplied catalog plus trusted contributed manifests. An explicit empty array adopts nothing. Unknown or duplicate IDs and competing extension ownership reject before runtime services are constructed. Catalog growth does not implicitly add dependencies.
 
@@ -38,7 +47,7 @@ Already verified extension registrations retain explicit tenant restrictions. Th
 
 `createStandardHostPolicy` is the supported lower-level policy composition entry. Existing Engine and extension helpers remain available for applications that need different assembly.
 
-## Supply real capabilities
+### Supply real capabilities
 
 `auth.verifier` verifies sessions/API keys. `auth.membership` resolves the authorized tenant and sets verified workspace context after authentication. Account/provider reads and database routing remain application adapters. No browser-supplied role or tenant field establishes membership by itself.
 
@@ -46,7 +55,7 @@ Already verified extension registrations retain explicit tenant restrictions. Th
 
 Construction follows metadata validation, Lifecycle resolution, entitlement runtime construction, Engine initialization and route assembly. Rejection yields no completed app; separate startup calls have independent registries and runtime context. Settings and adapter references are copied before awaiting initialization. The functions behind those adapters remain live capabilities.
 
-## Connect routes and tools
+### Connect routes and tools
 
 Authenticated requests pass through Engine authentication, optional release header, verified membership, module context and canonical plugin authorization before plugin-specific gates. Existing authentication prefix exemptions and Engine CORS behavior remain unchanged; supply the application's reviewed exact origins and skip-path configuration.
 
@@ -54,8 +63,16 @@ Authenticated requests pass through Engine authentication, optional release head
 
 For nonempty effective MCP IDs, supply `mcp.bindPlugin` and a trusted request-local `requestContext` bridge. The standard adapter compares current tenant/user/feature admission before binding and rechecks immediately before invoking a named tool with current roles. A missing feature, denied binder or unknown tool remains unavailable. `createHostMcpToolContext` exposes the same adapter for compatible lower-level integrations; never implement its current context with a process-wide variable.
 
-## Verify the adopted candidate
+## Verification
 
 Use actual Hono requests and owning workflow tests to verify exact and nested routes, tenant-restricted extensions, HTTP/MCP records, stale writes and revoked membership. The owning public archive consumer checks `/host` runtime and strict declarations in a disposable registry/packed install. A private aggregate receipt verifies only the dependencies that it actually embeds; it does not establish adoption of a different public Server archive.
 
 See [Host admission](host-admission.md) for the canonical membership/module primitives and [the Server README](../README.md) for package/runtime requirements. Deployment, migration and tenant activation are separate operations.
+
+## Troubleshooting / Common Pitfalls
+
+- An explicit empty adoption is valid; an unknown or duplicate ID is not.
+- Missing or failed Lifecycle resolution is not an active feature. Diagnose the
+  configured runtime instead of substituting an allow-all adapter.
+- Bind request context per request. A process-wide principal can cross tenant or
+  user boundaries even when the initial authentication check succeeded.

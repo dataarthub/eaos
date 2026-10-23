@@ -208,7 +208,11 @@
     "admin/CHANGELOG.md",
     "approval/LICENSE",
     "field-customization/LICENSE",
-    "admin/LICENSE"
+    "admin/LICENSE",
+    "README.ja.md",
+    "approval/README.ja.md",
+    "field-customization/README.ja.md",
+    "admin/README.ja.md"
   ],
   "scripts": {
     "build": "tsup && bun build.ts",

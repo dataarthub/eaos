@@ -12,6 +12,8 @@ tags: ["eaos","explanation"]
 
 # @alneas/eaos-plugins/approval
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Hono server](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/) [![React UI](https://img.shields.io/badge/React-149ECA?style=flat&logo=react&logoColor=white)](https://react.dev/learn)
+
 ## Elevator Pitch
 
 Teams use the generic approval plugin to request and record explicit review decisions.
@@ -52,3 +54,5 @@ console.log(manifest.id, manifest.version)
 - [Host integration](maintainer-guide.md)
 - [API reference](api.md)
 - [Architecture](guide.md)
+
+English questions and issue reports are welcome in the [EAOS issue tracker](https://github.com/dataarthub/eaos/issues). Do not include private tenant data, credentials or operator receipts.

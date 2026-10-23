@@ -1,5 +1,9 @@
 # @alneas/eaos-plugins
 
+[English](README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/plugins/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Hono server](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/) [![React UI](https://img.shields.io/badge/React-149ECA?style=flat&logo=react&logoColor=white)](https://react.dev/learn)
+
 ## Elevator Pitch
 
 EAOS host developers use this MIT collection to add approval, field customization and administration through explicitly selected feature modules.
@@ -50,3 +54,5 @@ For `/approval/react`, `/field-customization/react` or `/admin/react`, also inst
 - [Administration feature and API](admin/README.md)
 - [Collection architecture](docs/architecture.md)
 - [Change history](https://github.com/dataarthub/eaos/blob/main/plugins/CHANGELOG.md)
+
+English questions and issue reports are welcome in the [EAOS issue tracker](https://github.com/dataarthub/eaos/issues). Do not include private tenant data, credentials or operator receipts.

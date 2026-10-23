@@ -2,15 +2,16 @@ import { createHash, randomUUID } from 'node:crypto'
 import { lstat, mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
+import {validatePlatformPackages} from '@alneas/eaos-server/platform'
 import { createDeploymentPlan } from './deployment-plan'
 import { safePath, readJson } from './files'
 
-interface FrontendPackage { id: string; pluginId: string; inventory: string }
+interface FrontendPackage { id: string; pluginId: string; inventory: string; tenantIds?:string[] }
 interface FrontendInventory {
   owner: string
   runtime: string
   assets: { path: string; sha256: string }[]
-  frontend: { pluginId: string; routes: { path: string; component: string }[] }
+  frontend: { pluginId: string; runtime?:string; routes: { path: string; component: string }[] }
 }
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex')
 const identifier = /^[A-Za-z_$][A-Za-z0-9_$]*$/
@@ -61,8 +62,9 @@ function exportedNames(contents: string) {
 async function inspectInventory(file: string): Promise<FrontendInventory> {
   await createDeploymentPlan([file])
   const inventory = (await readJson(file)).data as FrontendInventory
-  if (inventory.runtime !== 'index.js' || !inventory.frontend || typeof inventory.frontend.pluginId !== 'string' || !inventory.frontend.pluginId.trim() || !Array.isArray(inventory.frontend.routes) || inventory.frontend.routes.length > 1000) throw Error('Invalid frontend artifact contract')
-  const runtime = await safePath(dirname(file), inventory.runtime)
+  if (!inventory.runtime || !inventory.frontend || typeof inventory.frontend.pluginId !== 'string' || !inventory.frontend.pluginId.trim() || !Array.isArray(inventory.frontend.routes) || inventory.frontend.routes.length > 1000) throw Error('Invalid frontend artifact contract')
+  const runtime = await safePath(dirname(file), inventory.frontend.runtime ?? inventory.runtime)
+  if(!inventory.assets.some(asset=>resolve(dirname(file),asset.path)===runtime))throw Error('Frontend runtime is not a verified asset')
   const names = exportedNames(await readFile(runtime, 'utf8'))
   for (const route of inventory.frontend.routes) {
     if (!route || typeof route.path !== 'string' || !/^\/[A-Za-z0-9/_-]*$/.test(route.path) || route.path.includes('//') || !identifier.test(route.component)) throw Error('Invalid frontend route')
@@ -142,6 +144,8 @@ export async function acquireFrontendArtifact(root: string, inventoryPath: strin
 export interface StageFrontendOptions {
   /** Existing project-relative catalog; defaults to frontend.packages.json. */
   config?: string
+  /** Optional application package registrations; preserves their explicit tenant scope. */
+  packageConfig?:string
   /** Project-relative generated module, outside acquired immutable artifact storage. */
   output: string
   /** Exact host-owned routes unavailable to contributed pages. */
@@ -165,19 +169,29 @@ export async function stageFrontendArtifacts(root: string, options: StageFronten
   const storage = resolve(root, '.eaos/frontend')
   if (output === storage || output.startsWith(storage + '/')) throw Error('Generated output cannot replace an immutable artifact')
   if (output === await safePath(root, options.config ?? 'frontend.packages.json')) throw Error('Generated output cannot replace the frontend catalog')
+  if(options.packageConfig&&output===await safePath(root,options.packageConfig))throw Error('Generated output cannot replace application package registrations')
   return withLock(root, async () => {
     const catalog = await optionalCatalog(root, options.config ?? 'frontend.packages.json')
+    if(options.packageConfig){
+      const manifest=(await readJson(await safePath(root,options.packageConfig))).data as {packages?:unknown}
+      for(const registration of validatePlatformPackages(manifest.packages)){
+        const inventory=(await readJson(await safePath(root,registration.inventory))).data as FrontendInventory
+        if(!inventory.frontend)continue
+        if(!registration.pluginIds.includes(inventory.frontend.pluginId))throw Error('Registered frontend plugin differs')
+        catalog.packages.push({id:registration.id,pluginId:inventory.frontend.pluginId,inventory:registration.inventory,tenantIds:registration.tenantIds})
+      }
+    }
     const selected = await inspectSelection(root, catalog.packages, options.reservedRoutes)
     if (selected.some(item => item.file === output || item.inventory.assets.some(asset => resolve(dirname(item.file), asset.path) === output))) throw Error('Generated output cannot replace a selected artifact')
     const imports: string[] = [], navigation: string[] = [], pages: string[] = [], routes: string[] = []
     for (const [index, item] of selected.entries()) {
-      const module = await safePath(dirname(item.file), item.inventory.runtime)
+      const module = await safePath(dirname(item.file), item.inventory.frontend.runtime ?? item.inventory.runtime)
       const specifier = relative(dirname(output), module).replaceAll('\\', '/')
       imports.push(`import * as contribution${index} from ${JSON.stringify(specifier.startsWith('.') ? specifier : './' + specifier)}`)
-      navigation.push(`{pluginId:${JSON.stringify(item.registration.pluginId)},navigation:contribution${index}.webNavigation}`)
+      navigation.push(`{pluginId:${JSON.stringify(item.registration.pluginId)},navigation:Reflect.get(contribution${index},'webNavigation')}`)
       for (const route of item.inventory.frontend.routes) {
         routes.push(route.path)
-        pages.push(`{path:${JSON.stringify(route.path)},pluginId:${JSON.stringify(item.registration.pluginId)},component:contribution${index}.${route.component}}`)
+        pages.push(`{path:${JSON.stringify(route.path)},pluginId:${JSON.stringify(item.registration.pluginId)},component:contribution${index}.${route.component}${item.registration.tenantIds?',tenantIds:'+JSON.stringify(item.registration.tenantIds):''}}`)
       }
     }
     await atomicWrite(output, imports.join('\n') + '\nexport const privateNavigation=[' + navigation.join(',') + ']\nexport const privatePages=[' + pages.join(',') + ']\n')

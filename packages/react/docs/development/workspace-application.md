@@ -18,7 +18,21 @@ Keep the Host's production base reset (the archive fixture uses Tailwind 4
 preflight) so browser default form colors do not override the intended controls.
 The entry is `@alneas/eaos-react/workspace-application`.
 
-## Connect an existing Host
+## Public import
+
+```typescript
+import {
+  WorkspaceApplication,
+  WorkspaceFeatureBoundary,
+  type WorkspaceApplicationProps,
+  type WorkspaceContext,
+} from '@alneas/eaos-react/workspace-application'
+
+export const workspaceComponents = { WorkspaceApplication, WorkspaceFeatureBoundary }
+export type HostWorkspaceOptions = WorkspaceApplicationProps<WorkspaceContext>
+```
+
+## Step-by-Step Implementation
 
 1. Create a stable `createTenantModuleStore<WorkspaceContext>` from
    `@alneas/eaos-react`. Its loader owns authenticated transport, response
@@ -43,7 +57,7 @@ Host settings. The default refresh event is `focus`; provider-specific events
 must be passed through `refreshEvents`. Focus listeners coalesce an in-flight refresh; session-change events invalidate it
 and are removed on replacement/unmount.
 
-## Verify identity and errors
+## Verification
 
 Only public Appkit `isSessionVerified === true` plus matching tenant/user identity
 can display protected content. Optimistic display data cannot admit it. Context
@@ -63,3 +77,16 @@ Verify provider context identity in the production module graph when combining
 compatibility entries, then exercise login/sidebar/theme/logout with real
 providers and synthetic network responses. A successful mocked browser journey
 does not establish real provider account lifecycle or deployment readiness.
+
+## Troubleshooting / Common Pitfalls
+
+- A verified session must agree with the context's user and tenant. Refresh the
+  canonical store when it does not; never manufacture an admitted context.
+- Missing Appkit providers or duplicate provider instances are Host integration
+  errors. Check the real bundler module graph and the installed peer versions.
+- Shipped pages, navigation and current server grants must intersect. A route
+  entry is not permission to call its API.
+
+Private artifact pages may pass `tenantIds` to `WorkspaceFeatureBoundary`.
+The boundary requires both a matching current tenant and live plugin admission;
+feature IDs alone do not override an explicit artifact registration scope.

@@ -119,3 +119,11 @@ test('replacing auth provider inside the same frame invalidates the old logout',
  expect(container.querySelector('[role="alert"]')===null).toBe(true)
  await act(async()=>{(container.querySelector('button[aria-label="ログアウト"]') as HTMLButtonElement).click()});expect(logouts).toBe(1)
 })
+
+test('registered tenant scope denies foreign UI even when the plugin ID is enabled',async()=>{
+ const store=createTenantModuleStore(async()=>context())
+ const draw=async(tenantIds:string[])=>{await act(async()=>{root.render(<WorkspaceApplication frame={Frame} store={store} pages={pages} router={{pathname:'/',navigate:()=>{},outlet:<WorkspaceFeatureBoundary pluginId="reports" tenantIds={tenantIds}><Protected/></WorkspaceFeatureBoundary>}}/>);await Bun.sleep(40)});await settle()}
+ await draw(['other']);expect(mounts).toBe(0)
+ await draw(['t1']);expect(mounts).toBe(1)
+ await draw(['other']);expect(container.querySelector('input[aria-label="Draft"]')).toBeNull()
+})

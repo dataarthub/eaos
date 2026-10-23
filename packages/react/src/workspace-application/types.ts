@@ -158,6 +158,8 @@ export interface WorkspaceApplicationProps<T extends WorkspaceContext=WorkspaceC
  * @see WorkspaceApplication
  */
 export interface WorkspaceFeatureBoundaryProps {
+ /** Explicit registered tenant scope for a private contribution; omission allows the Host's live admission. */
+ tenantIds?:readonly string[]
  /** Plugin owning protected children. */
  pluginId:string
  /** Content mounted only after verified admission. */

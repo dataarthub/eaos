@@ -25,6 +25,7 @@ test('explicit query resource changes discard drafts and cancel old connected wo
   await act(async()=>{const input=container.querySelector<HTMLInputElement>('[name="scope"]'),form=container.querySelector('form');if(!input||!form)throw Error('missing scope');input.value='two';form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))})
   expect(signals[0].aborted).toBe(true);expect(signals[1].aborted).toBe(false)
   expect(container.querySelector<HTMLInputElement>('[aria-label="Draft"]')?.value).toBe('two')
+  expect(new URL('https://app.example.test/plugins/records'+search).pathname).toBe('/plugins/records')
   expect(new URLSearchParams(search).get('resourceId')).toBe('two')
  }finally{await act(async()=>root.unmount());container.remove()}
  expect(signals.every(signal=>signal.aborted)).toBe(true)

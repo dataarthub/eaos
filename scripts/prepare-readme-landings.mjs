@@ -1,4 +1,5 @@
 // Generate portal wrappers from plain READMEs using project-owned metadata.
+import { portalReadmeSource } from './readme-portal-source.mjs';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, posix } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
@@ -10,7 +11,7 @@ const mapping = new Map(entries.map(item => [item.source, item.output]));
 for (const item of entries) {
  const source = readFileSync(resolve(root, item.source), 'utf8');
  if (source.startsWith('---')) throw Error('README must be plain Markdown: ' + item.source);
- const body = source.replace(/(!?\[[^\]]*\]\()([^\s)]+)(\))/g, (all, prefix, target, suffix) => {
+ const body = portalReadmeSource(source).replace(/(!?\[[^\]]*\]\()([^\s)]+)(\))/g, (all, prefix, target, suffix) => {
   if (/^(?:https?:|mailto:|#)/i.test(target)) return all;
   const [file, fragment] = target.split('#');
   const canonical = posix.normalize(posix.join(posix.dirname(item.source), file));

@@ -1,24 +1,29 @@
-# eaos-core
+# Core contracts and plugin SDK
 
-## 概要
+[English](README.md) | [日本語](README.ja.md)
 
-EAOSを組み込む開発者向けに、所有する公開機能と型付きの利用入口を提供します。
+日本語ドキュメントは[EAOSドキュメントサイト](https://tech-docs.alneas.com/ja/eaos-workspace/)で参照できます。未翻訳・レビュー待ちのページは英語表示です。未公開APIの開発ガイドはリポジトリ内に分けて掲載しています。
 
-## 目的と利点
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js runtime](https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/learn/getting-started/introduction-to-nodejs) [![Bun tooling](https://img.shields.io/badge/Bun-14151A?style=flat&logo=bun&logoColor=white)](https://bun.sh/docs)
 
-共通の実装を再利用し、業務機能とホストの接続・認可を分離します。実装の正本は公開Monorepoにあり、本番の設定や運用証拠は含めません。コードの導入、スキーマ適用、組織への有効化は別操作です。
+## Elevator Pitch
 
-## 主な機能
+プラグイン作者が可搬な機能、データ所有権、利用権限を定義するSDKです。
 
-- 公開パッケージの型付きAPI
-- 明示的なホスト接続と現在の認可
-- パッケージ単位の検証と配布
+## Why & Value
 
-## クイックスタート
+純粋な契約はServer、DB driver、ブラウザーUIなしで利用できます。本人確認と実行能力は信頼されたHostが提供します。実装と型定義の正本は公開MIT monorepoです。
 
-registryからの導入には公開済みの版が必要です。公開前はworkspaceが作成・検証したSHA固定tarballを使用してください。パッケージのsubpath自体をbun addの引数にはしません。
+## Key Highlights
 
-Node.js 24以上が必要です。Appkit Core 0.2.0の必須peerを一緒に導入します。実行ホストが認証・認可・接続を設定してください。
+- 純粋なプラグインSDK
+- 版管理されたデータ契約
+- 利用権限の契約
+- 隔離テスト用ハーネス
+
+## Quickstart
+
+Node.js 24以上とAppkit Core 0.2.0が必要です。以下はプラグインの宣言で、公開済み版または検証済み候補アーカイブを使います。実行時の本人確認・認可・テナント別データ接続はHostが提供します。subpath自体をインストールしません。
 
 ```bash
 bun add @alneas/eaos-core @alneas/appkit-core@0.2.0
@@ -37,10 +42,11 @@ export const notes = definePlugin({
 })
 ```
 
-## 次の手順
+## Next Steps
 
+- [Change history](https://github.com/dataarthub/eaos/blob/main/packages/core/CHANGELOG.md)
 - [Architecture and boundaries](docs/guide.md)
 - [API reference](docs/api.md)
 - [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
 
-- [変更履歴](https://github.com/dataarthub/eaos/blob/main/packages/core/CHANGELOG.md)
+英語での質問・不具合報告も[EAOS issue tracker](https://github.com/dataarthub/eaos/issues)で受け付けます。非公開テナントデータ・資格情報・運用receiptを記載しないでください。英語READMEを正本とします。
