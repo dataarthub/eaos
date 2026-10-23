@@ -110,3 +110,5 @@ export * from './database-router'
 
 export * from './user-directory'
 export * from './site-publication'
+
+export * from './directory-routes'

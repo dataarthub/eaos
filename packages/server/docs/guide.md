@@ -46,3 +46,9 @@ The host supplies verified identity and current lifecycle/resource authorization
 Code installation, database/infrastructure application and tenant activation are separate operations. Import/build/test/install do not perform production migrations or infrastructure updates. Before registry publication, build and test checksum-pinned tarballs in isolated consumers instead of linking sibling source.
 
 See [live entitlements](entitlements.md), [database boundaries](db/docs/guide.md), [lifecycle](lifecycle/docs/guide.md) and [storage](storage/docs/guide.md).
+
+## User directory connection
+
+`createUserDirectoryRoutes` from `@alneas/eaos-server/platform` provides the common `/person/ensure` and `/directory` routes. Mount it behind trusted `userId`/`tenantId` middleware. Supply explicit feature/provider mode, allowed browser origins, a current normalized provider identity reader and a tenant-scoped `DirectoryRepository`. The repository owns database column mapping; the public service contains no business table names. Writes require current administrator authority and `X-EAOS-Request: user-directory`. Contacts and person categories never grant account access.
+
+Registration requires an actual provider display name and preserves an existing business name. Repositories must identify an account person only by tenant and provider identity, never by email. Provider failures return 503 without touching the repository; inactive memberships are denied before any directory operation.

@@ -252,6 +252,39 @@ export async function writeReviewedIdentityMetadata(
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-accountDisplayName"></a>
+
+## [FUNCTION] `accountDisplayName`
+
+Normalize provider display-name traits without inventing a name from an email.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+declare function accountDisplayName(traits?: Record<string, unknown>): string | undefined;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `traits` | `Record<string, unknown>` | No | Verified provider traits with either string name or first/last name fields. |
+
+### Returns
+
+`string \| undefined`
+
+The supplied name, joined first/last name, or undefined when absent.
+
+### Example
+
+```typescript
+import {accountDisplayName} from '@alneas/eaos-server/platform'
+const name=accountDisplayName({name:{first:'Ada',last:'Lovelace'}})
+```
+
 <a id="api-AccountMembership"></a>
 
 ## [INTERFACE] `AccountMembership`
@@ -489,6 +522,125 @@ export async function finishVerifiedIdentityMutation(
   await store.complete(identityId, ownedToken, authenticatedActor, reviewedBeforeHash, verifiedAfterHash);
 }
 ```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AccountPersonInput"></a>
+
+## [INTERFACE] `AccountPersonInput`
+
+Initial account-person registration, after live membership authorization.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+interface AccountPersonInput {
+    tenantId: string;
+    identityId: string;
+    displayName: unknown;
+    email?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantId` | `string` | Yes | Verified current tenant. |
+| `identityId` | `string` | Yes | Verified provider identity; email must never link another identity. |
+| `displayName` | `unknown` | Yes | Verified initial name, checked independently from contact address. |
+| `email` | `string` | No | Optional contact address. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `tenantId`
+
+Verified current tenant.
+
+
+#### `identityId`
+
+Verified provider identity; email must never link another identity.
+
+
+#### `displayName`
+
+Verified initial name, checked independently from contact address.
+
+
+#### `email`
+
+Optional contact address.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AccountPersonResult"></a>
+
+## [INTERFACE] `AccountPersonResult`
+
+Persisted account-person result; existing business names are preserved.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+interface AccountPersonResult {
+    id: string;
+    name: string;
+    created: boolean;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Stored business person identifier. |
+| `name` | `string` | Yes | Stored business name. |
+| `created` | `boolean` | Yes | Whether this invocation created the record. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `id`
+
+Stored business person identifier.
+
+
+#### `name`
+
+Stored business name.
+
+
+#### `created`
+
+Whether this invocation created the record.
 
 
 
@@ -9024,6 +9176,49 @@ export function pluginStorage(adapter: StorageAdapter, trustedOptions: TenantSto
 ```
 
 
+<a id="api-createUserDirectoryRoutes"></a>
+
+## [FUNCTION] `createUserDirectoryRoutes`
+
+Create common person registration and directory routes over injected persistence.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+declare function createUserDirectoryRoutes(options: UserDirectoryRouteOptions): Hono<{
+    Variables: Variables;
+}, hono_types.BlankSchema, "/">;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `UserDirectoryRouteOptions` | Yes | Explicit provider mode, current identity reader, tenant repository selector and browser origins. |
+
+### Returns
+
+`Hono<{     Variables: Variables; }, hono_types.BlankSchema, "/">`
+
+Routes for POST /person/ensure and GET/POST/PATCH /directory.
+
+### Remarks
+
+Mount behind trusted userId/tenantId middleware. Reads require current membership or provider platform administration; writes require current administrator authority and the user-directory request header. Person categories never grant access.
+
+### Errors and rejections
+
+Construction retains ports without accessing providers or databases; request failures return bounded HTTP errors.
+
+### Example
+
+```typescript
+import {createUserDirectoryRoutes,type UserDirectoryRouteOptions} from '@alneas/eaos-server/platform'
+export const directory=(ports:UserDirectoryRouteOptions)=>createUserDirectoryRoutes(ports)
+```
+
 <a id="api-createValidatedAtomicRepository"></a>
 
 ## [FUNCTION] `createValidatedAtomicRepository`
@@ -11327,6 +11522,118 @@ PluginLifecycle for canonical integration usage.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-DirectoryEntry"></a>
+
+## [TYPE] `DirectoryEntry`
+
+Business person response, omitting redundant tenant scope from the wire.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+type DirectoryEntry = Omit<DirectoryPerson, 'tenantId'> & {
+    department?: string;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `department`
+
+Optional business department.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-DirectoryIdentity"></a>
+
+## [INTERFACE] `DirectoryIdentity`
+
+Verified provider identity, separate from business directory records.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+interface DirectoryIdentity {
+    userId: string;
+    memberships: readonly AccountMembership[];
+    isPlatformAdmin?: boolean;
+    displayName?: string;
+    email?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `userId` | `string` | Yes | Identity bound to the requested authenticated user. |
+| `memberships` | `readonly AccountMembership[]` | Yes | Current provider memberships; directory records never supply these grants. |
+| `isPlatformAdmin` | `boolean` | No | Current provider-controlled platform administrator authority. |
+| `displayName` | `string` | No | Verified initial display name; never replaced with an email address. |
+| `email` | `string` | No | Optional verified contact address, never an account-linking key. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `userId`
+
+Identity bound to the requested authenticated user.
+
+
+#### `memberships`
+
+Current provider memberships; directory records never supply these grants.
+
+
+#### `isPlatformAdmin`
+
+Current provider-controlled platform administrator authority.
+
+
+#### `displayName`
+
+Verified initial display name; never replaced with an email address.
+
+
+#### `email`
+
+Optional verified contact address, never an account-linking key.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-DirectoryPerson"></a>
 
 ## [INTERFACE] `DirectoryPerson`
@@ -11411,6 +11718,179 @@ Business relationship categories, independent of account roles.
 #### `active`
 
 Business directory status, independent of login authorization.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-DirectoryRepository"></a>
+
+## [INTERFACE] `DirectoryRepository`
+
+Trusted persistence port. Every operation must enforce its explicit tenant scope.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+interface DirectoryRepository {
+    ensureAccount(input: AccountPersonInput): Promise<AccountPersonResult>;
+    list(tenantId: string): Promise<readonly DirectoryEntry[]>;
+    create(tenantId: string, input: DirectoryWrite & {
+        name: string;
+        kinds: readonly PersonKind[];
+    }): Promise<AccountPersonResult>;
+    update(tenantId: string, id: string, input: DirectoryWrite): Promise<boolean>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `ensureAccount` | `Promise<AccountPersonResult>` | Yes | Register idempotently by tenant/identity, never email; preserve existing names. |
+| `list` | `Promise<readonly DirectoryEntry[]>` | Yes | Return at most 500 people, ordered by stored name and ID. |
+| `create` | `Promise<AccountPersonResult>` | Yes | Create a contact without identity or membership authority. |
+| `update` | `Promise<boolean>` | Yes | Update allowlisted contact fields; false means missing in this tenant. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `ensureAccount`
+
+Register idempotently by tenant/identity, never email; preserve existing names.
+
+Parameters:
+
+- `input`: Verified tenant, identity and initial person fields.
+
+Returns: Persisted person and whether it was created.
+
+Example:
+
+```typescript
+import type {DirectoryRepository,AccountPersonInput} from '@alneas/eaos-server/platform'
+export const ensure=(repo:DirectoryRepository,input:AccountPersonInput)=>repo.ensureAccount(input)
+```
+
+
+#### `list`
+
+Return at most 500 people, ordered by stored name and ID.
+
+Parameters:
+
+- `tenantId`: Verified tenant to query.
+
+Returns: Scoped business people in stable name/ID order.
+
+Example:
+
+```typescript
+import type {DirectoryRepository} from '@alneas/eaos-server/platform'
+export const people=(repo:DirectoryRepository)=>repo.list('tenant-one')
+```
+
+
+#### `create`
+
+Create a contact without identity or membership authority.
+
+Parameters:
+
+- `tenantId`: Verified tenant receiving the contact.
+- `input`: Explicit validated business contact fields.
+
+Returns: Created contact identity and stored name.
+
+Example:
+
+```typescript
+import type {DirectoryRepository} from '@alneas/eaos-server/platform'
+export const contact=(repo:DirectoryRepository)=>repo.create('tenant-one',{name:'Partner contact',kinds:['partner_contact']})
+```
+
+
+#### `create.input.name`
+
+Explicit initial business name, independent of the administrator's profile.
+
+
+#### `create.input.kinds`
+
+Validated business relationship categories, independent of account roles.
+
+
+#### `update`
+
+Update allowlisted contact fields; false means missing in this tenant.
+
+Parameters:
+
+- `tenantId`: Verified tenant owning the record.
+- `id`: Business contact identifier.
+- `input`: Validated mutable contact fields.
+
+Returns: Whether the scoped record was updated.
+
+Example:
+
+```typescript
+import type {DirectoryRepository} from '@alneas/eaos-server/platform'
+export const rename=(repo:DirectoryRepository)=>repo.update('tenant-one','person-one',{name:'Updated name'})
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-DirectoryWrite"></a>
+
+## [TYPE] `DirectoryWrite`
+
+Tenant-scoped contact fields; no account roles or identity assignments are writable.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+type DirectoryWrite = Partial<Pick<DirectoryPerson, 'name' | 'email' | 'organizationName' | 'kinds'>> & {
+    department?: string;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `department`
+
+Optional business department, independent of login authority.
 
 
 
@@ -29231,6 +29711,102 @@ Invalid declarations throw Error; nonstring/blank identity values throw PluginEr
 import { uniqueRecordKey } from '@alneas/eaos-server/plugin-data'
 const key = uniqueRecordKey('external-id', ['example'])
 ```
+
+<a id="api-UserDirectoryRouteOptions"></a>
+
+## [INTERFACE] `UserDirectoryRouteOptions`
+
+Host-owned identity, repository and origin connections for common directory routes.
+
+Imports: `@alneas/eaos-server/platform`.
+
+### Signature
+
+```typescript
+interface UserDirectoryRouteOptions {
+    enabled: boolean;
+    membershipSource: 'legacy-adb' | 'kratos';
+    origins?: readonly string[];
+    readIdentity(userId: string): Promise<DirectoryIdentity>;
+    resolveRepository(tenantId: string): Promise<DirectoryRepository>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `enabled` | `boolean` | Yes | Explicit feature opt-in; false disables all directory routes. |
+| `membershipSource` | `'legacy-adb' \| 'kratos'` | Yes | Only explicit provider-owned memberships enable registration. |
+| `origins` | `readonly string[]` | No | Allowed browser origins; absent Origin still requires the custom request header. |
+| `readIdentity` | `Promise<DirectoryIdentity>` | Yes | Read and normalize the current provider identity without using directory rows. |
+| `resolveRepository` | `Promise<DirectoryRepository>` | Yes | Select the trusted current tenant's persistence adapter. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createUserDirectoryRoutes
+
+### Public members
+
+#### `enabled`
+
+Explicit feature opt-in; false disables all directory routes.
+
+
+#### `membershipSource`
+
+Only explicit provider-owned memberships enable registration.
+
+
+#### `origins`
+
+Allowed browser origins; absent Origin still requires the custom request header.
+
+
+#### `readIdentity`
+
+Read and normalize the current provider identity without using directory rows.
+
+Parameters:
+
+- `userId`: Verified provider identity identifier.
+
+Returns: Current normalized identity; reject inactive/unavailable identities.
+
+Example:
+
+```typescript
+import type {UserDirectoryRouteOptions} from '@alneas/eaos-server/platform'
+export const current=(ports:UserDirectoryRouteOptions)=>ports.readIdentity('verified-user')
+```
+
+
+#### `resolveRepository`
+
+Select the trusted current tenant's persistence adapter.
+
+Parameters:
+
+- `tenantId`: Verified tenant whose connection must be bound.
+
+Returns: Repository enforcing every explicit tenant argument.
+
+Example:
+
+```typescript
+import type {UserDirectoryRouteOptions} from '@alneas/eaos-server/platform'
+export const repository=(ports:UserDirectoryRouteOptions)=>ports.resolveRepository('tenant-one')
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-validateAgentRuntimePolicy"></a>
 
