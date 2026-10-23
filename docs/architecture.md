@@ -24,6 +24,8 @@ flowchart TD
   React --> Host
   CLI[CLI: authoring, plans and templates] --> Host
   Host --> Plugins[Explicitly selected plugins]
+  CLI --> Catalog[Selected registrations and verified artifacts]
+  Catalog --> Host
 ```
 
 | Requirement | Public import | Host responsibility |
@@ -47,6 +49,37 @@ Lifecycle validates reviewed plans under a writer lock against current state. It
 HTTP and MCP use host-verified principals, current activation and resource permission. Request bodies cannot grant tenant identity or roles. CAS rejects stale revisions, and business changes share a transaction with audit and Outbox. Storage scopes paths and signed URLs but still requires actual private provider protection.
 
 Native and server placement is explicit. A failed local operation never silently uploads its input. Registered Python or CLI operations are trusted host code, not an operating-system sandbox.
+
+## Application projects and extensions
+
+EAOS is a package system. An application project is still required to run and
+deploy it. That project selects packages and features, supplies database and
+identity-provider adapters, configures origins and branding, and owns its
+listeners, images and deployment state. A reusable plugin is not another
+application host.
+
+Tenant-specific extensions are separate private artifacts acquired by the Host.
+They retain explicit tenant restrictions, feature admission and their own data
+contracts. Repository separation protects source visibility; runtime authorization
+protects tenant access. Neither a source-control ignore file nor a hidden menu
+provides that runtime boundary.
+
+## Development composition APIs
+
+The following additions are unreleased candidate APIs. Their owning development
+guides are intentionally outside default released portal ingestion:
+
+| Assembly responsibility | Candidate entry | Host supplies |
+| --- | --- | --- |
+| Backend startup and HTTP/MCP connection | `@alneas/eaos-server/host` | Verified authentication/membership, current Lifecycle and entitlement capabilities, selected manifests and route factories |
+| Login, header, sidebar and feature presentation | `@alneas/eaos-react/workspace-application` | Existing Appkit provider frame, one authenticated context store, router and branding |
+| Connected feature pages | `@alneas/eaos-react/workspace-binding` | Explicit adoption, verified identity, browser transport and feature-specific ports |
+| Generated registrations and artifact/build tooling | `@alneas/eaos-cli/platform` | Selected descriptors, output paths, immutable release and resource callbacks |
+
+These APIs compose existing contracts. They do not create an additional identity
+store, choose a production provider or authorize a deployment. See the owning
+Server, React and CLI source documentation in a candidate checkout for exact
+options; match the installed archive rather than guessing an available release.
 
 ## Adoption and verification boundaries
 
