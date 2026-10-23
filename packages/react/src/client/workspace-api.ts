@@ -1,3 +1,4 @@
+import type {BrowserFetch} from './http'
 /** Configured browser endpoint; identity and authorization remain server-owned.
  * @see createWorkspaceApi
  */
@@ -5,7 +6,7 @@ export interface WorkspaceApiOptions {
  /** Root-relative same-origin path or credential-free HTTPS URL without query/fragment. */
  endpoint:string
  /** Fetch boundary; defaults to the browser implementation. */
- fetch?:typeof fetch
+ fetch?:BrowserFetch
  /** Current session/CSRF headers, read for each request. */
  headers?:()=>Record<string,string>
  /** Positive request deadline in milliseconds; defaults to 15000. */

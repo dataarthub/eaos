@@ -167,3 +167,4 @@ export * from './liff'
 
 export * from './compute'
 export * from './workspace-api'
+export type {BrowserFetch} from './http'

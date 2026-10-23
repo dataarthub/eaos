@@ -103,6 +103,38 @@ Explicit HTTPS origins permitted for the login redirect, in addition to publicUr
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-BrowserFetch"></a>
+
+## [TYPE] `BrowserFetch`
+
+Portable browser fetch call signature, without Bun-specific static helpers.
+
+Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
+
+### Signature
+
+```typescript
+type BrowserFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspaceApi
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-ClientRoute"></a>
 
 ## [INTERFACE] `ClientRoute`
@@ -1889,7 +1921,7 @@ Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`, `@alneas/eaos-react/
 declare function fetchVerifiedComputeAsset(asset: {
     url: string;
     sha256: string;
-}, request?: typeof fetch): Promise<ArrayBuffer>;
+}, request?: BrowserFetch): Promise<ArrayBuffer>;
 ```
 
 ### Parameters
@@ -1897,7 +1929,7 @@ declare function fetchVerifiedComputeAsset(asset: {
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
 | `asset` | `{     url: string;     sha256: string; }` | Yes | HTTPS URL (HTTP allowed only for loopback) and lowercase 64-character hexadecimal digest. |
-| `request` | `typeof fetch` | No | Fetch implementation; defaults to global fetch. |
+| `request` | `BrowserFetch` | No | Fetch implementation; defaults to global fetch. |
 
 ### Returns
 
@@ -5751,7 +5783,7 @@ Imports: `@alneas/eaos-react`, `@alneas/eaos-react/client`.
 ```typescript
 interface WorkspaceApiOptions {
     endpoint: string;
-    fetch?: typeof fetch;
+    fetch?: BrowserFetch;
     headers?: () => Record<string, string>;
     timeoutMs?: number;
 }
@@ -5762,7 +5794,7 @@ interface WorkspaceApiOptions {
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
 | `endpoint` | `string` | Yes | Root-relative same-origin path or credential-free HTTPS URL without query/fragment. |
-| `fetch` | `typeof fetch` | No | Fetch boundary; defaults to the browser implementation. |
+| `fetch` | `BrowserFetch` | No | Fetch boundary; defaults to the browser implementation. |
 | `headers` | `() => Record<string, string>` | No | Current session/CSRF headers, read for each request. |
 | `timeoutMs` | `number` | No | Positive request deadline in milliseconds; defaults to 15000. |
 

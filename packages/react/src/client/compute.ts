@@ -1,4 +1,5 @@
 import type { PluginExecutor, PluginExecutionRequest } from './plugin-execution'
+import type {BrowserFetch} from './http'
 
 /**
  * Worker message/lifecycle capabilities required by the compute executor.
@@ -226,7 +227,7 @@ export async function fetchVerifiedComputeAsset(asset: {
 /**
  * Pinned lowercase 64-character hexadecimal SHA-256 digest from a trusted release.
  */
-  sha256: string }, request: typeof fetch = fetch): Promise<ArrayBuffer> {
+  sha256: string }, request: BrowserFetch = fetch): Promise<ArrayBuffer> {
   const url = new URL(asset.url)
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))) throw Error('Invalid compute asset URL')
   if (url.username || url.password || !/^[a-f0-9]{64}$/.test(asset.sha256)) throw Error('Invalid compute asset metadata')
