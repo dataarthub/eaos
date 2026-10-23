@@ -12,7 +12,8 @@ const read=async(path:string)=>readFile(path,'utf8').catch(error=>{if(error.code
 export async function writeGeneratedFiles(root:string,files:readonly {path:string;text:string}[],check=false,io:{rename:typeof rename}={rename}):Promise<void>{
  const lock=await safePath(root,'.eaos/feature-register.lock')
  const entries=await Promise.all(files.map(async file=>({relative:file.path,path:await safePath(root,file.path),text:prefix+hash(file.text)+'\n'+file.text})))
- if(new Set(entries.map(file=>file.path)).size!==entries.length||entries.some(file=>file.path===lock))throw Error('Generated feature outputs must be distinct from each other and the lock')
+ const paths=[...entries.map(file=>file.path),lock]
+ if(new Set(paths).size!==paths.length||paths.some((path,index)=>paths.some((other,otherIndex)=>index!==otherIndex&&other.startsWith(path+'/'))))throw Error('Generated feature outputs must be distinct from each other and the lock, without ancestor paths')
  if(check){for(const file of entries)if(await read(file.path)!==file.text)throw Error('Stale generated feature output: '+file.path);return}
  await mkdir(dirname(lock),{recursive:true})
  // A failed exclusive acquisition must not enter cleanup or touch another writer.

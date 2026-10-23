@@ -114,13 +114,13 @@ export async function generateFeatureRegistrations(root: string, options: Featur
       if(client.workspace&&(!symbolPattern.test(client.workspace.exportName)||!client.workspace.label||client.workspace.entry.split('/').includes('server')||client.workspace.reference&&!client.workspace.reference.listOperation))throw Error('Invalid workspace factory declaration')
     }
   }
-  const manifests: string[] = [], lifecycle: string[] = []
+  const manifests: string[] = ["import type {PluginManifest} from '@alneas/eaos-core/plugin-sdk'"], lifecycle: string[] = ["import type {LifecyclePlugin} from '@alneas/eaos-server/lifecycle-engine'"]
   selected.forEach((feature, i) => {
     manifests.push(`import { manifest as manifest${i} } from ${quote(feature.manifest)}`, `if(manifest${i}.id!==${quote(feature.id)}||manifest${i}.version!==${quote(feature.version)})throw Error('Selected feature manifest identity/version differs')`)
     lifecycle.push(`import { ${feature.lifecycle!.exportName} as release${i} } from ${quote(feature.lifecycle!.entry)}`, `if(release${i}.id!==${quote(feature.id)}||release${i}.version!==${quote(feature.version)})throw Error('Selected feature lifecycle identity/version differs')`)
   })
-  manifests.push(`export const officialManifests=[${selected.map((_, i) => 'manifest' + i).join(',')}]`)
-  lifecycle.push(`export const officialReleases=[${selected.map((_, i) => 'release' + i).join(',')}]`)
+  manifests.push(`export const officialManifests:PluginManifest[]=[${selected.map((_, i) => 'manifest' + i).join(',')}]`)
+  lifecycle.push(`export const officialReleases:LifecyclePlugin[]=[${selected.map((_, i) => 'release' + i).join(',')}]`)
   const web = `export const selectedOfficialPluginIds=${quote(options.selectedIds)} as const\nexport const officialFeatureClients=${quote(selected.flatMap(feature => feature.clients.filter(client => client.target === 'web').map(client => ({ pluginId: feature.id, ...client }))))} as const\n`
   const files=[{path:options.outputs.manifests,text:manifests.join('\n')+'\n'},{path:options.outputs.lifecycle,text:lifecycle.join('\n')+'\n'},{path:options.outputs.web,text:web}]
   if(options.outputs.bindings){

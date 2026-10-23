@@ -38,3 +38,13 @@ test('unmanaged and edited outputs are rejected before any replacement',async()=
   await expect(readFile(join(root,'b.ts'))).rejects.toThrow()
  }finally{await rm(root,{recursive:true,force:true})}
 })
+
+test('output ancestors and lock ancestors are rejected before creating directories',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'eaos-output-ancestor-'))
+ try{
+  for(const files of [[{path:'output',text:'one'},{path:'output/child.ts',text:'two'}],[{path:'.eaos',text:'one'}]]){
+   await expect(writeGeneratedFiles(root,files)).rejects.toThrow()
+   expect(await readdir(root)).toEqual([])
+  }
+ }finally{await rm(root,{recursive:true,force:true})}
+})
