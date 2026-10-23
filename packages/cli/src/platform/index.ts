@@ -193,3 +193,4 @@ files: number }> {
 
 export { deployPlatformImage, type PlatformImageDeployOptions } from './deploy'
 export { definePlatformOperations, planPlatformOperation, executePlatformOperation, upPlatform, type PlatformOperations, type PlatformOperationOptions, type ReleaseContext, type OperationReceipt } from './operations'
+export {buildHostRuntime,type HostRuntimeBuildOptions} from './build'

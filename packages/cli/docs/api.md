@@ -405,6 +405,48 @@ declare const baselineImages: {
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-buildHostRuntime"></a>
+
+## [FUNCTION] `buildHostRuntime`
+
+Build a Host runtime locally with literal arguments and a pinned release label.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function buildHostRuntime(projectRoot: string, options: HostRuntimeBuildOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `projectRoot` | `string` | Yes | Trusted adopting project root. |
+| `options` | `HostRuntimeBuildOptions` | Yes | Entries, output, release, replacements and explicit resource callbacks. |
+
+### Returns
+
+`Promise<void>`
+
+Completion after successful compilation and all resource callbacks.
+
+### Remarks
+
+Runs the installed Bun CLI through an argument array without a shell. Opens no deployment, provisioning or migration process; failed output must not be published.
+
+### Errors and rejections
+
+Invalid release/path/define declarations, build failure or resource staging failure.
+
+### Example
+
+```typescript
+import {buildHostRuntime} from '@alneas/eaos-cli/platform'
+export const build=(root:string)=>buildHostRuntime(root,{entry:'src/server.ts',outdir:'dist',release:'candidate-1'})
+```
+
 <a id="api-callSiteControl"></a>
 
 ## [FUNCTION] `callSiteControl`
@@ -3980,6 +4022,96 @@ declare const googleVerifiedEmailMapper = "local claims = std.extVar('claims');\
 ### See also
 
 [renderPlatform](#api-renderPlatform) for the canonical usage example and runtime requirements.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostRuntimeBuildOptions"></a>
+
+## [INTERFACE] `HostRuntimeBuildOptions`
+
+Explicit local build inputs; deployment and resource discovery remain Host-owned.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface HostRuntimeBuildOptions {
+    entry: string | readonly string[];
+    outdir: string;
+    release: string;
+    define?: Readonly<Record<string, string>>;
+    external?: readonly string[];
+    resources?: readonly ((context: {
+        root: string;
+        outdir: string;
+    }) => Promise<void>)[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `entry` | `string \| readonly string[]` | Yes | Project-relative entry or entries, passed to the installed Bun build tool. |
+| `outdir` | `string` | Yes | Project-relative output directory. |
+| `release` | `string` | Yes | Immutable release label; latest and unsafe labels are rejected. |
+| `define` | `Readonly<Record<string, string>>` | No | Explicit build-time expressions keyed by identifier paths. |
+| `external` | `readonly string[]` | No | Dependencies deliberately retained as runtime imports by the Host. |
+| `resources` | `readonly ((context: {     root: string;     outdir: string; }) => Promise<void>)[]` | No | Explicit resource staging callbacks; a failure rejects the build result. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+buildHostRuntime
+
+### Public members
+
+#### `entry`
+
+Project-relative entry or entries, passed to the installed Bun build tool.
+
+
+#### `outdir`
+
+Project-relative output directory.
+
+
+#### `release`
+
+Immutable release label; latest and unsafe labels are rejected.
+
+
+#### `define`
+
+Explicit build-time expressions keyed by identifier paths.
+
+
+#### `external`
+
+Dependencies deliberately retained as runtime imports by the Host.
+
+
+#### `resources`
+
+Explicit resource staging callbacks; a failure rejects the build result.
+
+
+#### `resources[].context.root`
+
+Trusted project root.
+
+
+#### `resources[].context.outdir`
+
+Validated absolute build output directory.
+
+
 
 ### Example
 

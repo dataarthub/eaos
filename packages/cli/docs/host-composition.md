@@ -92,3 +92,18 @@ modules. The generated `officialWorkspaceOptions` uses
 `satisfies OfficialWorkspaceOptions`, so missing mandatory ports fail the Host
 typecheck. Keep domain API operations in the owning factory; these modules
 configure assets, transport origins and adopted presentation resources only.
+
+## Build a local Host runtime
+
+`buildHostRuntime(root, {entry, outdir, release, define, external, resources})`
+uses the installed Bun build tool with literal argument arrays. `entry` accepts
+one project-relative module or several modules with distinct basename outputs;
+runtime entry filenames stay flat, such as `dist/server.js`. Paths cannot escape
+the trusted project or traverse symlinks. Release `latest` and unsafe labels are
+rejected before execution. `EAOS_BUILD_RELEASE` is fixed by `release`.
+
+Resource callbacks receive the trusted root and absolute output path after a
+successful compile. Callback failures reject the result, and incomplete output
+must not be published. The API does not discover private packages, provision
+resources, migrate data or deploy images. Keep resource receipt verification in
+the owning feature and provide Host-specific font/path configuration explicitly.
