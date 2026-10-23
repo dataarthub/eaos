@@ -62,3 +62,12 @@ Build and install the actual tarball in an isolated consumer. Verify the declare
 ## Troubleshooting / Common Pitfalls
 
 Missing host bindings must fail closed. Do not substitute empty success adapters, infer addon budgets or treat a visible route as permission. Check the owning API reference and current host policy.
+
+## Connected workspace (development candidate)
+
+The additive `@alneas/eaos-plugins/admin/workspace-binding` entry exports
+`createWorkspacePages`. Pass a `WorkspaceBindingEnvironment` from
+`@alneas/eaos-react/workspace-binding`, supplied by the canonical verified Host
+context and explicit feature selection. Keep the route under Workspace Feature
+Boundary and retain server authorization. Existing raw workspace exports remain
+supported. This entry requires the corresponding candidate archives until release.

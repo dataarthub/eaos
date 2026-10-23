@@ -62,3 +62,19 @@ Build and install the actual tarball in an isolated consumer. Verify the declare
 ## Troubleshooting / Common Pitfalls
 
 Missing host bindings must fail closed. Do not substitute empty success adapters, infer addon budgets or treat a visible route as permission. Check the owning API reference and current host policy.
+
+## Connected workspace (development candidate)
+
+The additive `@alneas/eaos-plugins/field-customization/workspace-binding` entry exports
+`createWorkspacePages`. Pass a `WorkspaceBindingEnvironment` from
+`@alneas/eaos-react/workspace-binding`, supplied by the canonical verified Host
+context and explicit feature selection. Keep the route under Workspace Feature
+Boundary and retain server authorization. Existing raw workspace exports remain
+supported. This entry requires the corresponding candidate archives until release.
+
+Pass a nonempty `resources` option with adopter-owned IDs and labels. No business
+resource is selected by default. Writes retain the loaded optimistic revision.
+
+The declared Appkit Core 0.2 peer validates response data against the canonical
+public document contract. Its AJV runtime requires a Host CSP permitting the
+validator generated functions; validation never grants backend permissions.

@@ -125,6 +125,7 @@
         "hono": "^4.13.13",
       },
       "devDependencies": {
+        "@alneas/appkit-core": "0.2.0",
         "@alneas/appkit-react": "0.2.0",
         "@alneas/eaos-cli": "^0.1.0",
         "@alneas/eaos-core": "^0.1.0",
@@ -139,6 +140,7 @@
         "typescript": "^6.0.3",
       },
       "peerDependencies": {
+        "@alneas/appkit-core": "0.2.0",
         "@alneas/appkit-react": "0.2.0",
         "@alneas/eaos-core": "^0.1.0",
         "@alneas/eaos-react": "^0.1.0",

@@ -23,6 +23,7 @@ tags: ["api", "generated"]
 | `@alneas/eaos-plugins/admin/client/web/journal` | Typed public export |
 | `@alneas/eaos-plugins/admin/runtime` | Typed public export |
 | `@alneas/eaos-plugins/admin/react` | Typed public export |
+| `@alneas/eaos-plugins/admin/workspace-binding` | Typed public export |
 | `@alneas/eaos-plugins/admin/user-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-plugins/admin/deployment.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-plugins/admin/eaos.clients.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
@@ -453,6 +454,44 @@ import { createPlugin, type AdminOptions } from '@alneas/eaos-plugins/admin';
 export function configure(options: AdminOptions, resolvePrincipal: Parameters<typeof createPlugin>[1]) { return createPlugin(options, resolvePrincipal); }
 ```
 
+
+<a id="api-createWorkspacePages"></a>
+
+## [FUNCTION] `createWorkspacePages`
+
+Connect the audit journal workspace to the current verified Host session.
+
+Imports: `@alneas/eaos-plugins/admin/workspace-binding`.
+
+### Signature
+
+```typescript
+declare function createWorkspacePages(environment: WorkspaceBindingEnvironment): readonly ConnectedWorkspacePage[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Explicit adopted features, verified identity and browser API. |
+
+### Returns
+
+`readonly ConnectedWorkspacePage[]`
+
+The journal route, Provider and allowlisted audit operation mapping.
+
+### Remarks
+
+The journal page validates tenant/resource response scope; server authorization remains mandatory.
+
+### Example
+
+```tsx
+import {createWorkspacePages} from '@alneas/eaos-plugins/admin/workspace-binding'
+import type {WorkspaceBindingEnvironment} from '@alneas/eaos-react/workspace-binding'
+export const connect=(environment:WorkspaceBindingEnvironment)=>createWorkspacePages(environment)
+```
 
 <a id="api-default"></a>
 
