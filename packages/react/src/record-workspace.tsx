@@ -121,14 +121,19 @@ export interface RecordWorkspaceInlineSuggestion {
  * @see RecordWorkspace for a complete host integration example.
  */
 export interface RecordWorkspaceProps {
- /**
-  * Optional uncommitted AI draft proposal for human-in-the-loop review.
-  */
- aiDraft?: RecordWorkspaceAiDraft | null;
- /**
-  * Notifies the host when the AI draft proposal is dismissed by the operator.
-  */
- onDismissAiDraft?: () => void;
+  /**
+   * Optional uncommitted AI draft proposal for human-in-the-loop review.
+   */
+  aiDraft?: RecordWorkspaceAiDraft | null;
+  /**
+   * Notifies the host when the AI draft proposal is dismissed by the operator.
+   */
+  onDismissAiDraft?: () => void;
+  /**
+   * Optional callback when an AI draft is reviewed and submitted by the human operator,
+   * allowing the host/plugin to record proposal approval provenance.
+   */
+  onApplyAiDraft?: (draft: RecordWorkspaceAiDraft, result: ScopedUiRecord) => void;
  /**
  * Optional help content; undefined uses Core guide and null hides it.
  *
@@ -470,7 +475,7 @@ export function recordFormValues(schema: Schema, values: Record<string, unknown>
  * export function Records({tenantId, sessionKey, client, definition}: {tenantId: string; sessionKey: string; client: WorkspaceClient<unknown>; definition: RecordWorkspaceDefinition}) { return <RecordWorkspaceProvider tenantId={tenantId} recordId={definition.id} sessionKey={sessionKey} client={client}><RecordWorkspace definition={definition}/></RecordWorkspaceProvider>; }
  * ```
  */
-export function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help, aiDraft, onDismissAiDraft }: RecordWorkspaceProps & {
+export function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help, aiDraft, onDismissAiDraft, onApplyAiDraft }: RecordWorkspaceProps & {
 /**
  * Plugin-owned workspace schema, labels and operation declarations.
  */
@@ -548,10 +553,11 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
  })
  let schema: JSONSchema | null = null, initial: Record<string, unknown> = {}
  const activeDraft = aiDraft && aiDraft !== dismissedDraft ? aiDraft : null
- const isTargetRecordMatch = form === 'create'
-  ? !activeDraft?.targetId
+ const isBoundForm = form === 'edit' || (typeof form === 'object' && form !== null && form.record)
+ const isTargetRecordMatch = !isBoundForm
+  ? (!activeDraft?.targetId && (!activeDraft?.scope || activeDraft.scope === definition.id))
   : (selected !== null &&
-     (!activeDraft?.targetId || activeDraft.targetId === selected.id) &&
+     activeDraft?.targetId === selected.id &&
      (activeDraft?.baseRevision === undefined || activeDraft.baseRevision === selected.revision) &&
      (!activeDraft?.scope || activeDraft.scope === definition.id))
  const isDraftForCurrentForm = activeDraft && isTargetRecordMatch && (activeDraft.mode === form || (typeof form === 'object' && form !== null && activeDraft.mode === form.operation))
@@ -578,6 +584,9 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
   if (typeof form === 'object' && form.preview) { setPreview(result.data); return }
   const saved = scopedUiRecord(result.data, result.tenantId)
   if (bound && saved.id !== selected!.id) throw new Error('保存結果の対象が一致しません。')
+  if (isDraftForCurrentForm && activeDraft) {
+   onApplyAiDraft?.(activeDraft, saved)
+  }
   setForm(null); setNotice('保存しました。')
   try { setSnapshot(await client.execute(definition.operations.list, filter)) }
   catch { setError('保存は完了しました。一覧を再取得できませんでした。再読込してください。') }

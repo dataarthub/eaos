@@ -1,8 +1,9 @@
 import { canonicalJsonHash } from '../serialization/index'
 import type { ExecutionSideEffect } from '../agent/approved-execution'
 import type { PluginManifest, McpToolDefinition, GatekeeperPolicy } from './types'
-import type { ApprovalLevel } from '../security/gatekeeper'
+import type { ApprovalLevel, ExtendedGatekeeperPolicy } from '../security/gatekeeper'
 import type { RiskLevel } from './types'
+import { mapAIRiskToGatekeeper } from '../ai/governance'
 
 /**
  * Normalized tool schemas and execution policy captured with a deterministic content hash.
@@ -89,14 +90,43 @@ export interface ContractCompatibilityReport {
   issues: ContractCompatibilityIssue[]
 }
 
-function risk(policy: GatekeeperPolicy | undefined): RiskLevel {
-  return policy?.riskLevel ?? 'low'
+function resolvePolicy(policy: ExtendedGatekeeperPolicy | undefined): {
+  riskLevel: RiskLevel
+  approvalLevel: ApprovalLevel
+  requireHumanApproval: boolean
+} {
+  let riskLevel: RiskLevel = policy?.riskLevel ?? 'low'
+  let approvalLevel: ApprovalLevel = policy?.approvalLevel ?? 'L1_AUTO'
+  let requireHumanApproval = policy?.requireHumanApproval
+
+  if (policy?.aiRiskLevel) {
+    const mapped = mapAIRiskToGatekeeper(policy.aiRiskLevel)
+    riskLevel = policy.riskLevel ?? mapped.riskLevel
+    approvalLevel = policy.approvalLevel ?? mapped.approvalLevel
+    if (requireHumanApproval === undefined) {
+      requireHumanApproval = mapped.requireHumanApproval
+    }
+  } else if (!policy?.approvalLevel) {
+    if (riskLevel === 'critical') approvalLevel = 'L4_EXECUTIVE'
+    else if (riskLevel === 'high') approvalLevel = 'L3_MANAGER'
+    else if (riskLevel === 'medium') approvalLevel = 'L2_LEAD'
+    else approvalLevel = 'L1_AUTO'
+  }
+
+  if (requireHumanApproval === undefined) {
+    requireHumanApproval = approvalLevel !== 'L1_AUTO'
+  }
+
+  return { riskLevel, approvalLevel, requireHumanApproval }
 }
 
-function approvalLevel(policy: GatekeeperPolicy | undefined, level?: ApprovalLevel): ApprovalLevel {
+function risk(policy: ExtendedGatekeeperPolicy | undefined): RiskLevel {
+  return resolvePolicy(policy).riskLevel
+}
+
+function approvalLevel(policy: ExtendedGatekeeperPolicy | undefined, level?: ApprovalLevel): ApprovalLevel {
   if (level) return level
-  const value = risk(policy)
-  return value === 'critical' ? 'L4_EXECUTIVE' : value === 'high' ? 'L3_MANAGER' : value === 'medium' ? 'L2_LEAD' : 'L1_AUTO'
+  return resolvePolicy(policy).approvalLevel
 }
 
 function required(schema: Record<string, unknown>): string[] {
@@ -164,8 +194,9 @@ export function compareOutputSchemaCompatibility(previous: Record<string, unknow
   return issues
 }
 
-function toolContract(tool: McpToolDefinition, policy: GatekeeperPolicy | undefined): ToolContractSnapshot {
+function toolContract(tool: McpToolDefinition, policy: ExtendedGatekeeperPolicy | undefined): ToolContractSnapshot {
   const contract = tool.contract
+  const resolved = resolvePolicy(policy)
   const normalized = {
     name: tool.name,
     version: contract?.version ?? '1.0.0',
@@ -173,9 +204,9 @@ function toolContract(tool: McpToolDefinition, policy: GatekeeperPolicy | undefi
     ...(contract?.outputSchema ? { outputSchema: structuredClone(contract.outputSchema) } : {}),
     permission: contract?.permission ?? tool.name,
     sideEffect: contract?.sideEffect ?? 'write' as const,
-    riskLevel: risk(policy),
-    approvalLevel: approvalLevel(policy),
-    requireHumanApproval: policy?.requireHumanApproval ?? risk(policy) !== 'low',
+    riskLevel: resolved.riskLevel,
+    approvalLevel: resolved.approvalLevel,
+    requireHumanApproval: resolved.requireHumanApproval,
   }
   return { ...normalized, hash: canonicalJsonHash(normalized) }
 }

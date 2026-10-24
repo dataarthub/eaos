@@ -45,87 +45,26 @@ export interface InlineCompletionProvider {
 }
 
 /**
- * Built-in deterministic helpers for financial and operational record entry.
+ * Pure registry for inline completion providers.
+ * Core does not hardcode business account IDs or regional tax rules;
+ * business plugins register their own completion providers.
  */
-export const builtInInlineProviders: InlineCompletionProvider[] = [
-  {
-    name: 'financial-helpers',
-    async provideCompletions(context: InlineCompletionContext): Promise<InlineSuggestion[]> {
-      const suggestions: InlineSuggestion[] = []
-      const text = context.currentValue.trim()
+const registeredInlineProviders: InlineCompletionProvider[] = []
 
-      // 1. Tax split command (/split)
-      if (text.startsWith('/split') || text === '/') {
-        const rawAmount = Number(context.rowValues?.amount) || 0
-        if (rawAmount > 0) {
-          // Standard Japanese consumption tax (10%) exact integer breakdown:
-          // Net = Floor((Total * 10) / 11), Tax = Total - Net
-          // Avoids floating-point precision flaws like Math.floor(110 / 1.1) === 99
-          const net = Math.floor((rawAmount * 10) / 11)
-          const tax = rawAmount - net
-          suggestions.push({
-            id: 'split-tax-10',
-            command: '/split',
-            label: '消費税10%の内税分解',
-            description: `税込 ${rawAmount.toLocaleString()} 円 ➔ 本体 ${net.toLocaleString()} 円 + 仮払消費税 ${tax.toLocaleString()} 円`,
-            riskLevel: 2,
-            confidence: 'high',
-            proposedPatch: {
-              amount: net,
-              taxAmount: tax,
-              taxRate: 0.1,
-              _splitLines: [
-                { accountId: context.rowValues?.accountId ?? 'acc-cost', amount: net, note: '本体金額' },
-                { accountId: 'acc-tax-receivable', amount: tax, note: '仮払消費税等' },
-              ],
-            },
-          })
-        }
-      }
+export function registerInlineCompletionProvider(provider: InlineCompletionProvider): void {
+  registeredInlineProviders.push(provider)
+}
 
-      // 2. Account prediction from description (/predict)
-      if (text.startsWith('/predict') || text === '/') {
-        const desc = String(context.rowValues?.description ?? '')
-        if (desc.includes('交通費') || desc.includes('新幹線') || desc.includes('タクシー')) {
-          suggestions.push({
-            id: 'predict-travel-cost',
-            command: '/predict',
-            label: '旅費交通費を自動設定',
-            description: '摘要のキーワードから勘定科目を推論',
-            riskLevel: 2,
-            confidence: 'high',
-            proposedPatch: {
-              accountId: 'acc-travel-expenses',
-              accountName: '旅費交通費',
-            },
-          })
-        } else if (desc.includes('接待') || desc.includes('会食') || desc.includes('飲食')) {
-          suggestions.push({
-            id: 'predict-entertainment-cost',
-            command: '/predict',
-            label: '交際費を自動設定',
-            description: '摘要のキーワードから勘定科目を推論',
-            riskLevel: 2,
-            confidence: 'high',
-            proposedPatch: {
-              accountId: 'acc-entertainment-expenses',
-              accountName: '交際費',
-            },
-          })
-        }
-      }
-
-      return suggestions
-    },
-  },
-]
+export function clearInlineCompletionProviders(): void {
+  registeredInlineProviders.length = 0
+}
 
 /**
  * Resolves inline suggestions from a list of providers given an active input context.
  */
 export async function getInlineCompletions(
   context: InlineCompletionContext,
-  providers: InlineCompletionProvider[] = builtInInlineProviders
+  providers: InlineCompletionProvider[] = registeredInlineProviders
 ): Promise<InlineSuggestion[]> {
   const allSuggestions: InlineSuggestion[] = []
   for (const provider of providers) {
