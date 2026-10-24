@@ -45,4 +45,6 @@ The host supplies verified identity and current lifecycle/resource authorization
 
 Code installation, database/infrastructure application and tenant activation are separate operations. Import/build/test/install do not perform production migrations or infrastructure updates. Before registry publication, build and test checksum-pinned tarballs in isolated consumers instead of linking sibling source.
 
+Core specifies risk-tiered governance (`AIRiskLevel` 1–3) to govern automated tool invocation and Human-in-the-Loop constraints. Double-entry ledgers enforce append-only state transitions (`DRAFT` to `POSTED`), strict debit/credit equality (`assertBalancedLines`) and immutable audit trails, requiring reversing entries (`createReversingEntry`) for all post-commit corrections. Document parsing contracts (`DocumentParserAdapter`) structure complex tables and layout for deterministic drafting.
+
 See the [declarative SDK](plugin-sdk.md) for policy and scoped context contracts.
