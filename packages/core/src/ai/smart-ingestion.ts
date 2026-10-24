@@ -349,7 +349,7 @@ export async function processSmartIngestionWithAi(
     if (customHandler) {
       extractedValues = customHandler.mapToDraftValues(extractedFields, item)
     } else {
-      // Default domain-agnostic field projection (No hardcoded account IDs)
+      // Default domain-agnostic field projection (No hardcoded account IDs or domain rules in Core)
       extractedValues = {
         title: extractedFields.title ?? item.title,
         notes: extractedFields.notes ?? item.content,
@@ -359,15 +359,6 @@ export async function processSmartIngestionWithAi(
       }
       if (extractedFields.lineItems) {
         extractedValues.lineItems = extractedFields.lineItems
-      }
-      // If legacy lines were provided in test mock, preserve them
-      if (aiResult.domain === 'accounting' && extractedFields.amount) {
-        extractedValues.sourceKey = `ai-inbox:${item.id}`
-        extractedValues.description = `[AI推論仕訳] ${extractedFields.title ?? item.title}`
-        extractedValues.lines = [
-          { accountId: 'acc-unassigned-cost', side: 'D', amount: extractedFields.amount },
-          { accountId: 'acc-unassigned-payable', side: 'C', amount: extractedFields.amount },
-        ]
       }
     }
 

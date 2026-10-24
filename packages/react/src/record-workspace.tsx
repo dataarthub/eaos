@@ -548,7 +548,12 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
  })
  let schema: JSONSchema | null = null, initial: Record<string, unknown> = {}
  const activeDraft = aiDraft && aiDraft !== dismissedDraft ? aiDraft : null
- const isTargetRecordMatch = !activeDraft?.targetId || (selected !== null && activeDraft.targetId === selected.id)
+ const isTargetRecordMatch = form === 'create'
+  ? !activeDraft?.targetId
+  : (selected !== null &&
+     (!activeDraft?.targetId || activeDraft.targetId === selected.id) &&
+     (activeDraft?.baseRevision === undefined || activeDraft.baseRevision === selected.revision) &&
+     (!activeDraft?.scope || activeDraft.scope === definition.id))
  const isDraftForCurrentForm = activeDraft && isTargetRecordMatch && (activeDraft.mode === form || (typeof form === 'object' && form !== null && activeDraft.mode === form.operation))
  if (form === 'create') {
   schema = recordFormSchema(definition.schemas[definition.operations.create], ['commandId'])

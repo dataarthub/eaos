@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
 import type { GatekeeperPolicy, RiskLevel } from '../plugin-sdk/types'
 import type { DatabaseAdapter } from '../db/adapter'
+import type { AIRiskLevel } from '../ai/governance'
+import { mapAIRiskToGatekeeper } from '../ai/governance'
 
 /**
  * Ordered organizational approval categories from automatic to executive review.
@@ -13,6 +15,8 @@ export type ApprovalLevel = 'L1_AUTO' | 'L2_LEAD' | 'L3_MANAGER' | 'L4_EXECUTIVE
  * @see {@link McpGatekeeper}
  */
 export interface ExtendedGatekeeperPolicy extends GatekeeperPolicy {
+  /** Optional AI risk tier mapped directly to gatekeeper policy */
+  aiRiskLevel?: AIRiskLevel
   
 /** Required organizational review category; a level declaration is not proof of approval. */
   approvalLevel?: ApprovalLevel
@@ -206,19 +210,28 @@ export class McpGatekeeper {
     approvalLevel: ApprovalLevel
   } {
     const policy = this.policies.get(params.toolName)
-    const riskLevel: RiskLevel = policy?.riskLevel ?? 'low'
-
-    // Auto calculate ApprovalLevel if not specified
+    let riskLevel: RiskLevel = policy?.riskLevel ?? 'low'
     let approvalLevel: ApprovalLevel = policy?.approvalLevel ?? 'L1_AUTO'
-    if (!policy?.approvalLevel) {
+    let requireHumanApproval = policy?.requireHumanApproval
+
+    // If aiRiskLevel is specified on the policy, map directly into Gatekeeper risk & approval
+    if (policy?.aiRiskLevel) {
+      const mapped = mapAIRiskToGatekeeper(policy.aiRiskLevel)
+      riskLevel = policy.riskLevel ?? mapped.riskLevel
+      approvalLevel = policy.approvalLevel ?? mapped.approvalLevel
+      if (requireHumanApproval === undefined) {
+        requireHumanApproval = mapped.requireHumanApproval
+      }
+    } else if (!policy?.approvalLevel) {
       if (riskLevel === 'critical') approvalLevel = 'L4_EXECUTIVE'
       else if (riskLevel === 'high') approvalLevel = 'L3_MANAGER'
       else if (riskLevel === 'medium') approvalLevel = 'L2_LEAD'
       else approvalLevel = 'L1_AUTO'
     }
 
-    const requireHumanApproval =
-      policy?.requireHumanApproval ?? (approvalLevel !== 'L1_AUTO')
+    if (requireHumanApproval === undefined) {
+      requireHumanApproval = policy?.requireHumanApproval ?? (approvalLevel !== 'L1_AUTO')
+    }
 
     if (!policy || !policy.requiredRole) {
       return { allowed: true, requireHumanApproval, riskLevel, approvalLevel }

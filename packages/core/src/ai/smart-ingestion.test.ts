@@ -18,7 +18,26 @@ describe('Smart Ingestion Inbox with LLM AI Model Adapter', () => {
       createdAt: '2026-10-24T12:00:00Z',
     }
 
-    const result = await processSmartIngestionWithAi(item, aiAdapter)
+    // Register a business plugin handler to map accounting draft lines (Clean domain isolation)
+    const result = await processSmartIngestionWithAi(item, {
+      modelAdapter: aiAdapter,
+      domainHandlers: {
+        accounting: {
+          domain: 'accounting',
+          mapToDraftValues(fields, itm) {
+            return {
+              date: fields.date ?? itm.createdAt.slice(0, 10),
+              description: `[AI推論仕訳] ${fields.title ?? itm.title}`,
+              sourceKey: `ai-inbox:${itm.id}`,
+              lines: [
+                { accountId: 'acc-scaffolding-cost', side: 'D', amount: fields.amount ?? 0 },
+                { accountId: 'acc-payable-vendor-a', side: 'C', amount: fields.amount ?? 0 },
+              ],
+            }
+          },
+        },
+      },
+    })
 
     expect(result.processedBy).toBe('llm_model')
     expect(result.classification.domain).toBe('accounting')
@@ -29,6 +48,7 @@ describe('Smart Ingestion Inbox with LLM AI Model Adapter', () => {
     const lines = result.extractedValues.lines as any[]
     expect(lines[0].amount).toBe(350000)
     expect(lines[1].amount).toBe(350000)
+    expect(lines[0].accountId).toBe('acc-scaffolding-cost')
   })
 
   it('uses LLM to understand casual site voice report and creates construction progress draft', async () => {
