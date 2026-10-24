@@ -121,6 +121,24 @@ export function assertImmutableTransition(
 }
 
 /**
+ * Inverts the debit/credit sides of journal lines to produce a reversing entry (赤伝票).
+ * Pure mathematical operation compatible with any accounting plugin.
+ *
+ * @param lines - Original journal lines.
+ * @returns Reversing lines with 'D' and 'C' swapped.
+ */
+export function invertJournalLines(lines: readonly ImmutableLedgerLine[]): ImmutableLedgerLine[] {
+  assertBalancedLines(lines)
+  const inverted: ImmutableLedgerLine[] = lines.map(line => ({
+    accountId: line.accountId,
+    side: line.side === 'D' ? 'C' : 'D',
+    amount: line.amount,
+  }))
+  assertBalancedLines(inverted)
+  return inverted
+}
+
+/**
  * Generates a reversing journal entry (赤伝票: 反対仕訳) for a POSTED entry.
  *
  * @param original - The original POSTED journal entry.

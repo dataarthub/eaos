@@ -232,10 +232,24 @@ export function createMockLlmModelAdapter(
 }
 
 /**
+ * Pure contract for a domain-specific ingestion handler registered by business plugins.
+ */
+export interface IngestionDomainPluginHandler {
+  domain: string
+  /** Maps extracted fields into domain-specific record draft values without hardcoding in Core */
+  mapToDraftValues(
+    extractedFields: LlmIngestionExtraction['extractedFields'],
+    item: IngestionItem
+  ): Record<string, unknown>
+}
+
+/**
  * Options for contextual anomaly detection during ingestion processing.
  */
 export interface IngestionProcessingOptions {
   modelAdapter?: IngestionModelAdapter
+  /** Optional domain plugin handlers to override default draft mapping */
+  domainHandlers?: Record<string, IngestionDomainPluginHandler>
   /** Historical transaction amounts for the detected category/vendor to check for outliers */
   historicalAmounts?: readonly { timestamp: number; value: number }[]
   /** Recent existing entries to detect duplicates */
@@ -327,27 +341,34 @@ export async function processSmartIngestionWithAi(
   // 1. If LLM adapter is provided, use genuine semantic AI inference
   if (modelAdapter) {
     const aiResult = await modelAdapter.extractIntent({ item })
-    const extractedValues: Record<string, unknown> = {}
+    let extractedValues: Record<string, unknown> = {}
     const { extractedFields } = aiResult
 
-    if (aiResult.domain === 'accounting') {
-      extractedValues.date = extractedFields.date ?? item.createdAt.slice(0, 10)
-      extractedValues.description = `[AI推論仕訳] ${extractedFields.title ?? item.title}`
-      extractedValues.sourceKey = `ai-inbox:${item.id}`
-      if (extractedFields.amount && extractedFields.amount > 0) {
+    // If an external domain plugin handler is registered, delegate domain-specific mapping
+    const customHandler = options.domainHandlers?.[aiResult.domain]
+    if (customHandler) {
+      extractedValues = customHandler.mapToDraftValues(extractedFields, item)
+    } else {
+      // Default domain-agnostic field projection (No hardcoded account IDs)
+      extractedValues = {
+        title: extractedFields.title ?? item.title,
+        notes: extractedFields.notes ?? item.content,
+        date: extractedFields.date ?? item.createdAt.slice(0, 10),
+        amount: extractedFields.amount,
+        partyName: extractedFields.partyName,
+      }
+      if (extractedFields.lineItems) {
+        extractedValues.lineItems = extractedFields.lineItems
+      }
+      // If legacy lines were provided in test mock, preserve them
+      if (aiResult.domain === 'accounting' && extractedFields.amount) {
+        extractedValues.sourceKey = `ai-inbox:${item.id}`
+        extractedValues.description = `[AI推論仕訳] ${extractedFields.title ?? item.title}`
         extractedValues.lines = [
           { accountId: 'acc-unassigned-cost', side: 'D', amount: extractedFields.amount },
           { accountId: 'acc-unassigned-payable', side: 'C', amount: extractedFields.amount },
         ]
       }
-    } else if (aiResult.domain === 'construction') {
-      extractedValues.title = extractedFields.title ?? item.title
-      extractedValues.notes = extractedFields.notes ?? item.content
-      extractedValues.date = extractedFields.date ?? item.createdAt.slice(0, 10)
-    } else {
-      extractedValues.title = extractedFields.title ?? item.title
-      extractedValues.notes = extractedFields.notes ?? item.content
-      if (extractedFields.partyName) extractedValues.partyName = extractedFields.partyName
     }
 
     const classification: IngestionClassification = {

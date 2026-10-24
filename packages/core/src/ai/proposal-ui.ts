@@ -1,5 +1,35 @@
 import { validateProposalInput, proposalFieldTypes, type RecordProposal } from '@alneas/appkit-core/ai/proposal'
 import { createGenerativeUIContract, type GenerativeUIDocument } from '@alneas/appkit-core/ai/generative-ui'
+import type { CoreAiDraft } from './governance'
+
+/**
+ * Converts a CoreAiDraft to a durable platform RecordProposal for human-in-the-loop audit and approval.
+ */
+export function convertAiDraftToProposal(
+  draft: CoreAiDraft,
+  options: { scope: string; targetId: string; baseVersion?: number; createdAt?: string }
+): RecordProposal<StructuredProposalRecord> {
+  const scope = draft.scope ?? options.scope
+  const targetId = draft.targetId ?? options.targetId
+  const createdAt = options.createdAt ?? new Date().toISOString()
+  const baseVersion = draft.baseRevision ?? options.baseVersion ?? 0
+
+  const checked = validateProposalInput<StructuredProposalRecord>(
+    {
+      id: `${scope}-draft:${targetId}:${createdAt}`,
+      targetId,
+      baseVersion,
+      createdAt,
+      changes: [
+        { field: 'title', before: '', after: draft.summary ?? 'AI Draft Proposal', reason: 'AI draft proposal' },
+        { field: 'data', before: '', after: JSON.stringify(draft.values), reason: 'AI draft proposal values' },
+      ],
+    },
+    { fields: { title: proposalFieldTypes.string, data: proposalFieldTypes.string } }
+  )
+  if (!checked.ok) throw new Error(`Invalid ${scope} proposal: ${checked.errors?.[0]?.message ?? 'validation failed'}`)
+  return checked.data
+}
 
 /**
  * Reviewable draft title and structured JSON data prior to persistence.

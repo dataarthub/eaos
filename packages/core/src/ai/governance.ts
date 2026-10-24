@@ -40,11 +40,17 @@ export interface DraftImpactSimulation {
 
 /**
  * Pure contract for an AI-assisted draft proposal for forms (AI-to-UI draft pattern).
- * Owned by Core so that Server and Core AI services can produce drafts without depending on React.
+ * Owned by Core and bound to target record ID and base revision to prevent cross-record misapplication.
  */
 export interface CoreAiDraft {
   /** Target form mode: create, edit, or specific command operation name */
   mode: 'create' | 'edit' | string
+  /** Target record identity when proposing an edit or bound command */
+  targetId?: string
+  /** Target record base revision when known, for CAS optimistic locking */
+  baseRevision?: number
+  /** Scope namespace or plugin ID */
+  scope?: string
   /** Operational risk tier evaluated at draft time */
   riskLevel?: AIRiskLevel
   /** Human-readable summary of the draft */
@@ -483,6 +489,24 @@ export interface SkillCatalog {
 export type AITextOrToolPart = Extract<AIChatPart, { 
   /** Chat-part discriminator selecting text, tool-call or tool-result payload fields. */
   type: 'text' | 'tool-call' | 'tool-result' }>
+
+/**
+ * Translates AIRiskLevel (1|2|3) to the platform Gatekeeper RiskLevel and ApprovalLevel.
+ */
+export function mapAIRiskToGatekeeper(aiRisk: AIRiskLevel): {
+  riskLevel: 'low' | 'medium' | 'high' | 'critical'
+  approvalLevel: 'L1_AUTO' | 'L2_LEAD' | 'L3_MANAGER' | 'L4_EXECUTIVE'
+  requireHumanApproval: boolean
+} {
+  switch (aiRisk) {
+    case 1:
+      return { riskLevel: 'low', approvalLevel: 'L1_AUTO', requireHumanApproval: false }
+    case 2:
+      return { riskLevel: 'medium', approvalLevel: 'L2_LEAD', requireHumanApproval: true }
+    case 3:
+      return { riskLevel: 'critical', approvalLevel: 'L4_EXECUTIVE', requireHumanApproval: true }
+  }
+}
 
 /**
  * Evaluates whether an operation or tool execution is allowed under its AI risk tier.
