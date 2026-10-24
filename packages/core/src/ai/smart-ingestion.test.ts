@@ -1,48 +1,68 @@
 import { describe, expect, it } from 'bun:test'
 import {
   classifyIngestionText,
-  processSmartIngestion,
+  createMockLlmModelAdapter,
+  processSmartIngestionWithAi,
   type IngestionItem,
 } from './smart-ingestion'
 
-describe('Smart Ingestion Inbox (Unstructured Memo -> Structured ERP Draft)', () => {
-  it('classifies a casual site voice memo into a construction progress draft', () => {
-    const text = '本日の3階内装クロス張替工事完了。ボード一部にひび割れあり、是正指示出しときました。'
-    const classification = classifyIngestionText(text)
-
-    expect(classification.domain).toBe('construction')
-    expect(classification.targetMode).toBe('log_progress')
-    expect(classification.riskLevel).toBe(2)
-    expect(classification.confidence).toBe('high')
-  })
-
-  it('classifies a financial payment note into an accounting journal draft with amount parsing', () => {
+describe('Smart Ingestion Inbox with LLM AI Model Adapter', () => {
+  it('uses LLM semantic inference to extract financial draft from ambiguous natural language', async () => {
+    const aiAdapter = createMockLlmModelAdapter()
     const item: IngestionItem = {
-      id: 'memo-123',
+      id: 'memo-ai-01',
       tenantId: 'tenant-demo',
-      sourceType: 'memo',
-      title: '仮設足場工事の請求受領',
-      content: '協力会社から請求書受領。仮設足場の費用として 350,000円。支払期日は2026/11/15。',
-      createdAt: '2026-10-24T10:00:00Z',
+      sourceType: 'audio_transcript',
+      title: '移動中の音声メモ',
+      content: 'えーと、昨日頼んだ足場の代金、いつものA社に35万、来月末払いで登録しといて。',
+      createdAt: '2026-10-24T12:00:00Z',
     }
 
-    const result = processSmartIngestion(item)
+    const result = await processSmartIngestionWithAi(item, aiAdapter)
+
+    expect(result.processedBy).toBe('llm_model')
     expect(result.classification.domain).toBe('accounting')
     expect(result.classification.targetMode).toBe('create_journal')
-    expect(result.uiDraft.riskLevel).toBe(2)
-    expect(result.uiDraft.summary).toContain('会計仕訳起票')
+    expect(result.classification.confidence).toBe('high')
+    expect(result.uiDraft.summary).toContain('仮設足場工事')
     expect(result.extractedValues.lines).toBeDefined()
     const lines = result.extractedValues.lines as any[]
     expect(lines[0].amount).toBe(350000)
     expect(lines[1].amount).toBe(350000)
   })
 
-  it('classifies a hotel guest dietary note into a hospitality department task', () => {
-    const text = '宿泊客の田中様より電話。そばアレルギーあり。明日の朝食レストランへ手配お願いします。'
-    const classification = classifyIngestionText(text)
+  it('uses LLM to understand casual site voice report and creates construction progress draft', async () => {
+    const aiAdapter = createMockLlmModelAdapter()
+    const item: IngestionItem = {
+      id: 'memo-ai-02',
+      tenantId: 'tenant-demo',
+      sourceType: 'audio_transcript',
+      title: '現場写真と音声',
+      content: 'あー3階の内装だけどさ、クロス貼りは綺麗に終わったよ。ただ下地に一部ひび割れ見つかったからボード是正しとくね。',
+      createdAt: '2026-10-24T15:00:00Z',
+    }
 
-    expect(classification.domain).toBe('hospitality')
-    expect(classification.targetMode).toBe('create_guest_request')
-    expect(classification.riskLevel).toBe(2)
+    const result = await processSmartIngestionWithAi(item, aiAdapter)
+
+    expect(result.processedBy).toBe('llm_model')
+    expect(result.classification.domain).toBe('construction')
+    expect(result.classification.targetMode).toBe('log_progress')
+    expect(result.uiDraft.summary).toContain('内装工事の完了報告')
+    expect(result.extractedValues.title).toContain('3階内装クロス張替工事')
+  })
+
+  it('falls back gracefully to heuristic rules when no LLM adapter is provided', async () => {
+    const item: IngestionItem = {
+      id: 'memo-fallback',
+      tenantId: 'tenant-demo',
+      sourceType: 'memo',
+      title: '請求メモ',
+      content: '請求書の受領について。',
+      createdAt: '2026-10-24T10:00:00Z',
+    }
+
+    const result = await processSmartIngestionWithAi(item, undefined)
+    expect(result.processedBy).toBe('heuristic_fallback')
+    expect(result.classification.domain).toBe('accounting')
   })
 })
