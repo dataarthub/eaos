@@ -57,6 +57,22 @@ describe('Evidence Traceability & PDF BoundingBox Pinning', () => {
     expect(result.matched).toBe(false)
   })
 
+  it('rejects sign and decimal mismatches (e.g. 350000 vs -350000 or 350000.50)', () => {
+    const negativeCitation: SourceEvidenceCitation = {
+      ...sampleCitation,
+      rawText: '返金控除: ¥-350,000',
+    }
+    expect(verifyFieldCitation(350000, negativeCitation).matched).toBe(false)
+    expect(verifyFieldCitation(-350000, negativeCitation).matched).toBe(true)
+
+    const decimalCitation: SourceEvidenceCitation = {
+      ...sampleCitation,
+      rawText: '精算額: ¥350,000.50',
+    }
+    expect(verifyFieldCitation(350000, decimalCitation).matched).toBe(false)
+    expect(verifyFieldCitation(350000.5, decimalCitation).matched).toBe(true)
+  })
+
   it('rejects empty strings or empty fields gracefully without false positives', () => {
     const emptyCitation: SourceEvidenceCitation = {
       ...sampleCitation,

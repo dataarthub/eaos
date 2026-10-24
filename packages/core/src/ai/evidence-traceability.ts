@@ -83,15 +83,40 @@ export function verifyFieldCitation(
     return { matched: false, note: 'Field value or citation text is empty' }
   }
 
-  // Exact match
+  // Exact string match
   if (rawClean === strVal) {
     return { matched: true }
   }
 
-  // Word/token boundary match: prevent matching 350,000 against 3,500,000 or 1350000
-  // Escape regex special characters in strVal
+  // If the target field value is numeric, perform strict full-token numeric matching
+  // This prevents matching 350000 against -350000, 350000.50, 3500000, etc.
+  const targetNum = Number(strVal)
+  if (!Number.isNaN(targetNum)) {
+    // Extract signed integer or floating point tokens: e.g. -350000, 350000.50, +100
+    // Negative lookbehind and lookahead ensure we capture the whole number token
+    const numericTokenRegex = /(?:^|[^0-9.])([+-]?[0-9]+(?:\.[0-9]+)?)(?:$|[^0-9.])/g
+    let match: RegExpExecArray | null
+    while ((match = numericTokenRegex.exec(rawClean)) !== null) {
+      const tokenStr = match[1]
+      const tokenNum = Number(tokenStr)
+      if (!Number.isNaN(tokenNum) && tokenNum === targetNum) {
+        // Also ensure sign matches exactly if target is positive but token is explicitly negative
+        if (targetNum > 0 && tokenStr.startsWith('-')) {
+          continue
+        }
+        return { matched: true }
+      }
+    }
+
+    return {
+      matched: false,
+      note: `Cited text "${citation.rawText}" does not contain exact matching numeric token for "${String(fieldValue)}"`,
+    }
+  }
+
+  // For non-numeric text, require exact boundary token match
   const escapedVal = strVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const boundaryRegex = new RegExp(`(?:^|[^0-9])${escapedVal}(?:$|[^0-9])`)
+  const boundaryRegex = new RegExp(`(?:^|\\s)${escapedVal}(?:$|\\s)`)
 
   if (boundaryRegex.test(rawClean)) {
     return { matched: true }
@@ -99,6 +124,6 @@ export function verifyFieldCitation(
 
   return {
     matched: false,
-    note: `Cited text "${citation.rawText}" does not contain isolated value "${String(fieldValue)}"`,
+    note: `Cited text "${citation.rawText}" does not contain isolated text "${String(fieldValue)}"`,
   }
 }
