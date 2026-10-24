@@ -90,6 +90,44 @@ export interface RecordReferenceCandidate {
  */
   label: string }
 /**
+ * Visual bounding box coordinates on the original source document (e.g. PDF).
+ */
+export interface SourceBoundingBox {
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Metadata for a field extracted by AI, including confidence and source bounding coordinates.
+ */
+export interface AiFieldMetadata {
+  /** Confidence score: high (green/confident), medium (yellow/review), low (red/attention) */
+  confidence: 'high' | 'medium' | 'low';
+  /** Original bounding box on the parsed document for pinpoint preview */
+  sourceBox?: SourceBoundingBox;
+  /** Explanation of why this value was inferred */
+  reasoning?: string;
+}
+
+/**
+ * Impact simulation metrics calculated deterministically before committing the draft.
+ */
+export interface DraftImpactSimulation {
+  title: string;
+  metrics: readonly {
+    label: string;
+    before?: string | number;
+    after: string | number;
+    change?: string | number;
+    alert?: boolean;
+  }[];
+  warning?: string;
+}
+
+/**
  * AI-assisted draft proposal for forms (AI-to-UI draft pattern).
  */
 export interface RecordWorkspaceAiDraft {
@@ -109,6 +147,14 @@ export interface RecordWorkspaceAiDraft {
   * Optional risk classification (Level 1/2/3).
   */
   riskLevel?: 1 | 2 | 3;
+ /**
+  * Per-field confidence scores and source document coordinates.
+  */
+  fieldMetadata?: Record<string, AiFieldMetadata>;
+ /**
+  * Optional deterministic impact simulation (What-If calculation).
+  */
+  simulation?: DraftImpactSimulation;
 }
 /**
  * Optional plugin help, reference transports and record/ready notifications.
@@ -572,6 +618,23 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
   catch { setError('保存は完了しました。一覧を再取得できませんでした。再読込してください。') }
   setSelected(saved)
  })
+
+ // Keyboard shortcut handler for power users: Cmd+Enter / Ctrl+Enter triggers submit
+ React.useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if (form && schema) {
+     e.preventDefault()
+     const activeForm = document.querySelector('section[aria-label="操作フォーム"] form') as HTMLFormElement | null
+     if (activeForm) {
+      activeForm.requestSubmit()
+     }
+    }
+   }
+  }
+  window.addEventListener('keydown', handleKeyDown)
+  return () => window.removeEventListener('keydown', handleKeyDown)
+ }, [form, schema])
  const serverSearch = !!definition.schemas[definition.operations.list]?.properties?.search
  const relations = Object.fromEntries((definition.references ?? []).filter(reference => references[reference.field]).map(reference => [reference.field, { displayField: 'displayName', valueField: 'id', data: references[reference.field].map(candidate => ({ id: candidate.record.id, displayName: candidate.label })), inputDisplay: 'both' as const, validateKey: true, searchFields: ['displayName', 'id'], searchTitle: reference.title }]))
  const displayValue = (field: string, value: unknown) => { const candidate = references[field]?.find(item => item.record.id === value); return candidate ? candidate.label : typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—') }
@@ -600,6 +663,20 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
       <div>
        <strong style={{ color: '#1e3a8a' }}>{activeDraft.riskLevel ? `[Level ${activeDraft.riskLevel}] ` : ''}AIによる下書き提案があります</strong>
        {activeDraft.summary && <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: '#1d4ed8' }}>{activeDraft.summary}</p>}
+       {activeDraft.fieldMetadata && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: '0.75rem' }}>
+         {Object.entries(activeDraft.fieldMetadata).some(([, m]) => m.confidence === 'low') && (
+          <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
+           ⚠️ 要確認項目あり（低確信度）
+          </span>
+         )}
+         {Object.entries(activeDraft.fieldMetadata).some(([, m]) => m.sourceBox) && (
+          <span style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '2px 6px', borderRadius: 4 }}>
+           📄 原本PDF座標リンクあり
+          </span>
+         )}
+        </div>
+       )}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
        <Button variant="outline" type="button" onClick={() => {
@@ -613,9 +690,29 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
        <Button variant="outline" type="button" onClick={() => { setDismissedDraft(activeDraft); onDismissAiDraft?.() }}>破棄</Button>
       </div>
      </div>
+     {activeDraft.simulation && (
+      <div style={{ marginTop: 12, padding: 10, backgroundColor: '#ffffff', borderRadius: 4, border: '1px solid #cbd5e1' }}>
+       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>【影響シミュレーション（確定後インパクト）】 {activeDraft.simulation.title}</span>
+       <div style={{ display: 'flex', gap: 16, marginTop: 4, flexWrap: 'wrap' }}>
+        {activeDraft.simulation.metrics.map(m => (
+         <div key={m.label} style={{ fontSize: '0.8125rem' }}>
+          <span style={{ color: '#64748b' }}>{m.label}: </span>
+          <span style={{ fontWeight: 600, color: m.alert ? '#dc2626' : '#1e293b' }}>
+           {m.before !== undefined ? `${m.before} ➔ ` : ''}{m.after}
+          </span>
+         </div>
+        ))}
+       </div>
+       {activeDraft.simulation.warning && (
+        <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#b91c1c', fontWeight: 500 }}>
+         ⚠️ {activeDraft.simulation.warning}
+        </p>
+       )}
+      </div>
+     )}
     </section>
    )}
-   {form && schema && <section aria-label="操作フォーム"><h2>{form === 'create' ? '新規登録' : form === 'edit' ? '編集' : form.label}</h2>{isDraftForCurrentForm && <p style={{ fontSize: '0.875rem', color: '#2563eb', margin: '4px 0 8px', fontWeight: 500 }}>※ AI生成の下書き値がフォームに反映されています。内容を確認・修正してから保存（確定）してください。</p>}<fieldset disabled={referenceBusy || (!!referenceClient && !!referenceError && (definition.references ?? []).some(reference => schema!.properties?.[reference.field]))} style={{ border: 0, padding: 0 }}><EnhancedDetailPage relations={relations} key={`${typeof form === 'string' ? form : form.operation}:${selected?.id ?? ''}:${selected?.revision ?? ''}:${typeof form === 'object' ? JSON.stringify(form.initialValues ?? {}) : ''}:${isDraftForCurrentForm ? JSON.stringify(activeDraft.values) : ''}`} schema={schema} values={initial} mode="edit" submitLabel={form === 'create' ? 'create' : 'update'} containerLayout={false} onSubmit={submit} onCancel={() => setForm(null)} /></fieldset></section>}
+   {form && schema && <section aria-label="操作フォーム"><h2>{form === 'create' ? '新規登録' : form === 'edit' ? '編集' : form.label}</h2>{isDraftForCurrentForm && <p style={{ fontSize: '0.875rem', color: '#2563eb', margin: '4px 0 8px', fontWeight: 500 }}>※ AI生成の下書き値がフォームに反映されています（ショートカット: Cmd+Enter / Ctrl+Enter で保存）。内容を確認・修正してから保存（確定）してください。</p>}<fieldset disabled={referenceBusy || (!!referenceClient && !!referenceError && (definition.references ?? []).some(reference => schema!.properties?.[reference.field]))} style={{ border: 0, padding: 0 }}><EnhancedDetailPage relations={relations} key={`${typeof form === 'string' ? form : form.operation}:${selected?.id ?? ''}:${selected?.revision ?? ''}:${typeof form === 'object' ? JSON.stringify(form.initialValues ?? {}) : ''}:${isDraftForCurrentForm ? JSON.stringify(activeDraft.values) : ''}`} schema={schema} values={initial} mode="edit" submitLabel={form === 'create' ? 'create' : 'update'} containerLayout={false} onSubmit={submit} onCancel={() => setForm(null)} /></fieldset></section>}
    {preview !== null && <section aria-label="試算結果"><h2>試算結果</h2><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(preview, null, 2)}</pre></section>}
   </fieldset>{busy && <p role="status">処理中…</p>}
  </section>

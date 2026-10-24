@@ -10,6 +10,8 @@ export interface ExtractedDocumentTable {
   headers: readonly string[]
   /** 2D grid of cell values (rows x columns) */
   rows: readonly (readonly string[])[]
+  /** Optional cell-level bounding coordinates for pinpoint PDF preview */
+  cellBoxes?: readonly (readonly ({ page: number; x: number; y: number; width: number; height: number } | undefined)[])[]
 }
 
 /**

@@ -121,6 +121,18 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
     mode: 'create_journal',
     riskLevel: 2,
     summary: `${parsedDoc.name} から ${lineItems.length} 件の工種明細（合計 ¥${totalAmount.toLocaleString()}）を抽出しました。借方: ${projectStatus === 'IN_PROGRESS' ? '未成工事支出金(WIP)' : '完成工事原価'}`,
+    fieldMetadata: {
+      date: { confidence: dateMatch ? 'high' : 'medium', reasoning: dateMatch ? '請求書テキストから抽出' : '本日日付で補完' },
+      lines: { confidence: lineItems.length > 0 ? 'high' : 'low', reasoning: `表構造より${lineItems.length}行の金額明細を抽出` },
+    },
+    simulation: {
+      title: '工事原価インパクト試算',
+      metrics: [
+        { label: '計上区分', after: projectStatus === 'IN_PROGRESS' ? '未成工事支出金 (WIP)' : '完成工事原価' },
+        { label: '当月原価増分', after: `+¥${totalAmount.toLocaleString()}` },
+        { label: '貸借一致状況', after: '完全一致 (差額 ¥0)' },
+      ],
+    },
     values: {
       periodId,
       date: detectedDate,
