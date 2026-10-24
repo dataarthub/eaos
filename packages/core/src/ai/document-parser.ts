@@ -78,6 +78,7 @@ export function sanitizeParsedDocument(parsed: ParsedDocumentResult): ParsedDocu
       title: table.title ? String(table.title).trim() : undefined,
       headers,
       rows,
+      cellBoxes: table.cellBoxes,
     }
   })
   return {

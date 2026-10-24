@@ -1,4 +1,4 @@
-import type { SourceBoundingBox } from '@alneas/eaos-react/record-workspace'
+import type { SourceBoundingBox } from './governance'
 
 /**
  * An immutable citation pinning a structured data field to an exact region on a source artifact.
@@ -76,15 +76,29 @@ export function verifyFieldCitation(
     return { matched: false, note: 'Field value is empty' }
   }
 
-  const strVal = String(fieldValue).replace(/[,円\s]/g, '')
-  const rawClean = citation.rawText.replace(/[,円\s]/g, '')
+  const strVal = String(fieldValue).replace(/[,円￥\s]/g, '').trim()
+  const rawClean = citation.rawText.replace(/[,円￥\s]/g, '').trim()
 
-  if (rawClean.includes(strVal) || strVal.includes(rawClean)) {
+  if (!strVal || !rawClean) {
+    return { matched: false, note: 'Field value or citation text is empty' }
+  }
+
+  // Exact match
+  if (rawClean === strVal) {
+    return { matched: true }
+  }
+
+  // Word/token boundary match: prevent matching 350,000 against 3,500,000 or 1350000
+  // Escape regex special characters in strVal
+  const escapedVal = strVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const boundaryRegex = new RegExp(`(?:^|[^0-9])${escapedVal}(?:$|[^0-9])`)
+
+  if (boundaryRegex.test(rawClean)) {
     return { matched: true }
   }
 
   return {
     matched: false,
-    note: `Cited text "${citation.rawText}" did not match field value "${String(fieldValue)}"`,
+    note: `Cited text "${citation.rawText}" does not contain isolated value "${String(fieldValue)}"`,
   }
 }

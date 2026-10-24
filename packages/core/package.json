@@ -77,6 +77,22 @@
       "types": "./dist/ai/anomaly.d.ts",
       "import": "./dist/ai/anomaly.js"
     },
+    "./ai/document-parser": {
+      "types": "./dist/ai/document-parser.d.ts",
+      "import": "./dist/ai/document-parser.js"
+    },
+    "./ai/evidence-traceability": {
+      "types": "./dist/ai/evidence-traceability.d.ts",
+      "import": "./dist/ai/evidence-traceability.js"
+    },
+    "./ai/inline-completion": {
+      "types": "./dist/ai/inline-completion.d.ts",
+      "import": "./dist/ai/inline-completion.js"
+    },
+    "./ai/smart-ingestion": {
+      "types": "./dist/ai/smart-ingestion.d.ts",
+      "import": "./dist/ai/smart-ingestion.js"
+    },
     "./ai/execution-broker": {
       "types": "./dist/ai/execution-broker.d.ts",
       "import": "./dist/ai/execution-broker.js"
@@ -152,6 +168,22 @@
     "./plugin-sdk/event-bus": {
       "types": "./dist/plugin-sdk/event-bus.d.ts",
       "import": "./dist/plugin-sdk/event-bus.js"
+    },
+    "./plugin-sdk/hybrid-document": {
+      "types": "./dist/plugin-sdk/hybrid-document.d.ts",
+      "import": "./dist/plugin-sdk/hybrid-document.js"
+    },
+    "./plugin-sdk/immutable-ledger": {
+      "types": "./dist/plugin-sdk/immutable-ledger.d.ts",
+      "import": "./dist/plugin-sdk/immutable-ledger.js"
+    },
+    "./plugin-sdk/construction-journal-pipeline": {
+      "types": "./dist/plugin-sdk/construction-journal-pipeline.d.ts",
+      "import": "./dist/plugin-sdk/construction-journal-pipeline.js"
+    },
+    "./plugin-sdk/index": {
+      "types": "./dist/plugin-sdk/index.d.ts",
+      "import": "./dist/plugin-sdk/index.js"
     },
     "./plugin-sdk": {
       "types": "./dist/plugin-sdk/index.d.ts",

@@ -1,6 +1,6 @@
 import type { ParsedDocumentResult } from '../ai/document-parser'
 import type { ImmutableLedgerEntry, ImmutableLedgerLine } from './immutable-ledger'
-import type { RecordWorkspaceAiDraft } from '../../../react/src/record-workspace'
+import type { CoreAiDraft } from '../ai/governance'
 import { assertBalancedLines } from './immutable-ledger'
 
 /**
@@ -40,7 +40,7 @@ export interface GenerateJournalDraftRequest {
  */
 export function generateConstructionJournalDraft(request: GenerateJournalDraftRequest): {
   draftEntry: Omit<ImmutableLedgerEntry, 'id'>
-  uiDraft: RecordWorkspaceAiDraft
+  uiDraft: CoreAiDraft
 } {
   const { tenantId, periodId, parsedDoc, mapping, projectStatus, createdBy } = request
 
@@ -59,7 +59,14 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
 
   // Extract monetary line items from parsed tables
   for (const table of parsedDoc.tables) {
-    const amountIdx = table.headers.findIndex(h => /金額|小計|単価/u.test(h))
+    // Exact or priority match: prioritize '金額' or '小計' over '単価' to prevent selecting unit price
+    let amountIdx = table.headers.findIndex(h => /^(?:金額|小計|合計)$/u.test(h))
+    if (amountIdx === -1) {
+      amountIdx = table.headers.findIndex(h => /金額|小計/u.test(h) && !/単価/u.test(h))
+    }
+    if (amountIdx === -1) {
+      amountIdx = table.headers.findIndex(h => /金額|小計/u.test(h))
+    }
     const nameIdx = table.headers.findIndex(h => /品名|工種|項目|名称/u.test(h))
 
     if (amountIdx !== -1 && nameIdx !== -1) {
@@ -117,7 +124,7 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
     },
   }
 
-  const uiDraft: RecordWorkspaceAiDraft = {
+  const uiDraft: CoreAiDraft = {
     mode: 'create_journal',
     riskLevel: 2,
     summary: `${parsedDoc.name} から ${lineItems.length} 件の工種明細（合計 ¥${totalAmount.toLocaleString()}）を抽出しました。借方: ${projectStatus === 'IN_PROGRESS' ? '未成工事支出金(WIP)' : '完成工事原価'}`,

@@ -32,6 +32,22 @@ describe('Inline AI Completion & Slash Commands (/split, /predict, etc.)', () =>
     expect(patch.taxRate).toBe(0.1)
   })
 
+  it('calculates tax split with exact integer arithmetic for tricky amounts like 110 JPY', async () => {
+    const context: InlineCompletionContext = {
+      fieldName: 'amount',
+      currentValue: '/split',
+      rowValues: {
+        amount: 110,
+      },
+    }
+
+    const suggestions = await getInlineCompletions(context)
+    const splitSuggestion = suggestions.find((s) => s.command === '/split')
+    expect(splitSuggestion).toBeDefined()
+    expect(splitSuggestion?.proposedPatch.amount).toBe(100) // Not 99!
+    expect(splitSuggestion?.proposedPatch.taxAmount).toBe(10) // Not 11!
+  })
+
   it('predicts account title from description when /predict or / is invoked', async () => {
     const context: InlineCompletionContext = {
       fieldName: 'accountId',

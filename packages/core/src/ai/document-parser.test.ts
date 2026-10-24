@@ -21,7 +21,7 @@ describe('Document parser adapter & pipeline (Docling integration)', () => {
     expect(result.tables[0].rows[0]).toEqual(['仮設工事', '1', '式', '150000', '150000'])
   })
 
-  it('sanitizes parsed document outputs and trims cell whitespace', () => {
+  it('sanitizes parsed document outputs, trims cell whitespace and preserves cellBoxes', () => {
     const raw: ParsedDocumentResult = {
       name: 'invoice.pdf',
       markdown: '   # Title   \nBody   ',
@@ -30,6 +30,7 @@ describe('Document parser adapter & pipeline (Docling integration)', () => {
           title: '  Summary  ',
           headers: [' Item ', ' Price '],
           rows: [['  Widget A  ', ' 500 ']],
+          cellBoxes: [[{ page: 1, x: 10, y: 20, width: 30, height: 40 }, undefined]],
         },
       ],
     }
@@ -39,6 +40,8 @@ describe('Document parser adapter & pipeline (Docling integration)', () => {
     expect(sanitized.tables[0].title).toBe('Summary')
     expect(sanitized.tables[0].headers).toEqual(['Item', 'Price'])
     expect(sanitized.tables[0].rows[0]).toEqual(['Widget A', '500'])
+    expect(sanitized.tables[0].cellBoxes).toBeDefined()
+    expect(sanitized.tables[0].cellBoxes![0][0]?.x).toBe(10)
   })
 
   it('transforms parsed document into an ERP UI draft via extraction target', async () => {

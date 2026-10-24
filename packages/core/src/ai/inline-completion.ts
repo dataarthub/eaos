@@ -58,8 +58,10 @@ export const builtInInlineProviders: InlineCompletionProvider[] = [
       if (text.startsWith('/split') || text === '/') {
         const rawAmount = Number(context.rowValues?.amount) || 0
         if (rawAmount > 0) {
-          // Standard Japanese consumption tax (10%) calculation: Net = Floor(Total / 1.1), Tax = Total - Net
-          const net = Math.floor(rawAmount / 1.1)
+          // Standard Japanese consumption tax (10%) exact integer breakdown:
+          // Net = Floor((Total * 10) / 11), Tax = Total - Net
+          // Avoids floating-point precision flaws like Math.floor(110 / 1.1) === 99
+          const net = Math.floor((rawAmount * 10) / 11)
           const tax = rawAmount - net
           suggestions.push({
             id: 'split-tax-10',

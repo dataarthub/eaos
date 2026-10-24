@@ -1,6 +1,63 @@
 import type { AIChatMessage, AIChatPart } from '@alneas/appkit-core/ai'
 
 /**
+ * Visual bounding box coordinates on the original source document (e.g. PDF).
+ */
+export interface SourceBoundingBox {
+  page: number
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/**
+ * Metadata for a field extracted by AI, including confidence and source bounding coordinates.
+ */
+export interface AiFieldMetadata {
+  /** Confidence score: high (green/confident), medium (yellow/review), low (red/attention) */
+  confidence: 'high' | 'medium' | 'low'
+  /** Original bounding box on the parsed document for pinpoint preview */
+  sourceBox?: SourceBoundingBox
+  /** Explanation of why this value was inferred */
+  reasoning?: string
+}
+
+/**
+ * Impact simulation metrics calculated deterministically before committing the draft.
+ */
+export interface DraftImpactSimulation {
+  title: string
+  metrics: readonly {
+    label: string
+    before?: string | number
+    after: string | number
+    change?: string | number
+    alert?: boolean
+  }[]
+  warning?: string
+}
+
+/**
+ * Pure contract for an AI-assisted draft proposal for forms (AI-to-UI draft pattern).
+ * Owned by Core so that Server and Core AI services can produce drafts without depending on React.
+ */
+export interface CoreAiDraft {
+  /** Target form mode: create, edit, or specific command operation name */
+  mode: 'create' | 'edit' | string
+  /** Operational risk tier evaluated at draft time */
+  riskLevel?: AIRiskLevel
+  /** Human-readable summary of the draft */
+  summary?: string
+  /** Per-field extraction confidence ratings and source coordinates */
+  fieldMetadata?: Readonly<Record<string, AiFieldMetadata>>
+  /** Deterministic impact simulation before committing */
+  simulation?: DraftImpactSimulation
+  /** Proposed values parsed deterministically against schema */
+  values: Readonly<Record<string, unknown>>
+}
+
+/**
  * AI operational risk tier defining the level of autonomy and Human-in-the-Loop gating.
  *
  * - Level 1: Read-only query, analytics, navigation (Zero risk -> AI immediate execution).

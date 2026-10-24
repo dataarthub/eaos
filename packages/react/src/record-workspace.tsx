@@ -89,42 +89,18 @@ export interface RecordReferenceCandidate {
  * Composed authorized catalog display text; does not replace command IDs.
  */
   label: string }
-/**
- * Visual bounding box coordinates on the original source document (e.g. PDF).
- */
-export interface SourceBoundingBox {
-  page: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import type {
+  SourceBoundingBox,
+  AiFieldMetadata,
+  DraftImpactSimulation,
+  CoreAiDraft as RecordWorkspaceAiDraft,
+} from '../../core/src/ai/governance'
 
-/**
- * Metadata for a field extracted by AI, including confidence and source bounding coordinates.
- */
-export interface AiFieldMetadata {
-  /** Confidence score: high (green/confident), medium (yellow/review), low (red/attention) */
-  confidence: 'high' | 'medium' | 'low';
-  /** Original bounding box on the parsed document for pinpoint preview */
-  sourceBox?: SourceBoundingBox;
-  /** Explanation of why this value was inferred */
-  reasoning?: string;
-}
-
-/**
- * Impact simulation metrics calculated deterministically before committing the draft.
- */
-export interface DraftImpactSimulation {
-  title: string;
-  metrics: readonly {
-    label: string;
-    before?: string | number;
-    after: string | number;
-    change?: string | number;
-    alert?: boolean;
-  }[];
-  warning?: string;
+export type {
+  SourceBoundingBox,
+  AiFieldMetadata,
+  DraftImpactSimulation,
+  RecordWorkspaceAiDraft,
 }
 
 /**
@@ -138,36 +114,6 @@ export interface RecordWorkspaceInlineSuggestion {
   riskLevel: 1 | 2 | 3;
   proposedPatch: Record<string, unknown>;
   confidence: 'high' | 'medium' | 'low';
-}
-
-/**
- * AI-assisted draft proposal for forms (AI-to-UI draft pattern).
- */
-export interface RecordWorkspaceAiDraft {
- /**
-  * Target form mode: create, edit, or specific command operation name.
-  */
-  mode: 'create' | 'edit' | string;
- /**
-  * Proposed values parsed deterministically against schema.
-  */
-  values: Record<string, unknown>;
- /**
-  * Short summary or rationale for the proposed changes.
-  */
-  summary?: string;
- /**
-  * Optional risk classification (Level 1/2/3).
-  */
-  riskLevel?: 1 | 2 | 3;
- /**
-  * Per-field confidence scores and source document coordinates.
-  */
-  fieldMetadata?: Record<string, AiFieldMetadata>;
- /**
-  * Optional deterministic impact simulation (What-If calculation).
-  */
-  simulation?: DraftImpactSimulation;
 }
 /**
  * Optional plugin help, reference transports and record/ready notifications.
@@ -678,12 +624,12 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
        {activeDraft.summary && <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: '#1d4ed8' }}>{activeDraft.summary}</p>}
        {activeDraft.fieldMetadata && (
         <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: '0.75rem' }}>
-         {Object.entries(activeDraft.fieldMetadata).some(([, m]) => m.confidence === 'low') && (
+         {Object.entries(activeDraft.fieldMetadata).some(([, m]: [string, any]) => m?.confidence === 'low') && (
           <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
            ⚠️ 要確認項目あり（低確信度）
           </span>
          )}
-         {Object.entries(activeDraft.fieldMetadata).some(([, m]) => m.sourceBox) && (
+         {Object.entries(activeDraft.fieldMetadata).some(([, m]: [string, any]) => !!m?.sourceBox) && (
           <span style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '2px 6px', borderRadius: 4 }}>
            📄 原本PDF座標リンクあり
           </span>
@@ -707,7 +653,7 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
       <div style={{ marginTop: 12, padding: 10, backgroundColor: '#ffffff', borderRadius: 4, border: '1px solid #cbd5e1' }}>
        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>【影響シミュレーション（確定後インパクト）】 {activeDraft.simulation.title}</span>
        <div style={{ display: 'flex', gap: 16, marginTop: 4, flexWrap: 'wrap' }}>
-        {activeDraft.simulation.metrics.map(m => (
+        {activeDraft.simulation.metrics.map((m: any) => (
          <div key={m.label} style={{ fontSize: '0.8125rem' }}>
           <span style={{ color: '#64748b' }}>{m.label}: </span>
           <span style={{ fontWeight: 600, color: m.alert ? '#dc2626' : '#1e293b' }}>

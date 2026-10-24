@@ -1,5 +1,4 @@
-import type { AIRiskLevel, AIExecutionContext } from './governance'
-import type { RecordWorkspaceAiDraft } from '../../react/src/record-workspace'
+import type { AIRiskLevel, AIExecutionContext, CoreAiDraft } from './governance'
 import { analyzeLatestMetric, type AINumericMetricPoint } from './anomaly'
 import type { SourceEvidenceCitation } from './evidence-traceability'
 
@@ -82,7 +81,7 @@ export interface IngestionAnomalyAlert {
 export interface IngestionProcessingResult {
   itemId: string
   classification: IngestionClassification
-  uiDraft: RecordWorkspaceAiDraft
+  uiDraft: CoreAiDraft
   extractedValues: Record<string, unknown>
   processedBy: 'llm_model' | 'heuristic_fallback'
   /** Proactive anomaly alerts (outliers, duplicate entries) */
@@ -359,7 +358,7 @@ export async function processSmartIngestionWithAi(
       rationale: aiResult.summary,
     }
 
-    const uiDraft: RecordWorkspaceAiDraft = {
+    const uiDraft: CoreAiDraft = {
       mode: aiResult.targetMode,
       riskLevel: 2,
       summary: aiResult.summary,
@@ -396,7 +395,7 @@ export async function processSmartIngestionWithAi(
     notes: item.content,
   }
 
-  const uiDraft: RecordWorkspaceAiDraft = {
+  const uiDraft: CoreAiDraft = {
     mode: classification.targetMode,
     riskLevel: classification.riskLevel,
     summary: `${classification.rationale} (Heuristic mode)`,

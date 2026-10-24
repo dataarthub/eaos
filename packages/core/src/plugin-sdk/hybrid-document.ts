@@ -1,4 +1,4 @@
-import type { LedgerEntry } from './immutable-ledger'
+import type { ImmutableLedgerEntry } from './immutable-ledger'
 import { assertBalancedLines } from './immutable-ledger'
 
 /**
@@ -31,7 +31,7 @@ export interface ErpRecordTableBlock extends BaseBlock {
   type: 'erp_record_table'
   entitySchema: 'accounting_journal' | 'construction_progress' | 'cost_budget'
   /** Array of transactional double-entry records */
-  records: LedgerEntry[]
+  records: ImmutableLedgerEntry[]
 }
 
 /**

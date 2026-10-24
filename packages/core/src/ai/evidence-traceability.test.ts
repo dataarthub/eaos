@@ -45,6 +45,24 @@ describe('Evidence Traceability & PDF BoundingBox Pinning', () => {
     }
     const failResult = verifyFieldCitation(350000, mismatchCitation)
     expect(failResult.matched).toBe(false)
-    expect(failResult.note).toContain('did not match')
+    expect(failResult.note).toContain('does not contain')
+  })
+
+  it('rejects partial numeric matches that alter magnitude (e.g. 350,000 vs 3,500,000)', () => {
+    const wrongMagnitudeCitation: SourceEvidenceCitation = {
+      ...sampleCitation,
+      rawText: '合計 ¥3,500,000 (消費税込)',
+    }
+    const result = verifyFieldCitation(350000, wrongMagnitudeCitation)
+    expect(result.matched).toBe(false)
+  })
+
+  it('rejects empty strings or empty fields gracefully without false positives', () => {
+    const emptyCitation: SourceEvidenceCitation = {
+      ...sampleCitation,
+      rawText: '',
+    }
+    expect(verifyFieldCitation(350000, emptyCitation).matched).toBe(false)
+    expect(verifyFieldCitation('', sampleCitation).matched).toBe(false)
   })
 })

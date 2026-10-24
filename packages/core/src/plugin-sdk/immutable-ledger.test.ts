@@ -81,4 +81,13 @@ describe('ImmutableLedger contract & rules', () => {
     expect(reversing.provenance.riskLevel).toBe(3)
     expect(reversing.provenance.createdBy).toBe('operator-auditor')
   })
+
+  it('rejects unbalanced lines even when amounts approach or exceed MAX_SAFE_INTEGER bounds', () => {
+    const maxSafe = Number.MAX_SAFE_INTEGER
+    const lines = [
+      { accountId: 'acc-debit', side: 'D' as const, amount: maxSafe },
+      { accountId: 'acc-credit', side: 'C' as const, amount: maxSafe - 1 },
+    ]
+    expect(() => assertBalancedLines(lines)).toThrow('Journal lines are not balanced')
+  })
 })

@@ -77,15 +77,16 @@ export function assertBalancedLines(lines: readonly ImmutableLedgerLine[]): void
   if (!Array.isArray(lines) || lines.length < 2 || lines.length > 200) {
     throw new Error('Journal entry must have between 2 and 200 lines')
   }
-  let sum = 0
+  let sum = 0n
   for (const line of lines) {
     assertBusinessId(line.accountId)
     assertMoneyMinor(line.amount, true)
     if (line.amount <= 0) throw new Error('Line amount must be greater than zero')
     if (line.side !== 'D' && line.side !== 'C') throw new Error('Line side must be D or C')
-    sum += line.side === 'D' ? line.amount : -line.amount
+    const amountBig = BigInt(line.amount)
+    sum += line.side === 'D' ? amountBig : -amountBig
   }
-  if (sum !== 0) {
+  if (sum !== 0n) {
     throw new Error('Journal lines are not balanced: Debit sum must equal Credit sum')
   }
 }
