@@ -54,3 +54,12 @@ test('related labels resolve through authorized catalogs and never overwrite com
  await expect(loadRecordReference(unitReference,'tenant',transport(unitReference),undefined,forged)).rejects.toThrow('範囲')
  expect(recordReferenceLabel(reference,property)).toBe('青空マンション')
 })
+
+test('AI-to-UI draft pattern: accepts draft proposal and preserves deterministic form inputs', () => {
+ const schema = { type: 'object', properties: { name: { type: 'string' }, amount: { type: 'integer' } }, required: ['name'] }
+ const form = recordFormSchema(schema, [])
+ const draftValues = { name: 'AI抽出物件', amount: 120000, unverifiedNoise: 'ignored' }
+ const parsed = recordFormValues(form as any, draftValues)
+ expect(parsed).toEqual({ name: 'AI抽出物件', amount: 120000 })
+ expect(parsed).not.toHaveProperty('unverifiedNoise')
+})

@@ -90,11 +90,40 @@ export interface RecordReferenceCandidate {
  */
   label: string }
 /**
+ * AI-assisted draft proposal for forms (AI-to-UI draft pattern).
+ */
+export interface RecordWorkspaceAiDraft {
+ /**
+  * Target form mode: create, edit, or specific command operation name.
+  */
+  mode: 'create' | 'edit' | string;
+ /**
+  * Proposed values parsed deterministically against schema.
+  */
+  values: Record<string, unknown>;
+ /**
+  * Short summary or rationale for the proposed changes.
+  */
+  summary?: string;
+ /**
+  * Optional risk classification (Level 1/2/3).
+  */
+  riskLevel?: 1 | 2 | 3;
+}
+/**
  * Optional plugin help, reference transports and record/ready notifications.
  *
  * @see RecordWorkspace for a complete host integration example.
  */
 export interface RecordWorkspaceProps {
+ /**
+  * Optional uncommitted AI draft proposal for human-in-the-loop review.
+  */
+ aiDraft?: RecordWorkspaceAiDraft | null;
+ /**
+  * Notifies the host when the AI draft proposal is dismissed by the operator.
+  */
+ onDismissAiDraft?: () => void;
  /**
  * Optional help content; undefined uses Core guide and null hides it.
  *
@@ -436,7 +465,7 @@ export function recordFormValues(schema: Schema, values: Record<string, unknown>
  * export function Records({tenantId, sessionKey, client, definition}: {tenantId: string; sessionKey: string; client: WorkspaceClient<unknown>; definition: RecordWorkspaceDefinition}) { return <RecordWorkspaceProvider tenantId={tenantId} recordId={definition.id} sessionKey={sessionKey} client={client}><RecordWorkspace definition={definition}/></RecordWorkspaceProvider>; }
  * ```
  */
-export function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help }: RecordWorkspaceProps & {
+export function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help, aiDraft, onDismissAiDraft }: RecordWorkspaceProps & {
 /**
  * Plugin-owned workspace schema, labels and operation declarations.
  */
@@ -451,6 +480,7 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
  const [error, setError] = React.useState<string | null>(null)
  const [notice, setNotice] = React.useState<string | null>(null)
  const [preview, setPreview] = React.useState<unknown>(null)
+ const [dismissedDraft, setDismissedDraft] = React.useState<RecordWorkspaceAiDraft | null>(null)
  const [references, setReferences] = React.useState<Record<string, RecordReferenceCandidate[]>>({})
  const [referenceError, setReferenceError] = React.useState<string | null>(null)
  const [referenceBusy, setReferenceBusy] = React.useState(false)
@@ -512,9 +542,18 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
   setSelected(record); setForm(null); setPreview(null)
  })
  let schema: JSONSchema | null = null, initial: Record<string, unknown> = {}
- if (form === 'create') schema = recordFormSchema(definition.schemas[definition.operations.create], ['commandId'])
- else if (form === 'edit') { schema = recordFormSchema(definition.schemas[definition.operations.update].properties!.patch, definition.workflowFields); initial = selected ?? {} }
- else if (form) { schema = recordFormSchema(form.schema, ['id', 'revision', 'commandId']); initial = form.initialValues ?? {} }
+ const activeDraft = aiDraft && aiDraft !== dismissedDraft ? aiDraft : null
+ const isDraftForCurrentForm = activeDraft && (activeDraft.mode === form || (typeof form === 'object' && form !== null && activeDraft.mode === form.operation))
+ if (form === 'create') {
+  schema = recordFormSchema(definition.schemas[definition.operations.create], ['commandId'])
+  initial = isDraftForCurrentForm ? { ...activeDraft.values } : {}
+ } else if (form === 'edit') {
+  schema = recordFormSchema(definition.schemas[definition.operations.update].properties!.patch, definition.workflowFields)
+  initial = isDraftForCurrentForm ? { ...(selected ?? {}), ...activeDraft.values } : (selected ?? {})
+ } else if (form) {
+  schema = recordFormSchema(form.schema, ['id', 'revision', 'commandId'])
+  initial = isDraftForCurrentForm ? { ...(form.initialValues ?? {}), ...activeDraft.values } : (form.initialValues ?? {})
+ }
  const submit = (values: Record<string, unknown>) => void run(async () => {
   if (!schema || !form) return
   const input = recordFormValues(schema, values)
@@ -555,7 +594,28 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
    <p>{visible.length}件を表示{(snapshot?.data as any)?.mayHaveMore ? typeof (snapshot?.data as any)?.nextCursor === 'string' ? '。続きは次のページで確認できます。' : '。取得上限に達しています。絞り込みは取得範囲に適用されます。' : ''}</p>
    {selected && <section aria-label="詳細"><h2 className="text-xl font-semibold my-4">詳細</h2><dl className="grid grid-cols-2 gap-x-6 gap-y-2 my-4">{Object.entries(selected).filter(([key]) => !['tenantId', 'revision', 'workflow', ...(definition.hiddenDetailFields ?? [])].includes(key)).map(([key, value]) => <React.Fragment key={key}><dt>{definition.columns.find(column => column.accessorKey === key)?.header ?? definition.schemas[definition.operations.create].properties?.[key]?.title ?? key}</dt><dd>{displayValue(key, value)}</dd></React.Fragment>)}</dl>{(!definition.canEdit || definition.canEdit(selected)) && <Button variant="outline" type="button" onClick={() => setForm('edit')}>編集</Button>}</section>}
    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>{definition.commands?.filter(command => !command.record || selected).map(command => <Button variant="outline" type="button" key={command.operation} onClick={() => { setForm(command); setPreview(null) }}>{command.label}</Button>)}</div>
-   {form && schema && <section aria-label="操作フォーム"><h2>{form === 'create' ? '新規登録' : form === 'edit' ? '編集' : form.label}</h2><fieldset disabled={referenceBusy || (!!referenceClient && !!referenceError && (definition.references ?? []).some(reference => schema!.properties?.[reference.field]))} style={{ border: 0, padding: 0 }}><EnhancedDetailPage relations={relations} key={`${typeof form === 'string' ? form : form.operation}:${selected?.id ?? ''}:${selected?.revision ?? ''}:${typeof form === 'object' ? JSON.stringify(form.initialValues ?? {}) : ''}`} schema={schema} values={initial} mode="edit" submitLabel={form === 'create' ? 'create' : 'update'} containerLayout={false} onSubmit={submit} onCancel={() => setForm(null)} /></fieldset></section>}
+   {activeDraft && !form && (
+    <section aria-label="AI下書き提案" style={{ margin: '16px 0', padding: 16, border: '1px solid #bfdbfe', borderRadius: 6, backgroundColor: '#eff6ff' }}>
+     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+       <strong style={{ color: '#1e3a8a' }}>{activeDraft.riskLevel ? `[Level ${activeDraft.riskLevel}] ` : ''}AIによる下書き提案があります</strong>
+       {activeDraft.summary && <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: '#1d4ed8' }}>{activeDraft.summary}</p>}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+       <Button variant="outline" type="button" onClick={() => {
+        if (activeDraft.mode === 'create') { setSelected(null); setForm('create') }
+        else if (activeDraft.mode === 'edit') setForm('edit')
+        else {
+         const cmd = definition.commands?.find(c => c.operation === activeDraft.mode)
+         if (cmd) setForm(cmd)
+        }
+       }}>画面に反映して確認</Button>
+       <Button variant="outline" type="button" onClick={() => { setDismissedDraft(activeDraft); onDismissAiDraft?.() }}>破棄</Button>
+      </div>
+     </div>
+    </section>
+   )}
+   {form && schema && <section aria-label="操作フォーム"><h2>{form === 'create' ? '新規登録' : form === 'edit' ? '編集' : form.label}</h2>{isDraftForCurrentForm && <p style={{ fontSize: '0.875rem', color: '#2563eb', margin: '4px 0 8px', fontWeight: 500 }}>※ AI生成の下書き値がフォームに反映されています。内容を確認・修正してから保存（確定）してください。</p>}<fieldset disabled={referenceBusy || (!!referenceClient && !!referenceError && (definition.references ?? []).some(reference => schema!.properties?.[reference.field]))} style={{ border: 0, padding: 0 }}><EnhancedDetailPage relations={relations} key={`${typeof form === 'string' ? form : form.operation}:${selected?.id ?? ''}:${selected?.revision ?? ''}:${typeof form === 'object' ? JSON.stringify(form.initialValues ?? {}) : ''}:${isDraftForCurrentForm ? JSON.stringify(activeDraft.values) : ''}`} schema={schema} values={initial} mode="edit" submitLabel={form === 'create' ? 'create' : 'update'} containerLayout={false} onSubmit={submit} onCancel={() => setForm(null)} /></fieldset></section>}
    {preview !== null && <section aria-label="試算結果"><h2>試算結果</h2><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(preview, null, 2)}</pre></section>}
   </fieldset>{busy && <p role="status">処理中…</p>}
  </section>
