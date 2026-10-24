@@ -1,6 +1,15 @@
 import type { AIChatMessage, AIChatPart } from '@alneas/appkit-core/ai'
 
 /**
+ * AI operational risk tier defining the level of autonomy and Human-in-the-Loop gating.
+ *
+ * - Level 1: Read-only query, analytics, navigation (Zero risk -> AI immediate execution).
+ * - Level 2: Routine draft generation (Medium risk -> AI-to-UI draft + human confirmation).
+ * - Level 3: Critical financial / master data mutations (High risk -> AI execution strictly prohibited, advisory/simulation only).
+ */
+export type AIRiskLevel = 1 | 2 | 3
+
+/**
  * Data classification used to select an approved model route.
  * @see {@link evaluateSkillEligibility}
  */
@@ -38,6 +47,9 @@ export interface AIExecutionContext {
   
 /** Classification used by the host to constrain eligible execution routes. */
   sensitivityLevel?: AIDataSensitivityLevel
+
+/** Operational risk tier governing AI execution autonomy and Human-in-the-Loop gating. */
+  riskLevel?: AIRiskLevel
 }
 
 /**
@@ -414,3 +426,35 @@ export interface SkillCatalog {
 export type AITextOrToolPart = Extract<AIChatPart, { 
   /** Chat-part discriminator selecting text, tool-call or tool-result payload fields. */
   type: 'text' | 'tool-call' | 'tool-result' }>
+
+/**
+ * Evaluates whether an operation or tool execution is allowed under its AI risk tier.
+ *
+ * @param riskLevel - Operational risk tier (1: Read-only, 2: Routine draft, 3: Critical mutation).
+ * @param options - Execution context options.
+ * @returns Evaluation decision indicating whether immediate automated execution is permitted.
+ */
+export function evaluateAIRiskPolicy(
+  riskLevel: AIRiskLevel,
+  options?: { isDirectMutation?: boolean; hasHumanConfirmation?: boolean }
+): { allowed: boolean; humanConfirmationRequired: boolean; reason?: string } {
+  if (riskLevel === 1) {
+    return { allowed: true, humanConfirmationRequired: false }
+  }
+  if (riskLevel === 2) {
+    if (options?.isDirectMutation && !options?.hasHumanConfirmation) {
+      return {
+        allowed: false,
+        humanConfirmationRequired: true,
+        reason: 'Level 2 operations require human review (AI-to-UI draft pattern) before committing mutations.',
+      }
+    }
+    return { allowed: true, humanConfirmationRequired: false }
+  }
+  // Level 3: Strictly prohibited from direct AI execution
+  return {
+    allowed: false,
+    humanConfirmationRequired: true,
+    reason: 'Level 3 operations are critical and strictly forbid direct AI execution. Operator action via designated UI is required.',
+  }
+}
