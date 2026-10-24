@@ -128,6 +128,19 @@ export interface DraftImpactSimulation {
 }
 
 /**
+ * Inline AI suggestion for form/table field autocompletion and slash commands.
+ */
+export interface RecordWorkspaceInlineSuggestion {
+  id: string;
+  command?: string;
+  label: string;
+  description: string;
+  riskLevel: 1 | 2 | 3;
+  proposedPatch: Record<string, unknown>;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+/**
  * AI-assisted draft proposal for forms (AI-to-UI draft pattern).
  */
 export interface RecordWorkspaceAiDraft {

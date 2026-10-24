@@ -63,3 +63,13 @@ test('AI-to-UI draft pattern: accepts draft proposal and preserves deterministic
  expect(parsed).toEqual({ name: 'AI抽出物件', amount: 120000 })
  expect(parsed).not.toHaveProperty('unverifiedNoise')
 })
+
+test('Inline AI completion patch application: applies proposed patch safely without overriding protected fields', () => {
+ const schema = { type: 'object', properties: { amount: { type: 'integer' }, taxAmount: { type: 'integer' }, description: { type: 'string' } } }
+ const form = recordFormSchema(schema, [])
+ const existingValues = { amount: 330000, description: '備品代' }
+ const patch = { amount: 300000, taxAmount: 30000, _privateMeta: 'strip-me' }
+ const merged = recordFormValues(form as any, { ...existingValues, ...patch })
+ expect(merged).toEqual({ amount: 300000, taxAmount: 30000, description: '備品代' })
+ expect(merged).not.toHaveProperty('_privateMeta')
+})
