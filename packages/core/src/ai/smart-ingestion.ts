@@ -1,5 +1,7 @@
 import type { AIRiskLevel, AIExecutionContext } from './governance'
 import type { RecordWorkspaceAiDraft } from '../../react/src/record-workspace'
+import { analyzeLatestMetric, type AINumericMetricPoint } from './anomaly'
+import type { SourceEvidenceCitation } from './evidence-traceability'
 
 /**
  * Raw unstructured input type supported by the Smart Ingestion Inbox.
@@ -65,6 +67,16 @@ export interface IngestionModelAdapter {
 }
 
 /**
+ * Warning / anomaly flag generated during smart ingestion.
+ */
+export interface IngestionAnomalyAlert {
+  type: 'duplicate_candidate' | 'outlier_amount' | 'unusual_vendor'
+  severity: 'info' | 'warning' | 'critical'
+  message: string
+  score?: number
+}
+
+/**
  * Result of smart ingestion processing, containing routing metadata and the reviewable UI draft.
  */
 export interface IngestionProcessingResult {
@@ -73,6 +85,10 @@ export interface IngestionProcessingResult {
   uiDraft: RecordWorkspaceAiDraft
   extractedValues: Record<string, unknown>
   processedBy: 'llm_model' | 'heuristic_fallback'
+  /** Proactive anomaly alerts (outliers, duplicate entries) */
+  alerts?: IngestionAnomalyAlert[]
+  /** Pinned source citations (e.g. PDF bounding box coordinates) */
+  citations?: Record<string, SourceEvidenceCitation>
 }
 
 /**
@@ -217,13 +233,98 @@ export function createMockLlmModelAdapter(
 }
 
 /**
+ * Options for contextual anomaly detection during ingestion processing.
+ */
+export interface IngestionProcessingOptions {
+  modelAdapter?: IngestionModelAdapter
+  /** Historical transaction amounts for the detected category/vendor to check for outliers */
+  historicalAmounts?: readonly { timestamp: number; value: number }[]
+  /** Recent existing entries to detect duplicates */
+  existingEntries?: readonly { title?: string; amount?: number; date?: string; vendor?: string }[]
+  /** Optional source document citation for bounding box pinning */
+  sourceCitation?: SourceEvidenceCitation
+}
+
+/**
+ * Detects anomalies such as statistical outliers and duplicate entries during ingestion.
+ */
+export function detectIngestionAnomalies(
+  extractedAmount?: number,
+  title?: string,
+  options?: IngestionProcessingOptions
+): IngestionAnomalyAlert[] {
+  const alerts: IngestionAnomalyAlert[] = []
+
+  // 1. Check for duplicate transactions
+  if (extractedAmount && options?.existingEntries?.length) {
+    const isDuplicate = options.existingEntries.some((entry) => {
+      const matchAmount = entry.amount === extractedAmount
+      if (!matchAmount) return false
+      if (!title || !entry.title) return true
+      // Check for partial or token overlap
+      const t1 = title.toLowerCase()
+      const t2 = entry.title.toLowerCase()
+      const hasOverlap = t1.includes(t2) || t2.includes(t1) || t1.slice(0, 4) === t2.slice(0, 4)
+      return hasOverlap
+    })
+    if (isDuplicate) {
+      alerts.push({
+        type: 'duplicate_candidate',
+        severity: 'critical',
+        message: `⚠️ 重複登録の警告: 同額（${extractedAmount.toLocaleString()}円）かつ類似名称の伝票が直近に既に存在します。`,
+      })
+    }
+  }
+
+  // 2. Check for outlier monetary amounts using IQR / z-score algorithm
+  if (extractedAmount && options?.historicalAmounts && options.historicalAmounts.length >= 4) {
+    const points: AINumericMetricPoint[] = [
+      ...options.historicalAmounts,
+      { timestamp: Date.now(), value: extractedAmount },
+    ]
+    try {
+      const results = analyzeLatestMetric({
+        metric: 'transaction_amount',
+        points,
+        config: { minSamples: 4, algorithms: ['iqr', 'zscore'] },
+      })
+      const anomaly = results.find((r) => r.detected)
+      if (anomaly) {
+        alerts.push({
+          type: 'outlier_amount',
+          severity: anomaly.severity,
+          message: `📊 異常値アラート: 金額 ${extractedAmount.toLocaleString()} 円は過去実績の通常範囲を逸脱しています。`,
+          score: anomaly.score,
+        })
+      }
+    } catch {
+      // Ignore calculation errors on metric edge cases
+    }
+  }
+
+  return alerts
+}
+
+/**
  * Processes an unstructured ingestion item using an AI Model Adapter (LLM)
  * with automatic fallback to heuristic rules if no model adapter is supplied.
  */
 export async function processSmartIngestionWithAi(
   item: IngestionItem,
-  modelAdapter?: IngestionModelAdapter
+  optionsOrAdapter?: IngestionModelAdapter | IngestionProcessingOptions
 ): Promise<IngestionProcessingResult> {
+  const options: IngestionProcessingOptions =
+    optionsOrAdapter && 'extractIntent' in optionsOrAdapter
+      ? { modelAdapter: optionsOrAdapter }
+      : (optionsOrAdapter ?? {})
+
+  const { modelAdapter } = options
+  const alerts: IngestionAnomalyAlert[] = []
+  const citations: Record<string, SourceEvidenceCitation> = {}
+
+  if (options.sourceCitation) {
+    citations.amount = options.sourceCitation
+  }
   // 1. If LLM adapter is provided, use genuine semantic AI inference
   if (modelAdapter) {
     const aiResult = await modelAdapter.extractIntent({ item })
@@ -269,12 +370,22 @@ export async function processSmartIngestionWithAi(
       values: extractedValues,
     }
 
+    // Check for anomalies if amount or title are present
+    const detectedAlerts = detectIngestionAnomalies(
+      extractedFields.amount,
+      extractedFields.title ?? item.title,
+      options
+    )
+    alerts.push(...detectedAlerts)
+
     return {
       itemId: item.id,
       classification,
       uiDraft,
       extractedValues,
       processedBy: 'llm_model',
+      alerts: alerts.length > 0 ? alerts : undefined,
+      citations: Object.keys(citations).length > 0 ? citations : undefined,
     }
   }
 
@@ -298,5 +409,7 @@ export async function processSmartIngestionWithAi(
     uiDraft,
     extractedValues,
     processedBy: 'heuristic_fallback',
+    alerts: alerts.length > 0 ? alerts : undefined,
+    citations: Object.keys(citations).length > 0 ? citations : undefined,
   }
 }

@@ -65,4 +65,44 @@ describe('Smart Ingestion Inbox with LLM AI Model Adapter', () => {
     expect(result.processedBy).toBe('heuristic_fallback')
     expect(result.classification.domain).toBe('accounting')
   })
+
+  it('triggers proactive duplicate and outlier alerts when processing with existing history', async () => {
+    const aiAdapter = createMockLlmModelAdapter()
+    const item: IngestionItem = {
+      id: 'memo-ai-dup',
+      tenantId: 'tenant-demo',
+      sourceType: 'memo',
+      title: '仮設足場工事の請求',
+      content: '仮設足場の費用として 350,000円。',
+      createdAt: '2026-10-24T12:00:00Z',
+    }
+
+    // Pass existing entry with same amount and similar title
+    const result = await processSmartIngestionWithAi(item, {
+      modelAdapter: aiAdapter,
+      existingEntries: [
+        { title: '仮設足場工事代金の支払', amount: 350000, date: '2026-10-20' },
+      ],
+      // Pass historical amounts where 350,000 is an outlier compared to 30,000..50,000
+      historicalAmounts: [
+        { timestamp: 1, value: 30000 },
+        { timestamp: 2, value: 35000 },
+        { timestamp: 3, value: 32000 },
+        { timestamp: 4, value: 31000 },
+        { timestamp: 5, value: 34000 },
+      ],
+    })
+
+    expect(result.alerts).toBeDefined()
+    expect(result.alerts!.length).toBeGreaterThanOrEqual(1)
+
+    const dupAlert = result.alerts!.find((a) => a.type === 'duplicate_candidate')
+    expect(dupAlert).toBeDefined()
+    expect(dupAlert?.severity).toBe('critical')
+    expect(dupAlert?.message).toContain('重複登録の警告')
+
+    const outlierAlert = result.alerts!.find((a) => a.type === 'outlier_amount')
+    expect(outlierAlert).toBeDefined()
+    expect(outlierAlert?.message).toContain('異常値アラート')
+  })
 })
