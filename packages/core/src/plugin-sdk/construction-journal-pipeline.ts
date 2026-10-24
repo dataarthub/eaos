@@ -4,45 +4,53 @@ import type { CoreAiDraft } from '../ai/governance'
 import { assertBalancedLines } from './immutable-ledger'
 
 /**
- * Standard construction accounting account codes.
+ * Generic account mapping contract for mapping extracted billable documents into double-entry drafts.
  */
-export interface ConstructionAccountMapping {
-  /** 未成工事支出金 (WIP: 竣工前原価) */
-  wipAccountId: string
-  /** 完成工事原価 (竣工後原価) */
-  completedCostAccountId: string
-  /** 工事未払金 (買掛金) */
-  payableAccountId: string
-  /** 仮払消費税 (仕入税額控除) */
+export interface JournalDraftAccountMapping {
+  /** Debit account identifier (e.g. WIP expense, operating expense, asset) */
+  debitAccountId: string
+  /** Credit account identifier (e.g. accounts payable, trade payable) */
+  creditAccountId: string
+  /** Optional tax debit account identifier (仮払消費税等) */
   taxAccountId?: string
 }
 
 /**
+ * Domain-specific resolver that maps business classification (such as construction WIP vs completed cost)
+ * to standard account mappings.
+ */
+export type AccountMappingResolver<TContext = unknown> = (
+  context: TContext
+) => JournalDraftAccountMapping
+
+/**
  * Input request for generating an accounting journal draft from a parsed document.
  */
-export interface GenerateJournalDraftRequest {
+export interface GenerateJournalDraftRequest<TContext = unknown> {
   tenantId: string
   periodId: string
   parsedDoc: ParsedDocumentResult
-  mapping: ConstructionAccountMapping
-  /** 工事案件のステータス: 'IN_PROGRESS' (竣工前) | 'COMPLETED' (竣工後) */
-  projectStatus: 'IN_PROGRESS' | 'COMPLETED'
+  /** Either a static account mapping or a domain resolver function */
+  mapping: JournalDraftAccountMapping | AccountMappingResolver<TContext>
+  /** Optional domain context passed to mapping resolver */
+  context?: TContext
   createdBy: string
 }
 
 /**
- * Generates an AI-to-UI draft (Level 2) and candidate ImmutableLedgerEntry from parsed document tables.
+ * Domain-agnostic pipeline helper that extracts line items from parsed document tables
+ * and generates an AI-to-UI draft (Level 2) with balanced double-entry lines.
  *
- * Adheres to enterprise accounting rules:
- * - Deterministic double-entry balance validation (assertBalancedLines).
- * - Automatic WIP classification (未成工事支出金 vs 完成工事原価).
- * - Human-in-the-Loop review gating before DB commitment.
+ * Specific industry rules (construction WIP, hotel guest folios, real estate commissions)
+ * supply their own mapping / resolver without baking industry rules into Core.
  */
-export function generateConstructionJournalDraft(request: GenerateJournalDraftRequest): {
+export function generateJournalDraftFromDocument<TContext = unknown>(
+  request: GenerateJournalDraftRequest<TContext>
+): {
   draftEntry: Omit<ImmutableLedgerEntry, 'id'>
   uiDraft: CoreAiDraft
 } {
-  const { tenantId, periodId, parsedDoc, mapping, projectStatus, createdBy } = request
+  const { tenantId, periodId, parsedDoc, mapping, context, createdBy } = request
 
   // Find line items from document tables
   const lineItems: { name: string; amount: number }[] = []
@@ -59,7 +67,6 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
 
   // Extract monetary line items from parsed tables
   for (const table of parsedDoc.tables) {
-    // Exact or priority match: prioritize '金額' or '小計' over '単価' to prevent selecting unit price
     let amountIdx = table.headers.findIndex(h => /^(?:金額|小計|合計)$/u.test(h))
     if (amountIdx === -1) {
       amountIdx = table.headers.findIndex(h => /金額|小計/u.test(h) && !/単価/u.test(h))
@@ -86,18 +93,18 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
     throw new Error('No valid billable line items detected from parsed document')
   }
 
-  // Account assignment based on project status (WIP vs Completed Cost)
-  const debitAccount = projectStatus === 'IN_PROGRESS' ? mapping.wipAccountId : mapping.completedCostAccountId
+  // Resolve accounts via provided mapping or resolver function
+  const resolvedMapping: JournalDraftAccountMapping =
+    typeof mapping === 'function' ? mapping(context as TContext) : mapping
 
-  // Double-entry balancing lines (借方: WIP/原価, 貸方: 工事未払金)
   const lines: ImmutableLedgerLine[] = [
     {
-      accountId: debitAccount,
+      accountId: resolvedMapping.debitAccountId,
       side: 'D',
       amount: totalAmount,
     },
     {
-      accountId: mapping.payableAccountId,
+      accountId: resolvedMapping.creditAccountId,
       side: 'C',
       amount: totalAmount,
     },
@@ -116,9 +123,11 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
     sourceKey: `doc:${parsedDoc.name}:${detectedDate}`,
     lines,
     status: 'DRAFT',
+    createdBy,
+    reverses: undefined,
     provenance: {
       createdBy,
-      riskLevel: 2, // Level 2: Routine draft with human confirmation required
+      riskLevel: 2,
       aiGenerated: true,
       aiFields: ['lines', 'date', 'description', 'totalAmount'],
     },
@@ -127,15 +136,20 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
   const uiDraft: CoreAiDraft = {
     mode: 'create_journal',
     riskLevel: 2,
-    summary: `${parsedDoc.name} から ${lineItems.length} 件の工種明細（合計 ¥${totalAmount.toLocaleString()}）を抽出しました。借方: ${projectStatus === 'IN_PROGRESS' ? '未成工事支出金(WIP)' : '完成工事原価'}`,
+    summary: `${parsedDoc.name} から ${lineItems.length} 件の明細（合計 ¥${totalAmount.toLocaleString()}）を抽出しました。`,
     fieldMetadata: {
-      date: { confidence: dateMatch ? 'high' : 'medium', reasoning: dateMatch ? '請求書テキストから抽出' : '本日日付で補完' },
-      lines: { confidence: lineItems.length > 0 ? 'high' : 'low', reasoning: `表構造より${lineItems.length}行の金額明細を抽出` },
+      date: {
+        confidence: dateMatch ? 'high' : 'medium',
+        reasoning: dateMatch ? '請求書テキストから抽出' : '本日日付で補完',
+      },
+      lines: {
+        confidence: lineItems.length > 0 ? 'high' : 'low',
+        reasoning: `表構造より${lineItems.length}行の金額明細を抽出`,
+      },
     },
     simulation: {
-      title: '工事原価インパクト試算',
+      title: '財務インパクト試算',
       metrics: [
-        { label: '計上区分', after: projectStatus === 'IN_PROGRESS' ? '未成工事支出金 (WIP)' : '完成工事原価' },
         { label: '当月原価増分', after: `+¥${totalAmount.toLocaleString()}` },
         { label: '貸借一致状況', after: '完全一致 (差額 ¥0)' },
       ],
@@ -150,4 +164,42 @@ export function generateConstructionJournalDraft(request: GenerateJournalDraftRe
   }
 
   return { draftEntry, uiDraft }
+}
+
+/**
+ * Backward compatibility alias for construction vertical slice.
+ * Delegates to the generic `generateJournalDraftFromDocument` with domain resolver.
+ */
+export interface ConstructionAccountMapping {
+  wipAccountId: string
+  completedCostAccountId: string
+  payableAccountId: string
+  taxAccountId?: string
+}
+
+export function generateConstructionJournalDraft(request: {
+  tenantId: string
+  periodId: string
+  parsedDoc: ParsedDocumentResult
+  mapping: ConstructionAccountMapping
+  projectStatus: 'IN_PROGRESS' | 'COMPLETED'
+  createdBy: string
+}): {
+  draftEntry: Omit<ImmutableLedgerEntry, 'id'>
+  uiDraft: CoreAiDraft
+} {
+  const resolver: AccountMappingResolver<'IN_PROGRESS' | 'COMPLETED'> = status => ({
+    debitAccountId: status === 'IN_PROGRESS' ? request.mapping.wipAccountId : request.mapping.completedCostAccountId,
+    creditAccountId: request.mapping.payableAccountId,
+    taxAccountId: request.mapping.taxAccountId,
+  })
+
+  return generateJournalDraftFromDocument({
+    tenantId: request.tenantId,
+    periodId: request.periodId,
+    parsedDoc: request.parsedDoc,
+    mapping: resolver,
+    context: request.projectStatus,
+    createdBy: request.createdBy,
+  })
 }

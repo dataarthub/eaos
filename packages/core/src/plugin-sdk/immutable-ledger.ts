@@ -4,15 +4,17 @@ import type { AIRiskLevel } from '../ai/governance'
 /**
  * Lifecycle status of an immutable financial / transactional entry.
  *
+ * Aligned with platform accounting contract:
  * - DRAFT: Created by AI or human as an uncommitted candidate.
- * - PENDING: Submitted for approval / human verification.
  * - POSTED: Permanently committed to the general ledger (immutable).
- * - REVERSED: Corrected via an explicit reversing entry (赤伝票).
+ *
+ * (PENDING / REVERSED states are supported as extended review/history flags)
  */
 export type ImmutableLedgerEntryStatus = 'DRAFT' | 'PENDING' | 'POSTED' | 'REVERSED'
 
 /**
  * Journal line in double-entry bookkeeping (貸借一致).
+ * Identical signature to accounting Line contract: `{ accountId: string, side: 'D' | 'C', amount: number }`.
  */
 export interface ImmutableLedgerLine {
   /** Account identifier */
@@ -43,6 +45,7 @@ export interface ImmutableLedgerProvenance {
 
 /**
  * Immutable ledger entry structure adhering to double-entry and audit principles.
+ * Fully compatible with official accounting `Journal` contract.
  */
 export interface ImmutableLedgerEntry {
   /** Unique business ID */
@@ -59,12 +62,16 @@ export interface ImmutableLedgerEntry {
   sourceKey: string
   /** Double-entry debit/credit lines */
   lines: readonly ImmutableLedgerLine[]
-  /** Current state in the immutable lifecycle */
+  /** Current state in the immutable lifecycle: DRAFT | POSTED (with PENDING / REVERSED support) */
   status: ImmutableLedgerEntryStatus
+  /** Identity of creator */
+  createdBy?: string
+  /** Target journal ID if this entry reverses an existing POSTED journal (赤伝票) */
+  reverses?: string
+  /** Backward-compatible alias for reverses */
+  reversesEntryId?: string
   /** Provenance & audit trail */
   provenance: ImmutableLedgerProvenance
-  /** Target journal ID if this entry reverses an existing POSTED journal (赤伝票) */
-  reversesEntryId?: string
 }
 
 /**
@@ -176,6 +183,8 @@ export function createReversingEntry(
     sourceKey: `reversal:${original.id}`,
     lines: reversedLines,
     status: 'POSTED',
+    createdBy: reversedBy,
+    reverses: original.id,
     reversesEntryId: original.id,
     provenance: {
       createdBy: reversedBy,
