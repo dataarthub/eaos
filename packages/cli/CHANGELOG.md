@@ -1,5 +1,16 @@
 # @alneas/eaos-cli
 
+## 0.2.0
+
+### Changed
+
+- Consume matching EAOS Core, Server and optional React ^0.2.0 contracts.
+- Derive generated plugin Core requirements and platform receipt framework versions from the independently versioned Core package instead of the CLI version.
+
+### Upgrade
+
+- Install Core and Server 0.2.0 before CLI 0.2.0. UI consumers also adopt React 0.2.0 and its Appkit React 0.3.0 requirements. Headless CLI workflows do not require React. No schema or tenant activation change is performed.
+
 ## 0.1.0
 
 ### Added

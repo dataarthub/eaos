@@ -1,3 +1,4 @@
+import { appkitVersions } from './appkit-versions.mjs'
 import semver from 'semver'
 
 export function validateManifest(pkg) {
@@ -10,7 +11,7 @@ export function validateManifest(pkg) {
   for (const field of ['dependencies','peerDependencies','optionalDependencies','devDependencies']) {
     for (const [name, range] of Object.entries(pkg[field] ?? {})) {
       if (name.startsWith('@dataarthub/') || /^(file:|link:|git|https?:|\/|\.\.)/.test(range)) errors.push(`Non-public dependency ${field}:${name}`)
-      if (['@alneas/appkit-core','@alneas/appkit-react'].includes(name) && range !== '0.2.0') errors.push(`Appkit must be exactly 0.2.0: ${name}`)
+      if (Object.hasOwn(appkitVersions, name) && range !== appkitVersions[name]) errors.push(`Appkit must be exactly ${appkitVersions[name]}: ${name}`)
     }
   }
   for (const key of Object.keys(pkg.exports ?? {})) if (key.includes('*') || /^\.\/(src|dist)(\/|$)/.test(key)) errors.push(`Unsupported public entry ${key}`)

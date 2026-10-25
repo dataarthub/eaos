@@ -8,12 +8,12 @@ tags: ["ai", "development", "approval"]
 
 # AI draft review integration
 
-This guide describes unreleased development APIs. It is not registered for released portal ingestion. Use the current candidate archives for verification; publication and deployment are separate actions.
+This guide describes the AI draft APIs included in the 0.2.0 release candidate. It is not registered for portal ingestion. Use the matching package versions or verified candidate archives; publication and deployment are separate actions.
 
 ## Prerequisites
 
 - Compatible Core, Server, React and the optional approval collection from the same reviewed candidate.
-- Appkit Core/React 0.2.0, the React peers declared by the owning manifest, and `@alneas/appkit-react/styles` at the application boundary. The Host stylesheet supplies its native-control reset (for example Tailwind preflight), including inherited font/theme foreground and transparent default backgrounds for native buttons, inputs, selects and textareas. Keep the reset in the Host base CSS layer so component utilities retain precedence.
+- Appkit Core 0.2.0 / React 0.3.0, the React peers declared by the owning manifest, and `@alneas/appkit-react/styles` at the application boundary. The Host stylesheet supplies its native-control reset (for example Tailwind preflight), including inherited font/theme foreground and transparent default backgrounds for native buttons, inputs, selects and textareas. Keep the reset in the Host base CSS layer so component utilities retain precedence.
 - A verified principal resolver, current plugin/resource authorization, durable proposal and approval stores, and an owning command that enforces schema validation, CAS, idempotency and atomic audit.
 
 ## Keep business decisions with their owner
@@ -24,7 +24,7 @@ Core exposes `IngestionModelAdapter`, configurable classifiers and domain handle
 
 ## Reuse Appkit at the shared boundary
 
-The pinned Appkit 0.2.0 public APIs remain canonical for generic presentation and review mechanics:
+The pinned Appkit Core 0.2.0 / React 0.3.0 public APIs remain canonical for generic presentation and review mechanics:
 
 | Responsibility | Owner and integration |
 | --- | --- |

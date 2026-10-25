@@ -17,14 +17,14 @@ One toolchain shares metadata and deployment inventory between development and r
 
 ## Quickstart
 
-Registry installation requires a published release. During pre-publication development, install the checksum-pinned tarballs produced by the workspace build instead of assuming these names exist in a registry.
+This checkout prepares version 0.2.0; version 0.1.0 is already published. Until 0.2.0 is published, install the checksum-pinned candidate tarball. The command below applies after that release.
 
 ### Public import
 
 Use Node.js 24 or later. The baseline image inventory example needs no database, UI provider, stylesheet or OCI credentials. Appkit Core 0.2.0 is installed as a package dependency. Pulumi/OCI peers are needed only for the corresponding infrastructure entrypoints; inspect their guide before configuring a deployment. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-cli
+bun add @alneas/eaos-cli@0.2.0
 ```
 
 ```typescript

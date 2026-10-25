@@ -47,9 +47,9 @@
   },
   "devDependencies": {
     "@alneas/appkit-core": "0.2.0",
-    "@alneas/appkit-react": "0.2.0",
+    "@alneas/appkit-react": "0.3.0",
     "react": "^19.3.1",
-    "lucide-react": "^1.57.0",
+    "lucide-react": "^1.61.0",
     "@pulumi/pulumi": "^3.268.0",
     "@pulumi/oci": "^5.3.1",
     "@changesets/cli": "^3.0.3",

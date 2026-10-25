@@ -92,7 +92,7 @@ test('dependency cycles and incompatible core versions fail before side effects'
 test('core upgrade retains compatible activation and blocks incompatible release while allowing disable', async () => {
   const f = fixture(); await f.apply('install'); await f.apply('enable')
   expect(await new PluginLifecycle(f.project, inc(FRAMEWORK_VERSION, 'patch')!).isEnabled('shared', 'alpha', 'notes')).toBe(true)
-  const next = new PluginLifecycle(f.project, '0.2.0')
+  const next = new PluginLifecycle(f.project, inc(FRAMEWORK_VERSION, 'minor')!)
   expect(await next.isEnabled('shared', 'alpha', 'notes')).toBe(false)
   await next.apply(await next.plan(f.request('disable')))
 })

@@ -1,6 +1,6 @@
 {
   "name": "@alneas/eaos-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "description": "EAOS server public package",
@@ -325,7 +325,7 @@
     "@alneas/appkit-core": "0.2.0"
   },
   "dependencies": {
-    "@alneas/eaos-core": "^0.1.0",
+    "@alneas/eaos-core": "^0.2.0",
     "semver": "^7.8.5",
     "hono": "^4.13.13",
     "ajv": "^8.20.0",

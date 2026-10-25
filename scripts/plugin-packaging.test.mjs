@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import {test} from 'node:test'
 import {readFile,access} from 'node:fs/promises'
 import {packages} from './check-public.mjs'
+import {validateManifest} from './release-contract.mjs'
 const root=new URL('../',import.meta.url)
 test('five publication targets share one standard plugin package with isolated exports',async()=>{
  const entries=await packages()
  assert.equal(entries.length,5)
  const pkg=entries.find(p=>p.name==='@alneas/eaos-plugins')
  assert.ok(pkg)
- assert.equal(pkg.version,'0.1.0')
+ assert.deepEqual(validateManifest(pkg),[],'Collection releases keep the public manifest contract; feature versions are independent')
  assert.equal(pkg.exports['.'],undefined)
  for(const id of ['approval','field-customization','admin']) {
   await assert.rejects(access(new URL('plugins/'+id+'/package.json',root)))

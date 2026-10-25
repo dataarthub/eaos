@@ -1,5 +1,15 @@
 # @alneas/eaos-server
 
+## 0.2.0
+
+### Changed
+
+- Consume EAOS Core ^0.2.0 so server execution and approval consumers share current policy and binding contracts.
+
+### Upgrade
+
+- Install Core 0.2.0 before Server 0.2.0. Existing database, storage and lifecycle implementations remain canonical; this dependency update performs no migrations or tenant activation.
+
 ## 0.1.0
 
 ### Added

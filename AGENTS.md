@@ -19,7 +19,7 @@ without a parent workspace or private repository.
   canonical here; compatibility wrappers belong to their consuming repository.
 - npm workspaces are permitted inside this monorepo. Across repositories, use
   built, checksum-pinned npm tarballs. Do not link sibling source or copy
-  Appkit Core/React 0.2.0 implementations; those remain external dependencies.
+  Appkit Core 0.2.0 / React 0.3.0 implementations; those remain external dependencies.
 - Preserve tenant/resource authorization, CAS, durable audit and migration
   identities. Keep business-specific presets outside generic plugins.
 

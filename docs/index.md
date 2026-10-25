@@ -29,7 +29,7 @@ Four MIT foundation packages separate pure contracts, Server implementations, Re
 
 ## Quickstart
 
-Registry commands require an available release. Before publication, the owning workspace builds, tests and packs checksum-pinned tarballs for isolated consumers. Appkit Core and React 0.2.0 are public npmjs dependencies; Node.js 24 or later is required.
+Registry commands require an available release. Before publication, the owning workspace builds, tests and packs checksum-pinned tarballs for isolated consumers. Appkit Core 0.2.0 and React 0.3.0 are public npmjs dependencies; Node.js 24 or later is required.
 
 ### Public import
 

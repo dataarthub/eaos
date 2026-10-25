@@ -1,3 +1,4 @@
+import { appkitVersions } from './appkit-versions.mjs'
 import assert from 'node:assert/strict'
 import { mkdtemp,readFile,writeFile,mkdir,rm,realpath } from 'node:fs/promises'
 import { tmpdir,release as osRelease } from 'node:os'
@@ -17,7 +18,7 @@ assert.equal(manifest.sourceHash,await sourceHash(root),'Candidate source change
 const consumer=await mkdtemp(join(tmpdir(),'eaos-public-consumer-'))
 let server,browser
 try {
-  const dependencies={react:'19.3.1','react-dom':'19.3.1','@alneas/appkit-core':'0.2.0','@alneas/appkit-react':'0.2.0',typescript:'6.0.3','@types/react':'19.3.0','@types/node':'22.20.5'}
+  const dependencies={react:'19.3.1','react-dom':'19.3.1',...appkitVersions,typescript:'6.0.3','@types/react':'19.3.0','@types/node':'22.20.5'}
   for(const item of manifest.archives) {
     assert.ok(item.archive===item.archive.split(/[\\/]/).at(-1)&&!item.archive.includes('..'))
     const archive=join(bundle,item.archive),bytes=await readFile(archive)
@@ -33,13 +34,17 @@ try {
   await writeFile(join(consumer,'smoke.mjs'),`import assert from 'node:assert/strict';import {realpath} from 'node:fs/promises';for(const spec of ${JSON.stringify(entries)}){const path=await realpath(new URL(import.meta.resolve(spec)));assert(path.startsWith(import.meta.dirname+'/node_modules/'),spec);await import(spec)}console.log('${entries.length} archive entrypoints resolve and load inside consumer')`)
   execFileSync(process.execPath,['smoke.mjs'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
   assert.equal(manifest.archives.length,5,'Four foundations and one plugin collection required')
+  await writeFile(join(consumer,'cli-versions.mjs'),`import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {cliVersion,frameworkVersion} from '@alneas/eaos-cli/version';import {generatePlugin} from '@alneas/eaos-cli/plugin-tools';assert.equal(cliVersion,${JSON.stringify(manifest.archives.find(p=>p.name==='@alneas/eaos-cli').version)});assert.equal(frameworkVersion,${JSON.stringify(manifest.archives.find(p=>p.name==='@alneas/eaos-core').version)});await generatePlugin(import.meta.dirname,{name:'release-version-check'});const generated=JSON.parse(await readFile(new URL('./plugins/release-version-check/package.json',import.meta.url),'utf8'));assert.equal(generated.peerDependencies['@alneas/eaos-core'],frameworkVersion);console.log('Independent CLI/Core versions in packed generator passed')`)
+  execFileSync(process.execPath,['cli-versions.mjs'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+
   for(const id of ['approval','field-customization','admin']) {
     const directory=join(consumer,'node_modules/@alneas/eaos-plugins/dist',id)
     const inventory=JSON.parse(await readFile(join(directory,'deployment.json'),'utf8'))
     assert.equal(inventory.owner,'@alneas/eaos-plugins/'+id)
-    assert.equal(inventory.version,'0.1.0')
+    assert.equal(inventory.version,manifest.archives.find(p=>p.name==='@alneas/eaos-plugins').version)
     assert.deepEqual(inventory.lifecycleBundle,[id])
     const metadata=await import(new URL(join(directory,'manifest.js'),'file:').href)
+    assert.equal(metadata.manifest.version,inventory.version,'Feature manifest matches the reviewed collection release')
     for(const relative of [metadata.manifest.docs.userGuidePath,metadata.manifest.docs.maintainerGuidePath,...(metadata.manifest.agentCapabilities?.skills??[]).map(skill=>skill.documentPath)]) {
       assert.ok(inventory.assets.some(asset=>asset.path===relative),'Manifest document must survive isolated module staging: '+relative)
     }

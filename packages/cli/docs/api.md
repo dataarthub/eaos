@@ -429,7 +429,7 @@ declare const cliVersion: string;
 
 ### See also
 
-[renderPlatform](#api-renderPlatform) for the canonical usage example and runtime requirements.
+https://github.com/dataarthub/eaos/blob/main/packages/cli/docs/api.md#api-renderPlatform
 
 ### Example
 
@@ -2204,7 +2204,7 @@ export function locateNotes(root: string) { return findPluginDir(root, 'notes') 
 
 ## [CONSTANT] `frameworkVersion`
 
-Compatible framework version injected by the build, falling back to the source package version when running source.
+Compatible Core version injected by the build, falling back to the Core source package version.
 
 Imports: `@alneas/eaos-cli/version`.
 
@@ -2226,7 +2226,7 @@ declare const frameworkVersion: string;
 
 ### See also
 
-[renderPlatform](#api-renderPlatform) for the canonical usage example and runtime requirements.
+https://github.com/dataarthub/eaos/blob/main/packages/cli/docs/api.md#api-renderPlatform
 
 ### Example
 

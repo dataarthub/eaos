@@ -1,6 +1,6 @@
 {
   "name": "@alneas/eaos-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "description": "EAOS cli public package",
@@ -189,8 +189,8 @@
   },
   "dependencies": {
     "commander": "^15.0.0",
-    "@alneas/eaos-server": "^0.1.0",
-    "@alneas/eaos-core": "^0.1.0",
+    "@alneas/eaos-server": "^0.2.0",
+    "@alneas/eaos-core": "^0.2.0",
     "typescript": "^6.0.3",
     "hono": "^4.13.13",
     "@alneas/appkit-core": "0.2.0"
@@ -200,7 +200,7 @@
     "@pulumi/pulumi": "^3.268.0",
     "@pulumi/oci": "^5.3.1",
     "react-dom": "^18.3.0 || ^19.0.0",
-    "@alneas/eaos-react": "^0.1.0"
+    "@alneas/eaos-react": "^0.2.0"
   },
   "peerDependenciesMeta": {
     "react": {

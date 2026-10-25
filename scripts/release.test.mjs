@@ -64,3 +64,10 @@ test('commit-bound verification refuses an amended commit or absent/mismatched c
   assert.throws(()=>verifyCandidateIdentity({...bundle,consumerVerified:{sourceHash:'other',archives}},{sourceHash:'source',cleanCommit:'source-commit'}),/consumer/)
   assert.throws(()=>verifyCandidateIdentity({...bundle,consumerVerified:{sourceHash:'source',archives:[]}},{sourceHash:'source',cleanCommit:'source-commit'}),/consumer/)
 })
+
+test('Appkit pins follow each package version and reject unsupported exact pins', () => {
+  for (const [name, version, rejected] of [['@alneas/appkit-core', '0.2.0', '0.2.1'], ['@alneas/appkit-react', '0.3.0', '0.2.0']]) {
+    assert.deepEqual(validateManifest({ ...core, peerDependencies: { [name]: version } }), [])
+    assert.ok(validateManifest({ ...core, peerDependencies: { [name]: rejected } }).length)
+  }
+})
