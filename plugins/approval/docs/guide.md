@@ -39,7 +39,7 @@ export function bindHostPlugin(...args: Parameters<typeof createPlugin>) {
 }
 ```
 
-Server integration requires a verified principal resolver, live authorization and the plugin's durable host ports. React views use the separate `@alneas/eaos-plugins/approval/react` export. Install `@alneas/eaos-react`, `@alneas/appkit-react@0.2.0`, React/React DOM ^19.2.3 and Lucide React, import `@alneas/appkit-react/styles`, and supply authenticated API/session bindings plus the selected workspace and Appkit form/schema providers; importing the server entry requires no CSS.
+Server integration requires a verified principal resolver, live authorization and the plugin's durable host ports. React views use the separate `@alneas/eaos-plugins/approval/react` export. Install `@alneas/eaos-react`, `@alneas/appkit-react@0.3.0`, React/React DOM ^19.2.3 and Lucide React, import `@alneas/appkit-react/styles`, and supply authenticated API/session bindings plus the selected workspace and Appkit form/schema providers; importing the server entry requires no CSS.
 
 ## Trade-offs & Decisions
 

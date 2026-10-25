@@ -29,14 +29,14 @@ This is a feature guide for the shared [standard plugin collection](https://gith
 
 ## Quickstart
 
-This feature belongs to the unpublished initial `@alneas/eaos-plugins@0.1.0` candidate. Use its checksum-verified tarball before publication; registry commands require an available release.
+This feature belongs to the `@alneas/eaos-plugins@0.2.0` release candidate. Version 0.1.0 is already published; use the checksum-verified 0.2.0 tarball until the new version is available.
 
 ### Public import
 
-Use Node.js 24 or later. This manifest-only example reads metadata and needs no UI, credentials or tenant activation. Appkit Core 0.2.0 is a required peer of the Core/Server dependencies. For the optional /react entry, also install @alneas/eaos-react, @alneas/appkit-react@0.2.0, React/React DOM ^19.2.3 and Lucide React; import @alneas/appkit-react/styles and use the providers documented in the host integration guide. Install `@alneas/eaos-plugins` once; `/approval` and its nested subpaths select this feature. The subpath is an import target, not a separately installed package.
+Use Node.js 24 or later. This manifest-only example reads metadata and needs no UI, credentials or tenant activation. Appkit Core 0.2.0 is a required peer of the Core/Server dependencies. For the optional /react entry, also install @alneas/eaos-react, @alneas/appkit-react@0.3.0, React/React DOM ^19.2.3 and Lucide React; import @alneas/appkit-react/styles and use the providers documented in the host integration guide. Install `@alneas/eaos-plugins` once; `/approval` and its nested subpaths select this feature. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-plugins @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-plugins@0.2.0 @alneas/appkit-core@0.2.0
 ```
 
 ```typescript

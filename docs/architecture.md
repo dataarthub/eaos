@@ -48,6 +48,7 @@ HTTP and MCP use host-verified principals, current activation and resource permi
 
 Native and server placement is explicit. A failed local operation never silently uploads its input. Registered Python or CLI operations are trusted host code, not an operating-system sandbox.
 
+
 ## Adoption and verification boundaries
 
 `deployment.json` declares components, tasks and verification; `eaos.platform.json` selects targets. Plans and status inspection do not apply changes. Journals record evidence without performing approval, deployment or tenant acceptance.

@@ -40,6 +40,6 @@ Each feature builds into `dist/<id>/` with its own chunks and runtime/frontend i
 
 Code selection, host binding, schema application and tenant activation are separate operations. Missing live adapters fail closed. The host resolves current authenticated principals and checks tenant membership, lifecycle activation and resource authorization on each operation. Plugin IDs, CAS, durable audit and existing schema/migration identities retain their contracts.
 
-This is the unpublished initial `0.1.0` candidate. The former three package names are replaced before publication; a retained source commit does not establish a published release or require a new version increment. Use exact reviewed archives for consumer verification and follow [release preparation](../../RELEASING.md) before any authorized publication.
+The collection was published as `0.1.0`; this checkout prepares `0.2.0`. The former three package names remain retired distribution targets. Module manifest and lifecycle release versions follow the collection version; schema and migration identities are preserved separately. Use exact reviewed archives for consumer verification and follow [release preparation](../../RELEASING.md) before any authorized publication.
 
 Continue with the [collection overview](index.md), [approval host integration](../approval/docs/maintainer-guide.md), [field customization host integration](../field-customization/docs/maintainer-guide.md) and [admin host integration](../admin/docs/maintainer-guide.md).

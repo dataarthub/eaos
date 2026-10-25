@@ -5,6 +5,7 @@ import { DataTable } from '@alneas/appkit-react/tools/data-table'
 import { EnhancedDetailPage } from '@alneas/appkit-react/tools/form'
 import type { JSONSchema } from '@alneas/appkit-react/tools/schema'
 import { createWorkspaceReactBindings, createWorkspaceSession, type WorkspaceClient, type WorkspaceSnapshot } from './index'
+import { prepareAiDraftSubmission, type AiDraftSubmission, type AiDraftReviewResult } from '@alneas/eaos-core/ai/proposal-ui'
 
 type Schema = { properties?: Readonly<Record<string, any>>; required?: readonly string[]; [key: string]: any }
 /**
@@ -89,12 +90,61 @@ export interface RecordReferenceCandidate {
  * Composed authorized catalog display text; does not replace command IDs.
  */
   label: string }
+import type {
+  SourceBoundingBox,
+  AiFieldMetadata,
+  DraftImpactSimulation,
+  CoreAiDraft as RecordWorkspaceAiDraft,
+} from '@alneas/eaos-core/ai/governance'
+
+export type {
+  SourceBoundingBox,
+  AiFieldMetadata,
+  DraftImpactSimulation,
+  RecordWorkspaceAiDraft,
+}
+
+/**
+ * Inline AI suggestion for form/table field autocompletion and slash commands.
+ * @see {@link RecordWorkspaceProps}
+ */
+export interface RecordWorkspaceInlineSuggestion {
+  /** Provider-owned suggestion identity. */
+  id: string;
+  /** Optional slash command used to request this suggestion. */
+  command?: string;
+  /** Operator-facing suggestion label. */
+  label: string;
+  /** Operator-facing explanation of the proposed change. */
+  description: string;
+  /** Advisory AI tier; the Host resolves execution policy. */
+  riskLevel: 1 | 2 | 3;
+  /** Candidate values that still require owning-schema validation. */
+  proposedPatch: Record<string, unknown>;
+  /** Provider-reported confidence displayed for human review. */
+  confidence: 'high' | 'medium' | 'low';
+}
 /**
  * Optional plugin help, reference transports and record/ready notifications.
  *
  * @see RecordWorkspace for a complete host integration example.
  */
 export interface RecordWorkspaceProps {
+  /**
+   * Optional uncommitted AI draft proposal for human-in-the-loop review.
+   */
+  aiDraft?: RecordWorkspaceAiDraft | null;
+  /**
+   * Notifies the host when the AI draft proposal is dismissed by the operator.
+   */
+  onDismissAiDraft?: () => void;
+  /** Host transport to the existing proposal/approval/save endpoint; required for AI draft submission. */
+  reviewAiDraft?: (submission: AiDraftSubmission) => Promise<AiDraftReviewResult<WorkspaceSnapshot>>;
+  /**
+   * Optional post-save notification identifying the source draft and saved record.
+   * Durable proposal and approval evidence belongs to the authenticated Host review endpoint.
+   */
+  onApplyAiDraft?: (draft: RecordWorkspaceAiDraft, result: ScopedUiRecord) => void | Promise<void>;
  /**
  * Optional help content; undefined uses Core guide and null hides it.
  *
@@ -436,7 +486,7 @@ export function recordFormValues(schema: Schema, values: Record<string, unknown>
  * export function Records({tenantId, sessionKey, client, definition}: {tenantId: string; sessionKey: string; client: WorkspaceClient<unknown>; definition: RecordWorkspaceDefinition}) { return <RecordWorkspaceProvider tenantId={tenantId} recordId={definition.id} sessionKey={sessionKey} client={client}><RecordWorkspace definition={definition}/></RecordWorkspaceProvider>; }
  * ```
  */
-export function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help }: RecordWorkspaceProps & {
+export function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help, aiDraft, onDismissAiDraft, onApplyAiDraft, reviewAiDraft }: RecordWorkspaceProps & {
 /**
  * Plugin-owned workspace schema, labels and operation declarations.
  */
@@ -451,16 +501,19 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
  const [error, setError] = React.useState<string | null>(null)
  const [notice, setNotice] = React.useState<string | null>(null)
  const [preview, setPreview] = React.useState<unknown>(null)
+ const [dismissedDraft, setDismissedDraft] = React.useState<RecordWorkspaceAiDraft | null>(null)
+ const draftReview = React.useRef<{key: string; submission: AiDraftSubmission} | null>(null)
  const [references, setReferences] = React.useState<Record<string, RecordReferenceCandidate[]>>({})
  const [referenceError, setReferenceError] = React.useState<string | null>(null)
  const [referenceBusy, setReferenceBusy] = React.useState(false)
  const referenceController = React.useRef<AbortController | null>(null)
  const retry = React.useRef<{ key: string; commandId: string } | null>(null)
- const pending = React.useRef(false), generation = React.useRef(0)
+ const pending = React.useRef(false), generation = React.useRef(0), recordEpoch = React.useRef(0)
+ const formSection = React.useRef<HTMLElement | null>(null)
  React.useEffect(() => { onRecordChange?.(selected) }, [selected, onRecordChange])
  React.useEffect(() => {
   if (!recordOverride || !selected || !snapshot || recordOverride === selected || recordOverride.id !== selected.id || recordOverride.tenantId !== snapshot.tenantId || recordOverride.tenantId !== selected.tenantId || !Number.isSafeInteger(recordOverride.revision) || recordOverride.revision <= selected.revision) return
-  setSelected(recordOverride); setForm(null); setPreview(null); retry.current = null
+  recordEpoch.current++; draftReview.current = null; setSelected(recordOverride); setForm(null); setPreview(null); retry.current = null
   setSnapshot(old => {
    const data = old?.data as Record<string, unknown> | undefined, records = data?.[definition.listKey]
    return old && Array.isArray(records) ? { ...old, data: { ...data, [definition.listKey]: records.map(record => (record as ScopedUiRecord).id === recordOverride.id ? recordOverride : record) } } : old
@@ -481,7 +534,7 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
  React.useEffect(() => {
   const current = ++generation.current
   referenceController.current?.abort(); setReferences({}); setReferenceError(null); setReferenceBusy(false)
-  retry.current = null; setFilter({ limit: 100 }); setQuery(''); setSnapshot(null); setSelected(null); setForm(null); setPreview(null); setError(null); setNotice(null)
+  retry.current = null; draftReview.current = null; setFilter({ limit: 100 }); setQuery(''); setSnapshot(null); setSelected(null); setForm(null); setPreview(null); setError(null); setNotice(null)
   if (!client) return
   setBusy(true)
   void client.load().then(async result => { if (current === generation.current) { setSnapshot(result); await reloadReferences(result.tenantId); if (current === generation.current) await onReady?.(result) } }).catch(cause => { if (current === generation.current) setError(String(cause.message ?? cause)) }).finally(() => { if (current === generation.current) setBusy(false) })
@@ -512,9 +565,24 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
   setSelected(record); setForm(null); setPreview(null)
  })
  let schema: JSONSchema | null = null, initial: Record<string, unknown> = {}
- if (form === 'create') schema = recordFormSchema(definition.schemas[definition.operations.create], ['commandId'])
- else if (form === 'edit') { schema = recordFormSchema(definition.schemas[definition.operations.update].properties!.patch, definition.workflowFields); initial = selected ?? {} }
- else if (form) { schema = recordFormSchema(form.schema, ['id', 'revision', 'commandId']); initial = form.initialValues ?? {} }
+ const activeDraft = aiDraft && aiDraft !== dismissedDraft && aiDraft.scope === definition.id ? aiDraft : null
+ const isBoundForm = form === 'edit' || (typeof form === 'object' && form !== null && form.record)
+ const isTargetRecordMatch = activeDraft?.scope === definition.id && (!isBoundForm
+  ? (!activeDraft?.targetId && (activeDraft?.baseRevision === undefined || activeDraft.baseRevision === 0))
+  : (selected !== null &&
+     activeDraft?.targetId === selected.id &&
+     activeDraft.baseRevision === selected.revision))
+ const isDraftForCurrentForm = activeDraft && isTargetRecordMatch && (activeDraft.mode === form || (typeof form === 'object' && form !== null && activeDraft.mode === form.operation))
+ if (form === 'create') {
+  schema = recordFormSchema(definition.schemas[definition.operations.create], ['commandId'])
+  initial = isDraftForCurrentForm ? { ...activeDraft.values } : {}
+ } else if (form === 'edit') {
+  schema = recordFormSchema(definition.schemas[definition.operations.update].properties!.patch, definition.workflowFields)
+  initial = isDraftForCurrentForm ? { ...(selected ?? {}), ...activeDraft.values } : (selected ?? {})
+ } else if (form) {
+  schema = recordFormSchema(form.schema, ['id', 'revision', 'commandId'])
+  initial = isDraftForCurrentForm ? { ...(form.initialValues ?? {}), ...activeDraft.values } : (form.initialValues ?? {})
+ }
  const submit = (values: Record<string, unknown>) => void run(async () => {
   if (!schema || !form) return
   const input = recordFormValues(schema, values)
@@ -522,17 +590,64 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
   const bound = form === 'edit' || (typeof form === 'object' && form.record)
   if (bound && !selected) throw new Error('対象レコードを選択してください。')
   const args = form === 'edit' ? { id: selected!.id, revision: selected!.revision, patch: input } : { ...input, ...(bound ? { id: selected!.id, revision: selected!.revision } : {}) }
-  if (definition.schemas[op]?.properties?.commandId) { const key = JSON.stringify([op, args]); if (retry.current?.key !== key) retry.current = { key, commandId: crypto.randomUUID() }; Object.assign(args, { commandId: retry.current!.commandId }) }
-  const result = await client.execute(op, args)
+  if ((typeof form === 'object' ? form.schema : definition.schemas[op])?.properties?.commandId) { const key = JSON.stringify([op, args]); if (retry.current?.key !== key) retry.current = { key, commandId: crypto.randomUUID() }; Object.assign(args, { commandId: retry.current!.commandId }) }
+  const currentGeneration = generation.current, currentRecordEpoch = recordEpoch.current
+  let result: WorkspaceSnapshot
+  if (isDraftForCurrentForm && activeDraft) {
+   if (!reviewAiDraft) throw new Error('AI下書きのレビュー接続が必要です。')
+   const key = JSON.stringify([snapshot?.tenantId, definition.id, op, args, activeDraft])
+   if (draftReview.current?.key !== key) {
+    const targetId = bound ? selected!.id : crypto.randomUUID()
+    const submission = prepareAiDraftSubmission({...activeDraft, values: args}, {
+     scope: definition.id, operation: op, targetId, baseVersion: bound ? selected!.revision : 0,
+     ...(bound ? {currentValues: selected!, currentTitle: String(selected!.title ?? '')} : {}),
+     ...(bound ? {target: {type: definition.id, id: selected!.id, revision: selected!.revision}} : {}),
+    })
+    draftReview.current = {key, submission}
+   }
+   const reviewed = await reviewAiDraft(structuredClone(draftReview.current.submission))
+   if (currentGeneration !== generation.current || currentRecordEpoch !== recordEpoch.current) return
+   if (reviewed.status === 'pending') {
+    draftReview.current.submission.approvalRequestId = reviewed.approvalRequestId
+    setNotice('承認待ちです。承認後にもう一度保存してください。'); return
+   }
+   result = reviewed.result
+   if (result.tenantId !== snapshot?.tenantId || result.recordId !== definition.id) throw new Error('保存結果の接続先が一致しません。')
+  } else result = await client.execute(op, args)
+  if (currentGeneration !== generation.current || currentRecordEpoch !== recordEpoch.current) return
   retry.current = null
   if (typeof form === 'object' && form.preview) { setPreview(result.data); return }
   const saved = scopedUiRecord(result.data, result.tenantId)
   if (bound && saved.id !== selected!.id) throw new Error('保存結果の対象が一致しません。')
+  if (isDraftForCurrentForm && activeDraft) setDismissedDraft(activeDraft)
+  draftReview.current = null
   setForm(null); setNotice('保存しました。')
-  try { setSnapshot(await client.execute(definition.operations.list, filter)) }
-  catch { setError('保存は完了しました。一覧を再取得できませんでした。再読込してください。') }
+  try { const refreshed = await client.execute(definition.operations.list, filter); if (currentGeneration !== generation.current || currentRecordEpoch !== recordEpoch.current) return; setSnapshot(refreshed) }
+  catch { if (currentGeneration !== generation.current || currentRecordEpoch !== recordEpoch.current) return; setError('保存は完了しました。一覧を再取得できませんでした。再読込してください。') }
+  if (currentGeneration !== generation.current || currentRecordEpoch !== recordEpoch.current) return
   setSelected(saved)
+  if (isDraftForCurrentForm && activeDraft) {
+   try { await onApplyAiDraft?.(activeDraft, saved) }
+   catch { if (currentGeneration === generation.current && currentRecordEpoch === recordEpoch.current) setNotice('保存しました。下書き適用通知を確認できませんでした。') }
+  }
  })
+
+ // Keyboard shortcut handler for power users: Cmd+Enter / Ctrl+Enter triggers submit
+ React.useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && e.target instanceof Node && formSection.current?.contains(e.target)) {
+    if (form && schema) {
+     e.preventDefault()
+     const activeForm = formSection.current.querySelector('form') as HTMLFormElement | null
+     if (activeForm) {
+      activeForm.requestSubmit()
+     }
+    }
+   }
+  }
+  window.addEventListener('keydown', handleKeyDown)
+  return () => window.removeEventListener('keydown', handleKeyDown)
+ }, [form, schema])
  const serverSearch = !!definition.schemas[definition.operations.list]?.properties?.search
  const relations = Object.fromEntries((definition.references ?? []).filter(reference => references[reference.field]).map(reference => [reference.field, { displayField: 'displayName', valueField: 'id', data: references[reference.field].map(candidate => ({ id: candidate.record.id, displayName: candidate.label })), inputDisplay: 'both' as const, validateKey: true, searchFields: ['displayName', 'id'], searchTitle: reference.title }]))
  const displayValue = (field: string, value: unknown) => { const candidate = references[field]?.find(item => item.record.id === value); return candidate ? candidate.label : typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—') }
@@ -555,7 +670,62 @@ export function RecordWorkspace({ definition, referenceClient, onRecordChange, o
    <p>{visible.length}件を表示{(snapshot?.data as any)?.mayHaveMore ? typeof (snapshot?.data as any)?.nextCursor === 'string' ? '。続きは次のページで確認できます。' : '。取得上限に達しています。絞り込みは取得範囲に適用されます。' : ''}</p>
    {selected && <section aria-label="詳細"><h2 className="text-xl font-semibold my-4">詳細</h2><dl className="grid grid-cols-2 gap-x-6 gap-y-2 my-4">{Object.entries(selected).filter(([key]) => !['tenantId', 'revision', 'workflow', ...(definition.hiddenDetailFields ?? [])].includes(key)).map(([key, value]) => <React.Fragment key={key}><dt>{definition.columns.find(column => column.accessorKey === key)?.header ?? definition.schemas[definition.operations.create].properties?.[key]?.title ?? key}</dt><dd>{displayValue(key, value)}</dd></React.Fragment>)}</dl>{(!definition.canEdit || definition.canEdit(selected)) && <Button variant="outline" type="button" onClick={() => setForm('edit')}>編集</Button>}</section>}
    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>{definition.commands?.filter(command => !command.record || selected).map(command => <Button variant="outline" type="button" key={command.operation} onClick={() => { setForm(command); setPreview(null) }}>{command.label}</Button>)}</div>
-   {form && schema && <section aria-label="操作フォーム"><h2>{form === 'create' ? '新規登録' : form === 'edit' ? '編集' : form.label}</h2><fieldset disabled={referenceBusy || (!!referenceClient && !!referenceError && (definition.references ?? []).some(reference => schema!.properties?.[reference.field]))} style={{ border: 0, padding: 0 }}><EnhancedDetailPage relations={relations} key={`${typeof form === 'string' ? form : form.operation}:${selected?.id ?? ''}:${selected?.revision ?? ''}:${typeof form === 'object' ? JSON.stringify(form.initialValues ?? {}) : ''}`} schema={schema} values={initial} mode="edit" submitLabel={form === 'create' ? 'create' : 'update'} containerLayout={false} onSubmit={submit} onCancel={() => setForm(null)} /></fieldset></section>}
+   {activeDraft && !form && (
+    <section aria-label="AI下書き提案" style={{ margin: '16px 0', padding: 16, border: '1px solid #bfdbfe', borderRadius: 6, backgroundColor: '#eff6ff' }}>
+     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+       <strong style={{ color: '#1e3a8a' }}>{activeDraft.riskLevel ? `[Level ${activeDraft.riskLevel}] ` : ''}AIによる下書き提案があります</strong>
+       {activeDraft.summary && <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: '#1d4ed8' }}>{activeDraft.summary}</p>}
+       {activeDraft.fieldMetadata && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: '0.75rem' }}>
+         {Object.entries(activeDraft.fieldMetadata).some(([, m]: [string, any]) => m?.confidence === 'low') && (
+          <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
+           ⚠️ 要確認項目あり（低確信度）
+          </span>
+         )}
+         {Object.entries(activeDraft.fieldMetadata).some(([, m]: [string, any]) => !!m?.sourceBox) && (
+          <span style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '2px 6px', borderRadius: 4 }}>
+           📄 原本PDF座標リンクあり
+          </span>
+         )}
+        </div>
+       )}
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+       <Button variant="outline" type="button" onClick={() => {
+        if (activeDraft.mode === 'create') { setSelected(null); setForm('create') }
+        else if (activeDraft.mode === 'edit') setForm('edit')
+        else {
+         const cmd = definition.commands?.find(c => c.operation === activeDraft.mode)
+         if (cmd) setForm(cmd)
+        }
+       }}>画面に反映して確認</Button>
+       <Button variant="outline" type="button" onClick={() => { setDismissedDraft(activeDraft); onDismissAiDraft?.() }}>破棄</Button>
+      </div>
+     </div>
+     {activeDraft.simulation && (
+      <div style={{ marginTop: 12, padding: 10, backgroundColor: '#ffffff', borderRadius: 4, border: '1px solid #cbd5e1' }}>
+       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>【影響シミュレーション（確定後インパクト）】 {activeDraft.simulation.title}</span>
+       <div style={{ display: 'flex', gap: 16, marginTop: 4, flexWrap: 'wrap' }}>
+        {activeDraft.simulation.metrics.map((m: any) => (
+         <div key={m.label} style={{ fontSize: '0.8125rem' }}>
+          <span style={{ color: '#64748b' }}>{m.label}: </span>
+          <span style={{ fontWeight: 600, color: m.alert ? '#dc2626' : '#1e293b' }}>
+           {m.before !== undefined ? `${m.before} ➔ ` : ''}{m.after}
+          </span>
+         </div>
+        ))}
+       </div>
+       {activeDraft.simulation.warning && (
+        <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#b91c1c', fontWeight: 500 }}>
+         ⚠️ {activeDraft.simulation.warning}
+        </p>
+       )}
+      </div>
+     )}
+    </section>
+   )}
+   {form && schema && <section aria-label="操作フォーム" ref={formSection}><h2>{form === 'create' ? '新規登録' : form === 'edit' ? '編集' : form.label}</h2>{isDraftForCurrentForm && <p style={{ fontSize: '0.875rem', color: 'var(--foreground)', margin: '4px 0 8px', fontWeight: 500 }}>※ AI生成の下書き値がフォームに反映されています（ショートカット: Cmd+Enter / Ctrl+Enter で保存）。内容を確認・修正してから保存（確定）してください。</p>}<fieldset disabled={referenceBusy || (!!referenceClient && !!referenceError && (definition.references ?? []).some(reference => schema!.properties?.[reference.field]))} style={{ border: 0, padding: 0 }}><EnhancedDetailPage relations={relations} key={`${typeof form === 'string' ? form : form.operation}:${selected?.id ?? ''}:${selected?.revision ?? ''}:${typeof form === 'object' ? JSON.stringify(form.initialValues ?? {}) : ''}:${isDraftForCurrentForm ? JSON.stringify(activeDraft.values) : ''}`} schema={schema} values={initial} mode="edit" submitLabel={form === 'create' ? 'create' : 'update'} containerLayout={false} onSubmit={submit} onCancel={() => setForm(null)} /></fieldset></section>}
    {preview !== null && <section aria-label="試算結果"><h2>試算結果</h2><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(preview, null, 2)}</pre></section>}
   </fieldset>{busy && <p role="status">処理中…</p>}
  </section>

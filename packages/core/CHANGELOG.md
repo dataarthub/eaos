@@ -1,5 +1,21 @@
 # @alneas/eaos-core
 
+## 0.2.0
+
+### Added
+
+- Add configurable document ingestion, evidence citations, inline completion and balanced journal draft contracts. Hosts supply industry classification, account mapping and model adapters.
+- Prepare exact reviewed command inputs through Appkit proposals and normalize AI risk requirements in shared execution contracts.
+- Represent unavailable provider usage explicitly in Host accounting callbacks; unknown usage never implies zero tokens or cost.
+
+### Changed
+
+- Keep Core independent of Server and business plugins. Posting, reversal, tenant authorization and persistence remain with their owning commands.
+
+### Upgrade
+
+- Adopt the 0.2.0 contracts together with matching EAOS Server, React and approval consumers. Replace branch-only industry helpers with domain-owned mappings. Appkit Core remains exactly 0.2.0.
+
 ## 0.1.0
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@alneas/eaos-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "description": "EAOS server public package",
@@ -296,6 +296,14 @@
     "./plugin-sdk": {
       "types": "./dist/plugin-sdk.d.ts",
       "import": "./dist/plugin-sdk.js"
+    },
+    "./execution/chat": {
+      "types": "./dist/execution/chat.d.ts",
+      "import": "./dist/execution/chat.js"
+    },
+    "./execution/tool-agent": {
+      "types": "./dist/execution/tool-agent.d.ts",
+      "import": "./dist/execution/tool-agent.js"
     }
   },
   "files": [
@@ -308,7 +316,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "bun test"
+    "test": "node ../../scripts/run-source-tests.mjs"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -325,7 +333,7 @@
     "@alneas/appkit-core": "0.2.0"
   },
   "dependencies": {
-    "@alneas/eaos-core": "^0.1.0",
+    "@alneas/eaos-core": "^0.2.0",
     "semver": "^7.8.5",
     "hono": "^4.13.13",
     "ajv": "^8.20.0",

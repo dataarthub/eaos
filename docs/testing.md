@@ -14,6 +14,14 @@ tags: ["eaos", "how-to"]
 
 Build the packages and pin one immutable artifact hash for every check. Provide disposable local stores and explicit host adapters. Production credentials and real tenant activation are outside ordinary package verification.
 
+CLI source verification also requires Ruby 3.2 or newer and Kamal 2.12.0. The tests exercise the actual Kamal secret-template consumer using disposable local fixtures. Prepare that consumer before running `bun run check`:
+
+```bash
+gem install --user-install kamal --version 2.12.0 --no-document
+```
+
+The source-quality workflow installs this same version. Missing Kamal fails the CLI tests; it does not skip integration cases.
+
 ## Public import
 
 Install the package; the subpath below is an import target, not a separate package. Registry installation requires a published EAOS release; before publication use the owning workspace's checksum-verified build artifact.

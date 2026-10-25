@@ -17,10 +17,10 @@ One optional npm package owns the three standard features and their release life
 
 ## Quickstart
 
-This is the unpublished initial `0.1.0` candidate. Before publication, install the checksum-verified collection tarball; the registry command below requires an available release. Use Node.js 24 or later and Appkit Core exactly 0.2.0 with compatible EAOS Core/Server ^0.1.0 and Hono ^4.13.13 peers. Install the package once; feature subpaths are import targets, not separate packages.
+This checkout prepares version `0.2.0`; version `0.1.0` is already published. Until 0.2.0 is published, install its checksum-verified candidate tarball. The command below is for the released 0.2.0 package. Use Node.js 24 or later and Appkit Core exactly 0.2.0 with compatible EAOS Core/Server ^0.1.0 and Hono ^4.13.13 peers. Install the package once; feature subpaths are import targets, not separate packages.
 
 ```bash
-bun add @alneas/eaos-plugins @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-plugins@0.2.0 @alneas/appkit-core@0.2.0
 ```
 
 Bind the approval runtime to your real host adapters. This wrapper accepts verified concrete tenant IDs and typed bindings; it does not invent a store or authenticated principal.
@@ -41,7 +41,7 @@ export function bindApprovalHost(
 
 The approval bindings require a durable scoped store, template resolver, live authorization and verified principal resolver. Creating the extension validates required adapters and the tenant catalog; it does not apply migrations or activate tenants. Select logical owners such as `@alneas/eaos-plugins/approval` in `preset.plugins`, and pass bindings through the trusted loader under that owner key. `catalog.json` only describes available modules.
 
-For `/approval/react`, `/field-customization/react` or `/admin/react`, also install compatible `@alneas/eaos-react`, `@alneas/appkit-react@0.2.0`, React/React DOM ^19.2.3 and Lucide React. Import `@alneas/appkit-react/styles` at the application boundary. Supply authenticated API/session bindings, the feature's workspace provider and any Appkit form/schema providers required by the selected view; see each host integration guide.
+For `/approval/react`, `/field-customization/react` or `/admin/react`, also install compatible `@alneas/eaos-react`, `@alneas/appkit-react@0.3.0`, React/React DOM ^19.2.3 and Lucide React. Import `@alneas/appkit-react/styles` at the application boundary. Supply authenticated API/session bindings, the feature's workspace provider and any Appkit form/schema providers required by the selected view; see each host integration guide.
 
 ## Next Steps
 

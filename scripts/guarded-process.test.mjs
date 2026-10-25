@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { runGuarded } from './guarded-process.mjs';
+import { sourceVerificationEnvironment } from './quality-tools.mjs';
 
 const options = { stdio: 'ignore', intervalMs: 30, memoryLimitMiB: 512, timeoutMs: 5_000 };
 test('normal completion and failed checks retain their exit status', async () => {
@@ -96,4 +97,28 @@ test('containment preserves promisified exec/execFile contracts for CJS and ESM'
     const result = await runGuarded(process.execPath, [...(index ? ['--input-type=module'] : []), '-e', code], options);
     assert.equal(result.ok, true, JSON.stringify(result));
   }
+});
+
+
+test('quality heap defaults survive the real containment preload and preserve explicit user flags', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'eaos-quality-environment-'));
+  try {
+    for (const nodeOptions of [undefined, '--max-old-space-size=256 --stack-trace-limit=17']) {
+      const env = sourceVerificationEnvironment({ ...process.env, NODE_OPTIONS: nodeOptions });
+      const output = path.join(directory, 'environment.json');
+      const code = `require('node:fs').writeFileSync(process.argv[1], JSON.stringify({nodeOptions:process.env.NODE_OPTIONS,heapMiB:require('node:v8').getHeapStatistics().heap_size_limit / 1024**2}));`;
+      const result = await runGuarded(process.execPath, ['-e', code, output], { ...options, env });
+      assert.equal(result.ok, true, JSON.stringify(result));
+      const observed = JSON.parse(readFileSync(output, 'utf8'));
+      assert.ok(observed.nodeOptions.includes('browser-containment.cjs'));
+      if (nodeOptions === undefined) {
+        assert.match(observed.nodeOptions, /--max-old-space-size=8192/);
+        assert.ok(observed.heapMiB >= 8192);
+      } else {
+        assert.equal(env.NODE_OPTIONS, nodeOptions);
+        assert.ok(observed.nodeOptions.startsWith(nodeOptions));
+        assert.ok(observed.heapMiB < 512);
+      }
+    }
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });

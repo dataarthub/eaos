@@ -69,3 +69,29 @@ export function createPluginExecutionRouter(options: {
   })
   return router
 }
+
+/** Verified generic execution identity; policy checks remain host-owned.
+ * @see createChatClient
+ */
+export type ExecutionPrincipal = ExecutionIdentity
+/** Current admission policy used by model and action orchestration.
+ * @see createChatClient
+ */
+export interface ExecutionPolicy {
+ /**
+  * Check current membership, activation and operation permission.
+  * @param principal - Trusted tenant/user identity copied before calling the host.
+  * @param operation - Host operation identity; chat uses model:chat.
+  * @returns Exactly true to admit; any other value denies execution.
+  * @throws Host policy failures propagate to the caller.
+  * @example
+  * ```typescript
+  * import type { ExecutionPolicy } from '@alneas/eaos-server/execution';
+  * export function currentPolicy(policy: ExecutionPolicy) { return policy; }
+  * ```
+  * @see createChatClient
+  */
+ authorize(principal: ExecutionPrincipal, operation: string): Promise<boolean>
+}
+export {createChatClient, type ChatGovernanceOptions, type ChatClientOptions, type ChatCompletion} from './chat'
+export {createToolAgent, type AgentTool, type ToolAgentOptions, type ToolAgentResult} from './tool-agent'

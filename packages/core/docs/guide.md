@@ -45,4 +45,5 @@ The host supplies verified identity and current lifecycle/resource authorization
 
 Code installation, database/infrastructure application and tenant activation are separate operations. Import/build/test/install do not perform production migrations or infrastructure updates. Before registry publication, build and test checksum-pinned tarballs in isolated consumers instead of linking sibling source.
 
+
 See the [declarative SDK](plugin-sdk.md) for policy and scoped context contracts.

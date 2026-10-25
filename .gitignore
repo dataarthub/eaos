@@ -7,3 +7,6 @@ plugins/*/dist/
 plugins/dist/
 plugins/*/node_modules/
 .verification/
+
+# Exact-input local workflow task results.
+.cache/public-quality/

@@ -203,3 +203,9 @@ test('large-history fallback rejects invalid tags, permission failures, mismatch
     assert.doesNotMatch(JSON.stringify(report),/secret/)
   }
 })
+
+test('Appkit React accepts its own exact version and rejects stale pins', async () => {
+  const data = {'@alneas/appkit-react':metadata('@alneas/appkit-react',['0.2.0','0.3.0'])}
+  assert.equal((await run(data, {}, [{...core, peerDependencies:{'@alneas/appkit-react':'0.3.0'}}])).ok, true)
+  assert.equal((await run(data, {}, [{...core, peerDependencies:{'@alneas/appkit-react':'0.2.0'}}])).ok, false)
+})

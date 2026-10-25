@@ -89,6 +89,8 @@ tags: ["api", "generated"]
 | `@alneas/eaos-server/workspace-context` | Typed public export |
 | `@alneas/eaos-server/entitlements` | Typed public export |
 | `@alneas/eaos-server/plugin-sdk` | Typed public export |
+| `@alneas/eaos-server/execution/chat` | Typed public export |
+| `@alneas/eaos-server/execution/tool-agent` | Typed public export |
 
 <a id="api-AccessFrequencyRecord"></a>
 
@@ -1706,6 +1708,55 @@ export async function failClaimedJob(
   // The host persisted terminal failure; no automatic retry is requested.
 }
 ```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AgentTool"></a>
+
+## [INTERFACE] `AgentTool`
+
+Host-registered Action binding and explicit automatic-execution policy.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/tool-agent`.
+
+### Signature
+
+```typescript
+interface AgentTool {
+    binding: ActionToolBinding;
+    mode: 'read' | 'handoff';
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `binding` | `ActionToolBinding` | Yes | Existing Appkit Action/command binding; registration and input/output schemas remain Appkit-owned. |
+| `mode` | `'read' \| 'handoff'` | Yes | Only host-verified read-only actions may run automatically; handoffs remain unexecuted. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createToolAgent
+
+### Public members
+
+#### `binding`
+
+Existing Appkit Action/command binding; registration and input/output schemas remain Appkit-owned.
+
+
+#### `mode`
+
+Only host-verified read-only actions may run automatically; handoffs remain unexecuted.
 
 
 
@@ -5111,6 +5162,275 @@ const serialized = canonical({ b: [2, 1], a: true });
 ```
 
 
+<a id="api-ChatClientOptions"></a>
+
+## [INTERFACE] `ChatClientOptions`
+
+Host-configured adapter, current admission and bounded chat policy.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/chat`.
+
+### Signature
+
+```typescript
+interface ChatClientOptions extends ExecutionPolicy {
+    adapter: AIChatAdapter;
+    parameters?: ActionToolObject;
+    tools?(principal: ExecutionPrincipal): Promise<readonly ActionToolDescriptor[]>;
+    timeoutMs?: number;
+    maxInputChars?: number;
+    maxOutputChars?: number;
+    maxEvents?: number;
+    modelRegistry?: AIModelRegistry;
+    modelAdapters?: Readonly<Record<string, AIChatAdapter>>;
+    governance?: ChatGovernanceOptions;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `adapter` | `AIChatAdapter` | Yes | Existing Appkit transport configured with the host endpoint, model and credentials. |
+| `parameters` | `ActionToolObject` | No | Host-owned provider parameters cloned at creation; model/messages/tools/stream keys are reserved and rejected. |
+| `tools` | `Promise<readonly ActionToolDescriptor[]>` | No | Resolve descriptors only when the caller explicitly requests tools: catalog. |
+| `timeoutMs` | `number` | No | Positive integer deadline in milliseconds; default 30000, maximum 3600000. |
+| `maxInputChars` | `number` | No | Serialized request character ceiling; default 200000, maximum 7000000. |
+| `maxOutputChars` | `number` | No | Serialized event and final assistant-message character ceiling; default 100000, maximum 10000000. |
+| `maxEvents` | `number` | No | Maximum stream event count; default 10000, maximum 100000. |
+| `modelRegistry` | `AIModelRegistry` | No | Host-approved route registry; requests cannot select a model or bypass sensitivity limits. |
+| `modelAdapters` | `Readonly<Record<string, AIChatAdapter>>` | No | Required with modelRegistry: host-approved logical model to configured adapter bindings, snapshotted at creation. |
+| `governance` | `ChatGovernanceOptions` | No | Optional host guards, budgets and telemetry; final current authorization follows their completion. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createChatClient
+
+### Public members
+
+#### `adapter`
+
+Existing Appkit transport configured with the host endpoint, model and credentials.
+
+
+#### `parameters`
+
+Host-owned provider parameters cloned at creation; model/messages/tools/stream keys are reserved and rejected.
+
+
+#### `tools`
+
+Resolve descriptors only when the caller explicitly requests tools: catalog.
+
+Parameters:
+
+- `principal`: Copied verified actor whose current disclosure permission the host must check.
+
+Returns: At most 100 unique descriptors; omission advertises no tools.
+
+### Errors and rejections
+
+Host resolution failures reject completion before the provider starts.
+
+Example:
+
+```typescript
+import type { ChatClientOptions } from '@alneas/eaos-server/execution/chat';
+export function disclosedTools(resolve: NonNullable<ChatClientOptions['tools']>) { return resolve; }
+```
+
+
+#### `timeoutMs`
+
+Positive integer deadline in milliseconds; default 30000, maximum 3600000.
+
+
+#### `maxInputChars`
+
+Serialized request character ceiling; default 200000, maximum 7000000.
+
+
+#### `maxOutputChars`
+
+Serialized event and final assistant-message character ceiling; default 100000, maximum 10000000.
+
+
+#### `maxEvents`
+
+Maximum stream event count; default 10000, maximum 100000.
+
+
+#### `modelRegistry`
+
+Host-approved route registry; requests cannot select a model or bypass sensitivity limits.
+
+
+#### `modelAdapters`
+
+Required with modelRegistry: host-approved logical model to configured adapter bindings, snapshotted at creation.
+
+
+#### `governance`
+
+Optional host guards, budgets and telemetry; final current authorization follows their completion.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ChatCompletion"></a>
+
+## [INTERFACE] `ChatCompletion`
+
+Completed assistant message and optional host-governance metadata.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/chat`.
+
+### Signature
+
+```typescript
+interface ChatCompletion {
+    message: AIChatMessage;
+    finishReason: 'stop' | 'tool-calls';
+    traceId?: string;
+    usage?: AIUsage;
+    sensitivityLevel?: AIExecutionContext['sensitivityLevel'];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `message` | `AIChatMessage` | Yes | Detached assistant response; tool-call parts are unexecuted requests. |
+| `finishReason` | `'stop' \| 'tool-calls'` | Yes | Successful provider finish reason; truncated or inconsistent streams reject. |
+| `traceId` | `string` | No | Unique request trace identity generated before governance callbacks. |
+| `usage` | `AIUsage` | No | Recognized nonnegative adapter metadata; undefined means unknown, including Appkit OpenAI SSE without usage events. |
+| `sensitivityLevel` | `AIExecutionContext['sensitivityLevel']` | No | Sensitivity label supplied by the input guard. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createChatClient
+
+### Public members
+
+#### `message`
+
+Detached assistant response; tool-call parts are unexecuted requests.
+
+
+#### `finishReason`
+
+Successful provider finish reason; truncated or inconsistent streams reject.
+
+
+#### `traceId`
+
+Unique request trace identity generated before governance callbacks.
+
+
+#### `usage`
+
+Recognized nonnegative adapter metadata; undefined means unknown, including Appkit OpenAI SSE without usage events.
+
+
+#### `sensitivityLevel`
+
+Sensitivity label supplied by the input guard.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ChatGovernanceOptions"></a>
+
+## [INTERFACE] `ChatGovernanceOptions`
+
+Host-injected model guards, usage budgets and telemetry.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/chat`.
+
+### Signature
+
+```typescript
+interface ChatGovernanceOptions {
+    guard?: AIGuard;
+    budget?: AIBudgetGate;
+    observability?: AIObservabilitySink;
+    operation?: string;
+    model?: string;
+    sessionId?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `guard` | `AIGuard` | No | Optional pre-input and post-output checks; replacement messages remain host-owned. |
+| `budget` | `AIBudgetGate` | No | Optional request admission and once-per-started-attempt accounting; accounting failures propagate. |
+| `observability` | `AIObservabilitySink` | No | Awaited started/event/completed telemetry within the deadline; sink errors are ignored. |
+| `operation` | `string` | No | Telemetry operation label; authorization always checks model:chat. |
+| `model` | `string` | No | Host-selected registry model ID; without a registry this is metadata, not provider selection. |
+| `sessionId` | `string` | No | Optional host session identity recorded in governance context. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createChatClient
+
+### Public members
+
+#### `guard`
+
+Optional pre-input and post-output checks; replacement messages remain host-owned.
+
+
+#### `budget`
+
+Optional request admission and once-per-started-attempt accounting; accounting failures propagate.
+
+
+#### `observability`
+
+Awaited started/event/completed telemetry within the deadline; sink errors are ignored.
+
+
+#### `operation`
+
+Telemetry operation label; authorization always checks model:chat.
+
+
+#### `model`
+
+Host-selected registry model ID; without a registry this is metadata, not provider selection.
+
+
+#### `sessionId`
+
+Optional host session identity recorded in governance context.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-CloudflareD1Binding"></a>
 
 ## [INTERFACE] `CloudflareD1Binding`
@@ -6809,6 +7129,67 @@ export function authRouter(resolveSession: (context: Context) => Promise<Browser
     resolveSession,
   });
 }
+```
+
+
+<a id="api-createChatClient"></a>
+
+## [FUNCTION] `createChatClient`
+
+Complete scoped chat through the existing Appkit adapter with live admission and host governance.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/chat`.
+
+### Signature
+
+```typescript
+declare function createChatClient(options: ChatClientOptions): {
+    complete(principal: ExecutionPrincipal, input: {
+        messages: readonly AIChatMessage[];
+        signal?: AbortSignal;
+        tools?: "none" | "catalog";
+    }): Promise<ChatCompletion>;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `ChatClientOptions` | Yes | Trusted adapter, current authorization, optional routes/governance and bounded limits. |
+
+### Returns
+
+`{     complete(principal: ExecutionPrincipal, input: {         messages: readonly AIChatMessage[];         signal?: AbortSignal;         tools?: "none" \| "catalog";     }): Promise<ChatCompletion>; }`
+
+A client whose complete method returns detached, finally authorized assistant data.
+
+### Remarks
+
+Every completion authorizes model:chat before disclosure, between events and after awaited
+output guard, usage recording and completion telemetry. This client never executes model tool calls.
+The host must configure real endpoint credentials in the Appkit adapter. Abort is cooperative for a
+custom transport; the request promise remains bounded even if its iterator ignores cancellation.
+With modelRegistry, provide modelAdapters mapping each approved logical model to its host-configured
+Appkit adapter; generic adapter IDs alone do not select or prove the provider model. Binding entries
+and stream methods are snapshotted at creation. Reserved transport parameters are rejected in 0.2.
+Accounting runs once after each started adapter attempt, including output blocks, revocation and provider
+failure. Unknown usage is passed as undefined, never zero. Appkit's OpenAI SSE adapter currently emits
+no usage metadata event even for provider include_usage chunks; hosts must reconcile measured usage
+through their existing accounting port using trace/session context. Accounting callback errors reject
+completion in 0.2; a stalled callback remains bounded by the request deadline.
+
+### Errors and rejections
+
+Rejects invalid limits or missing adapter/policy during construction. Completion rejects
+invalid histories/catalogs, denied or revoked admission, guard/budget/route denial, provider failures,
+incomplete streams, exceeded limits, cancellation, deadline expiry and host accounting failure. Telemetry errors are ignored.
+
+### Example
+
+```typescript
+import { createChatClient, type ChatClientOptions } from '@alneas/eaos-server/execution/chat';
+export function connectChat(options: ChatClientOptions) { return createChatClient(options); }
 ```
 
 
@@ -8706,6 +9087,62 @@ export function pluginStorage(adapter: StorageAdapter, trustedOptions: TenantSto
   // Resolve scope and authorization from verified host identity, never request body IDs.
   return createTenantStorage(adapter, trustedOptions);
 }
+```
+
+
+<a id="api-createToolAgent"></a>
+
+## [FUNCTION] `createToolAgent`
+
+Orchestrate bounded model rounds through existing Appkit Action/Execution and scoped EAOS chat.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/tool-agent`.
+
+### Signature
+
+```typescript
+declare function createToolAgent(options: ToolAgentOptions): {
+    cancel: () => void;
+    getSnapshot: () => readonly _alneas_appkit_core_ai.ExecutionRecord[];
+    subscribe: (listener: () => void) => () => void;
+    close: () => void;
+    run(principal: ExecutionPrincipal, input: {
+        messages: readonly AIChatMessage[];
+        signal?: AbortSignal;
+    }): Promise<_alneas_appkit_core_ai.ExecutionOutcome<ToolAgentResult>>;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `ToolAgentOptions` | Yes | Current session/disclosure/call policies, Appkit adapter and chat/round/call limits. |
+
+### Returns
+
+`{     cancel: () => void;     getSnapshot: () => readonly _alneas_appkit_core_ai.ExecutionRecord[];     subscribe: (listener: () => void) => () => void;     close: () => void;     run(principal: ExecutionPrincipal, input: {         messages: readonly AIChatMessage[];         signal?: AbortSignal;     }): Promise<_alneas_appkit_core_ai.ExecutionOutcome<ToolAgentResult>>; }`
+
+Single-flight run, cancel, close and summary subscription methods backed by Appkit ExecutionSession.
+
+### Remarks
+
+Only explicitly host-verified read tools execute automatically. A batch containing any handoff
+returns all its calls without executing them. No durable command engine, approval grant or transaction
+is created; retained tool-call/result history and descriptors are reauthorized at the exact adapter
+boundary after chat governance, including caller-supplied history and guard substitutions. Approved writes belong to the host's existing proposal/approval and owning command service.
+
+### Errors and rejections
+
+Invalid policies or round/call limits reject construction. Concurrent/closed runs reject through
+Appkit; asynchronous authorization/provider failures become failed execution outcomes. Cancellation is
+cooperative and does not roll back previously completed Action effects.
+
+### Example
+
+```typescript
+import { createToolAgent, type ToolAgentOptions } from '@alneas/eaos-server/execution/tool-agent';
+export function connectAgent(options: ToolAgentOptions) { return createToolAgent(options); }
 ```
 
 
@@ -12998,6 +13435,102 @@ Nonblank verified tenant ID.
 Nonblank verified user ID.
 
 
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ExecutionPolicy"></a>
+
+## [INTERFACE] `ExecutionPolicy`
+
+Current admission policy used by model and action orchestration.
+
+Imports: `@alneas/eaos-server/execution`.
+
+### Signature
+
+```typescript
+interface ExecutionPolicy {
+    authorize(principal: ExecutionPrincipal, operation: string): Promise<boolean>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `authorize` | `Promise<boolean>` | Yes | Check current membership, activation and operation permission. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createChatClient
+
+### Public members
+
+#### `authorize`
+
+Check current membership, activation and operation permission.
+
+Parameters:
+
+- `principal`: Trusted tenant/user identity copied before calling the host.
+- `operation`: Host operation identity; chat uses model:chat.
+
+Returns: Exactly true to admit; any other value denies execution.
+
+### Errors and rejections
+
+Host policy failures propagate to the caller.
+
+### See also
+
+createChatClient
+
+Example:
+
+```typescript
+import type { ExecutionPolicy } from '@alneas/eaos-server/execution';
+export function currentPolicy(policy: ExecutionPolicy) { return policy; }
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ExecutionPrincipal"></a>
+
+## [TYPE] `ExecutionPrincipal`
+
+Verified generic execution identity; policy checks remain host-owned.
+
+Imports: `@alneas/eaos-server/execution`.
+
+### Signature
+
+```typescript
+type ExecutionPrincipal = ExecutionIdentity;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createChatClient
 
 ### Example
 
@@ -25614,7 +26147,9 @@ Imports: `@alneas/eaos-server`, `@alneas/eaos-server/agentic`, `@alneas/eaos-ser
 ```typescript
 declare class ServerAutonomousWorker {
     constructor(options?: ServerWorkerOptions);
-    runTask(request: ServerAgentTaskRequest): Promise<ServerAgentTaskResult>;
+    runTask(request: ServerAgentTaskRequest, execution?: {
+        signal?: AbortSignal;
+    }): Promise<ServerAgentTaskResult>;
 }
 ```
 
@@ -25647,12 +26182,13 @@ Checks task limits and gatekeeper policy before dispatching one runtime attempt.
 Parameters:
 
 - `request`: Verified task identity and instructions; required strings must be nonblank, title at most 500 characters, instructions at most 1000000, and timeout a safe integer 1–3600000 milliseconds when provided.
+- `execution`: Optional cancellation signal for built-in shared chat tasks; does not change injected executor or process contracts.
 
 Returns: COMPLETED text output, PENDING_APPROVAL ticket data without execution, or FAILED data with error and optional classification/retry advice. Duration is measured in wall-clock milliseconds.
 
 ### Remarks
 
-Gatekeeper receives fixed agent/server_bot roles rather than request user roles. Approval tickets are generated but not persisted here. The configured framework policy overrides request.runtimePolicy before execution. Injected executors and built-in LiteLLM outputs are bounded by maxOutputChars; LiteLLM response bodies are parsed before text length is checked.
+Gatekeeper receives fixed agent/server_bot roles rather than request user roles. Approval tickets are generated but not persisted here. The configured framework policy overrides request.runtimePolicy before execution. Injected executors and built-in chat outputs are bounded by maxOutputChars. LiteLLM uses Appkit SSE transport through createChatClient; JSON-only endpoints require a Host adapter or executor. Existing FAILED/PENDING_APPROVAL/COMPLETED envelopes and injected-executor priority remain unchanged.
 
 ### Errors and rejections
 
@@ -25667,6 +26203,11 @@ export async function execute(options: ServerWorkerOptions, request: ServerAgent
   return new ServerAutonomousWorker(options).runTask(request);
 }
 ```
+
+
+#### `runTask.execution.signal`
+
+Cooperatively cancel built-in shared chat. Injected executors and Goose/Hermes retain their own cancellation contracts.
 
 
 
@@ -25710,6 +26251,59 @@ ServerAutonomousWorker.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-ServerWorkerChatOptions"></a>
+
+## [INTERFACE] `ServerWorkerChatOptions`
+
+Host composition of the shared chat path for built-in model tasks.
+
+Imports: `@alneas/eaos-server`, `@alneas/eaos-server/agentic`, `@alneas/eaos-server/agentic/autonomous-worker`.
+
+### Signature
+
+```typescript
+interface ServerWorkerChatOptions extends Omit<ChatClientOptions, 'adapter' | 'authorize' | 'tools'> {
+    adapter?: AIChatAdapter;
+    authorize?: ChatClientOptions['authorize'];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `adapter` | `AIChatAdapter` | No | Optional host adapter; omission uses Appkit's OpenAI-compatible LiteLLM transport. |
+| `authorize` | `ChatClientOptions['authorize']` | No | Optional live Host authorization, combined with the worker gatekeeper before and after asynchronous work. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Remarks
+
+Defaults retain the worker gatekeeper, 60-second task timeout and worker output bound. Tools are undisclosed; action orchestration belongs to createToolAgent. No model transport or credential is selected from model output.
+
+### See also
+
+ServerWorkerOptions for complete worker configuration.
+
+### Public members
+
+#### `adapter`
+
+Optional host adapter; omission uses Appkit's OpenAI-compatible LiteLLM transport.
+
+
+#### `authorize`
+
+Optional live Host authorization, combined with the worker gatekeeper before and after asynchronous work.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-ServerWorkerOptions"></a>
 
 ## [INTERFACE] `ServerWorkerOptions`
@@ -25727,6 +26321,8 @@ interface ServerWorkerOptions {
     hermesAgentBinaryPath?: string;
     litellmEndpoint?: string;
     litellmModel?: string;
+    litellmHeaders?: Readonly<Record<string, string>>;
+    chat?: ServerWorkerChatOptions;
     maxOutputChars?: number;
     runtimePolicy?: AgentRuntimeResourcePolicy;
     runtimeRole?: ServerRuntimeRole;
@@ -25744,6 +26340,8 @@ interface ServerWorkerOptions {
 | `hermesAgentBinaryPath` | `string` | No | Trusted executable path; defaults to HERMES_AGENT_BIN_PATH or hermes. |
 | `litellmEndpoint` | `string` | No | Host LiteLLM base URL; defaults to LITELLM_ENDPOINT or http://localhost:4000/v1. |
 | `litellmModel` | `string` | No | Host model identifier; defaults to LITELLM_MODEL and is required for built-in LiteLLM execution. |
+| `litellmHeaders` | `Readonly<Record<string, string>>` | No | Host-owned provider headers; captured at construction and never read from task/model input. |
+| `chat` | `ServerWorkerChatOptions` | No | Optional shared chat model routing, live authorization, limits, guards, usage, budget and observability. |
 | `maxOutputChars` | `number` | No | Combined command output/string result ceiling, safe integer 1–10000000; defaults to 1000000. |
 | `runtimePolicy` | `AgentRuntimeResourcePolicy` | No | Framework default is safe for the ARM agent host. Host adapters may tighten it. |
 | `runtimeRole` | `ServerRuntimeRole` | No | Built-in Goose/Hermes execution is permitted only on the AI placement. |
@@ -25779,6 +26377,16 @@ Host LiteLLM base URL; defaults to LITELLM_ENDPOINT or http://localhost:4000/v1.
 #### `litellmModel`
 
 Host model identifier; defaults to LITELLM_MODEL and is required for built-in LiteLLM execution.
+
+
+#### `litellmHeaders`
+
+Host-owned provider headers; captured at construction and never read from task/model input.
+
+
+#### `chat`
+
+Optional shared chat model routing, live authorization, limits, guards, usage, budget and observability.
 
 
 #### `maxOutputChars`
@@ -27988,6 +28596,205 @@ Throws PluginError 400 if input is not a string, trims to empty or exceeds max.
 import { textInput } from '@alneas/eaos-server/plugin-data'
 const title = textInput('Example', 'title', 80)
 ```
+
+<a id="api-ToolAgentOptions"></a>
+
+## [INTERFACE] `ToolAgentOptions`
+
+Current host policies and limits for a single-flight Appkit execution session.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/tool-agent`.
+
+### Signature
+
+```typescript
+interface ToolAgentOptions extends Omit<ChatClientOptions, 'tools'> {
+    session(principal: ExecutionPrincipal): Promise<{
+        registry: ActionRegistry;
+        tools: readonly AgentTool[];
+    }>;
+    disclose(principal: ExecutionPrincipal, name: string): Promise<boolean>;
+    authorizeCall(principal: ExecutionPrincipal, call: ActionToolCall): Promise<boolean>;
+    maxRounds?: number;
+    maxCalls?: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `session` | `Promise<{     registry: ActionRegistry;     tools: readonly AgentTool[]; }>` | Yes | Resolve the current host registry and explicit tool execution policy. |
+| `disclose` | `Promise<boolean>` | Yes | Check current permission to disclose a tool descriptor or result to the model. |
+| `authorizeCall` | `Promise<boolean>` | Yes | Check exact resource/input permission before execution and before result disclosure. |
+| `maxRounds` | `number` | No | Maximum model rounds; default 6, allowed integers 1–20. |
+| `maxCalls` | `number` | No | Maximum automatic Action calls per run; default 10, allowed integers 1–100. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createToolAgent
+
+### Public members
+
+#### `session`
+
+Resolve the current host registry and explicit tool execution policy.
+
+Parameters:
+
+- `principal`: Copied verified tenant/user identity.
+
+Returns: Existing Action registry and at most 100 read/handoff bindings.
+
+### Errors and rejections
+
+Rejects missing host session or registry resolution failures.
+
+Example:
+
+```typescript
+import type { ToolAgentOptions } from '@alneas/eaos-server/execution/tool-agent';
+export function agentSession(resolve: ToolAgentOptions['session']) { return resolve; }
+```
+
+
+#### `session.registry`
+
+Existing host-owned Appkit Action registry for this authorized session.
+
+
+#### `session.tools`
+
+Explicit read/handoff policy for every disclosed binding.
+
+
+#### `disclose`
+
+Check current permission to disclose a tool descriptor or result to the model.
+
+Parameters:
+
+- `principal`: Copied verified actor.
+- `name`: Host-registered tool name.
+
+Returns: Exactly true permits disclosure; other results deny it.
+
+### Errors and rejections
+
+Host policy errors propagate into the execution outcome.
+
+Example:
+
+```typescript
+import type { ToolAgentOptions } from '@alneas/eaos-server/execution/tool-agent';
+export function disclosurePolicy(policy: ToolAgentOptions['disclose']) { return policy; }
+```
+
+
+#### `authorizeCall`
+
+Check exact resource/input permission before execution and before result disclosure.
+
+Parameters:
+
+- `principal`: Copied verified actor; callback mutation cannot change the trusted identity.
+- `call`: Untrusted model request with correlated ID, name and arguments.
+
+Returns: Exactly true admits the call; it does not approve a handoff for execution.
+
+### Errors and rejections
+
+Host policy errors propagate into the execution outcome.
+
+Example:
+
+```typescript
+import type { ToolAgentOptions } from '@alneas/eaos-server/execution/tool-agent';
+export function callPolicy(policy: ToolAgentOptions['authorizeCall']) { return policy; }
+```
+
+
+#### `maxRounds`
+
+Maximum model rounds; default 6, allowed integers 1–20.
+
+
+#### `maxCalls`
+
+Maximum automatic Action calls per run; default 10, allowed integers 1–100.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ToolAgentResult"></a>
+
+## [INTERFACE] `ToolAgentResult`
+
+Final in-memory conversational outcome, separate from Appkit execution status.
+
+Imports: `@alneas/eaos-server/execution`, `@alneas/eaos-server/execution/tool-agent`.
+
+### Signature
+
+```typescript
+interface ToolAgentResult {
+    status: 'completed' | 'handoff' | 'limited' | 'tool-error';
+    messages: AIChatMessage[];
+    pending: ActionToolCall[];
+    callsExecuted: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | `'completed' \| 'handoff' \| 'limited' \| 'tool-error'` | Yes | Completed chat, unexecuted handoff, bounded stop, or an Action validation/execution failure. |
+| `messages` | `AIChatMessage[]` | Yes | Detached correlated chat history, including only authorized projected tool results. |
+| `pending` | `ActionToolCall[]` | Yes | Unexecuted requests; the host must validate them through its existing Action/Proposal review path. |
+| `callsExecuted` | `number` | Yes | Number of attempted automatic Action calls, including a returned Action failure. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createToolAgent
+
+### Public members
+
+#### `status`
+
+Completed chat, unexecuted handoff, bounded stop, or an Action validation/execution failure.
+
+
+#### `messages`
+
+Detached correlated chat history, including only authorized projected tool results.
+
+
+#### `pending`
+
+Unexecuted requests; the host must validate them through its existing Action/Proposal review path.
+
+
+#### `callsExecuted`
+
+Number of attempted automatic Action calls, including a returned Action failure.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-uniqueRecordKey"></a>
 

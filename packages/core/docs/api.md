@@ -34,6 +34,10 @@ tags: ["api", "generated"]
 | `@alneas/eaos-core/agentic/structured-tool-call-adapter` | Typed public export |
 | `@alneas/eaos-core/agentic/types` | Typed public export |
 | `@alneas/eaos-core/ai/anomaly` | Typed public export |
+| `@alneas/eaos-core/ai/document-parser` | Typed public export |
+| `@alneas/eaos-core/ai/evidence-traceability` | Typed public export |
+| `@alneas/eaos-core/ai/inline-completion` | Typed public export |
+| `@alneas/eaos-core/ai/smart-ingestion` | Typed public export |
 | `@alneas/eaos-core/ai/execution-broker` | Typed public export |
 | `@alneas/eaos-core/ai/governance` | Typed public export |
 | `@alneas/eaos-core/ai/host-adapters` | Typed public export |
@@ -53,6 +57,10 @@ tags: ["api", "generated"]
 | `@alneas/eaos-core/plugin-sdk/decimal-values` | Typed public export |
 | `@alneas/eaos-core/plugin-sdk/eligibility` | Typed public export |
 | `@alneas/eaos-core/plugin-sdk/event-bus` | Typed public export |
+| `@alneas/eaos-core/plugin-sdk/hybrid-document` | Typed public export |
+| `@alneas/eaos-core/plugin-sdk/immutable-ledger` | Typed public export |
+| `@alneas/eaos-core/plugin-sdk/construction-journal-pipeline` | Typed public export |
+| `@alneas/eaos-core/plugin-sdk/index` | Typed public export |
 | `@alneas/eaos-core/plugin-sdk` | Typed public export |
 | `@alneas/eaos-core/plugin-sdk/procedure` | Typed public export |
 | `@alneas/eaos-core/plugin-sdk/registry` | Typed public export |
@@ -83,7 +91,44 @@ tags: ["api", "generated"]
 | `@alneas/eaos-core/migration-types` | Typed public export |
 | `@alneas/eaos-core/data-contracts` | Typed public export |
 | `@alneas/eaos-core/contracts/platform-records` | Typed public export |
+| `@alneas/eaos-core/plugin-sdk/journal-draft` | Typed public export |
 | `@alneas/eaos-core/contracts/platform-records.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
+
+<a id="api-AccountMappingResolver"></a>
+
+## [TYPE] `AccountMappingResolver`
+
+Host resolver that maps context to account identifiers.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/journal-draft`, `@alneas/eaos-core/plugin-sdk/construction-journal-pipeline`.
+
+### Signature
+
+```typescript
+type AccountMappingResolver<TContext = unknown> = (context: TContext) => JournalDraftAccountMapping;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `TContext`: Host context type passed unchanged to the injected account resolver.
+
+### See also
+
+[generateJournalDraftFromDocument](#api-generateJournalDraftFromDocument)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-addDecimalValues"></a>
 
@@ -91,7 +136,7 @@ tags: ["api", "generated"]
 
 Add two exact decimal strings using bigint coefficients.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
 
 ### Signature
 
@@ -166,7 +211,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Agent/skill/tool discovery metadata and per-tool policy declarations.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -2066,7 +2111,7 @@ interface AIBudgetGate {
     }): Promise<AIBudgetDecision> | AIBudgetDecision;
     recordUsage?(input: {
         context: AIExecutionContext;
-        usage: AIUsage;
+        usage?: AIUsage;
     }): Promise<void> | void;
 }
 ```
@@ -2130,13 +2175,13 @@ Report usage to optional host accounting after execution.
 
 Parameters:
 
-- `input`: Verified scope and measured/reported usage to record.
+- `input`: Verified scope and optional measured/reported usage; absence requires Host reconciliation and never means zero use.
 
 Returns: No value; returned Promise completion means the host accounting callback completed.
 
 ### Remarks
 
-Optional host accounting port; retry/deduplication semantics must be defined by the implementation.
+Optional host accounting port; retry/deduplication and unknown-usage reconciliation remain Host-owned. Providers may omit usage metadata even after billable work.
 
 ### Errors and rejections
 
@@ -2736,6 +2781,196 @@ Type declaration; no runtime value.
 ### See also
 
 [evaluateSkillEligibility](#api-evaluateSkillEligibility)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AiDraftReviewResult"></a>
+
+## [TYPE] `AiDraftReviewResult`
+
+Host response; pending approval never represents a saved domain record.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/proposal-ui`.
+
+### Signature
+
+```typescript
+type AiDraftReviewResult<T> = {
+    status: 'pending';
+    approvalRequestId: string;
+} | {
+    status: 'applied';
+    result: T;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Response from the owning domain save command.
+
+### See also
+
+[AiDraftSubmission](#api-AiDraftSubmission)
+
+### Public members
+
+#### `status`
+
+A durable approval exists but the domain command has not executed.
+
+
+#### `approvalRequestId`
+
+Approval request to reconcile on the next save attempt.
+
+
+#### `status`
+
+The owning command returned its save response.
+
+
+#### `result`
+
+Domain command response; the consumer still validates its scope.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AiDraftSubmission"></a>
+
+## [INTERFACE] `AiDraftSubmission`
+
+A reviewed command and its Appkit proposal envelope, sent to a trusted Host.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/proposal-ui`.
+
+### Signature
+
+```typescript
+interface AiDraftSubmission {
+    scope: string;
+    operation: string;
+    input: Record<string, unknown>;
+    proposal: RecordProposal<StructuredProposalRecord>;
+    target?: ExecutionTarget;
+    approvalRequestId?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `scope` | `string` | Yes | Owning workspace or plugin namespace. |
+| `operation` | `string` | Yes | Registered owning command operation. |
+| `input` | `Record<string, unknown>` | Yes | Exact schema-normalized command input after operator edits. |
+| `proposal` | `RecordProposal<StructuredProposalRecord>` | Yes | Immutable Appkit envelope whose data change contains the exact input. |
+| `target` | `ExecutionTarget` | No | Bound resource identity and source revision; omitted for independent creation. |
+| `approvalRequestId` | `string` | No | Existing durable approval request to check before saving the same command. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[convertAiDraftToProposal](#api-convertAiDraftToProposal)
+
+### Public members
+
+#### `scope`
+
+Owning workspace or plugin namespace.
+
+
+#### `operation`
+
+Registered owning command operation.
+
+
+#### `input`
+
+Exact schema-normalized command input after operator edits.
+
+
+#### `proposal`
+
+Immutable Appkit envelope whose data change contains the exact input.
+
+
+#### `target`
+
+Bound resource identity and source revision; omitted for independent creation.
+
+
+#### `approvalRequestId`
+
+Existing durable approval request to check before saving the same command.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AiDraftSubmissionOptions"></a>
+
+## [TYPE] `AiDraftSubmissionOptions`
+
+Host identity and source baseline used to prepare a reviewed command submission.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/proposal-ui`.
+
+### Signature
+
+```typescript
+type AiDraftSubmissionOptions = Parameters<typeof convertAiDraftToProposal>[1] & {
+    operation: string;
+    target?: ExecutionTarget;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[prepareAiDraftSubmission](#api-prepareAiDraftSubmission)
+
+### Public members
+
+#### `operation`
+
+Registered operation whose exact input the operator has reviewed.
+
+
+#### `target`
+
+Existing resource and source revision; omitted for independent creation.
+
+
 
 ### Example
 
@@ -3600,6 +3835,7 @@ interface AIExecutionContext {
     sessionId?: string;
     model?: string;
     sensitivityLevel?: AIDataSensitivityLevel;
+    riskLevel?: AIRiskLevel;
 }
 ```
 
@@ -3614,6 +3850,7 @@ interface AIExecutionContext {
 | `sessionId` | `string` | No | Host session identity used to correlate lifecycle callbacks and operations. |
 | `model` | `string` | No | Optional model selection metadata associated with this execution scope. |
 | `sensitivityLevel` | `AIDataSensitivityLevel` | No | Classification used by the host to constrain eligible execution routes. |
+| `riskLevel` | `AIRiskLevel` | No | Operational risk tier governing AI execution autonomy and Human-in-the-Loop gating. |
 
 ### Returns
 
@@ -3658,6 +3895,11 @@ Optional model selection metadata associated with this execution scope.
 #### `sensitivityLevel`
 
 Classification used by the host to constrain eligible execution routes.
+
+
+#### `riskLevel`
+
+Operational risk tier governing AI execution autonomy and Human-in-the-Loop gating.
 
 
 
@@ -4002,6 +4244,62 @@ Type declaration; no runtime value.
 ### See also
 
 [createAIExecutionBroker](#api-createAIExecutionBroker)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-AiFieldMetadata"></a>
+
+## [INTERFACE] `AiFieldMetadata`
+
+Metadata for a field extracted by AI, including confidence and source bounding coordinates.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+interface AiFieldMetadata {
+    confidence: 'high' | 'medium' | 'low';
+    sourceBox?: SourceBoundingBox;
+    reasoning?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | Confidence score: high (green/confident), medium (yellow/review), low (red/attention) |
+| `sourceBox` | `SourceBoundingBox` | No | Original bounding box on the parsed document for pinpoint preview |
+| `reasoning` | `string` | No | Explanation of why this value was inferred |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[CoreAiDraft](#api-CoreAiDraft)
+
+### Public members
+
+#### `confidence`
+
+Confidence score: high (green/confident), medium (yellow/review), low (red/attention)
+
+
+#### `sourceBox`
+
+Original bounding box on the parsed document for pinpoint preview
+
+
+#### `reasoning`
+
+Explanation of why this value was inferred
+
+
 
 ### Example
 
@@ -5697,6 +5995,42 @@ Fraction from zero to one scaling the injected random retry jitter.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-AIRiskLevel"></a>
+
+## [TYPE] `AIRiskLevel`
+
+AI operational risk tier defining the level of autonomy and Human-in-the-Loop gating.
+
+- Level 1: Read-only query, analytics, navigation (Zero risk -> AI immediate execution).
+- Level 2: Routine draft generation (Medium risk -> AI-to-UI draft + human confirmation).
+- Level 3: Critical financial / master data mutations (High risk -> AI execution strictly prohibited, advisory/simulation only).
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+type AIRiskLevel = 1 | 2 | 3;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[CoreAiDraft](#api-CoreAiDraft)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-AITextOrToolPart"></a>
 
 ## [TYPE] `AITextOrToolPart`
@@ -6879,7 +7213,7 @@ console.log(results.map(result => result.detected));
 
 URL prefix used by the host when mounting plugin APIs.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -7333,7 +7667,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Declared archival destination or retention deletion strategy; execution belongs to the host.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -7434,13 +7768,51 @@ assertActiveConsent(records, requirement);
 ```
 
 
+<a id="api-assertBalancedLines"></a>
+
+## [FUNCTION] `assertBalancedLines`
+
+Asserts that debit and credit totals match exactly.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/immutable-ledger`.
+
+### Signature
+
+```typescript
+declare function assertBalancedLines(lines: readonly ImmutableLedgerLine[]): void;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `lines` | `readonly ImmutableLedgerLine[]` | Yes | List of debit and credit lines. |
+
+### Returns
+
+`void`
+
+No value when all lines are valid and debit/credit totals match exactly.
+
+### Errors and rejections
+
+Error if unbalanced, fewer than 2 lines, or invalid amounts.
+
+### Example
+
+```typescript
+import { assertBalancedLines } from '@alneas/eaos-core/plugin-sdk/immutable-ledger';
+assertBalancedLines([{ accountId: 'account-debit', side: 'D', amount: 100 }, { accountId: 'account-credit', side: 'C', amount: 100 }]);
+```
+
+
 <a id="api-assertBusinessDate"></a>
 
 ## [FUNCTION] `assertBusinessDate`
 
 Validate a real Gregorian calendar date in YYYY-MM-DD form.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -7478,7 +7850,7 @@ assertBusinessDate("2026-10-19");
 
 Validate an opaque business identifier.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -7562,7 +7934,7 @@ assertDataContractBinding(catalog, { contractId: "notes", version: "^1.0.0", tab
 
 Validate a bounded exact decimal string.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
 
 ### Signature
 
@@ -7639,7 +8011,7 @@ console.log(assertGraphProjectionResult({ tenantId: "tenant-demo", nodes: [], ed
 
 Validate an ISO-style timestamp with an explicit timezone.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -7717,7 +8089,7 @@ assertJsonDocumentContracts([document], new Map([["notes", { properties: { paylo
 
 Validate a monetary amount already expressed in minor units.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -7756,7 +8128,7 @@ assertMoneyMinor(1250, true);
 
 Serialize a payload and enforce its UTF-8 storage size limit.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -7842,7 +8214,7 @@ assertPlatformPrincipal({ userId: "user-demo", tenantId: "tenant-demo", roles: [
 
 Validate plugin admission and optional metering requirements.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -7880,7 +8252,7 @@ assertPluginEntitlement({ tier: "public" });
 
 Validate and normalize record retention and storage constraints.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -8008,7 +8380,7 @@ console.log(usage.bytes.database);
 
 Validate a host-provided tenant subscription snapshot.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -8125,6 +8497,76 @@ console.log(assertVectorSearchRequest({ tenantId: "tenant-demo", indexId: "docum
 ```
 
 
+<a id="api-AttachmentRefBlock"></a>
+
+## [INTERFACE] `AttachmentRefBlock`
+
+Attached file / evidence block (PDF receipts, site photos, etc.)
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+interface AttachmentRefBlock extends BaseBlock {
+    type: 'attachment';
+    mimeType: string;
+    fileName: string;
+    fileUrl: string;
+    ocrConfidence?: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `type` | `'attachment'` | Yes | Discriminator identifying an attachment reference. |
+| `mimeType` | `string` | Yes | Media type of the referenced attachment. |
+| `fileName` | `string` | Yes | Display filename of the referenced attachment. |
+| `fileUrl` | `string` | Yes | Host-controlled attachment reference; presence is checked but access is not authorized here. |
+| `ocrConfidence` | `number` | No | Optional host-reported OCR confidence score. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Public members
+
+#### `type`
+
+Discriminator identifying an attachment reference.
+
+
+#### `mimeType`
+
+Media type of the referenced attachment.
+
+
+#### `fileName`
+
+Display filename of the referenced attachment.
+
+
+#### `fileUrl`
+
+Host-controlled attachment reference; presence is checked but access is not authorized here.
+
+
+#### `ocrConfidence`
+
+Optional host-reported OCR confidence score.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-AuditSink"></a>
 
 ## [INTERFACE] `AuditSink`
@@ -8219,6 +8661,55 @@ Type declaration; no runtime value.
 ### See also
 
 [resolvePlatformConfig](#api-resolvePlatformConfig)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-BaseBlock"></a>
+
+## [INTERFACE] `BaseBlock`
+
+Shared identity and optional heading for a document block.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+interface BaseBlock {
+    id: string;
+    title?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Host-assigned identity unique within the document. |
+| `title` | `string` | No | Optional display heading for the block. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Public members
+
+#### `id`
+
+Host-assigned identity unique within the document.
+
+
+#### `title`
+
+Optional display heading for the block.
+
+
 
 ### Example
 
@@ -8612,13 +9103,81 @@ console.log(result.code); // ERR_UNKNOWN
 ```
 
 
+<a id="api-classifyIngestionText"></a>
+
+## [FUNCTION] `classifyIngestionText`
+
+Return a general memo classification without inferring a business domain.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+declare function classifyIngestionText(_text: string): IngestionClassification;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `_text` | `string` | Yes | Input text retained by the classifier signature; the default does not inspect its contents. |
+
+### Returns
+
+`IngestionClassification`
+
+Low-confidence general memo routing with risk level 1.
+
+### Example
+
+```typescript
+import { classifyIngestionText } from '@alneas/eaos-core/ai/smart-ingestion';
+const classification = classifyIngestionText('Review this source memo'); // domain: general
+```
+
+
+<a id="api-clearInlineCompletionProviders"></a>
+
+## [FUNCTION] `clearInlineCompletionProviders`
+
+Remove every provider from the module-local completion registry.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/inline-completion`.
+
+### Signature
+
+```typescript
+declare function clearInlineCompletionProviders(): void;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+`void`
+
+No value; subsequent registry-based requests return no suggestions until registration.
+
+### Example
+
+```typescript
+import { clearInlineCompletionProviders } from '@alneas/eaos-core/ai/inline-completion';
+clearInlineCompletionProviders();
+```
+
+
 <a id="api-ClientTarget"></a>
 
 ## [TYPE] `ClientTarget`
 
 Client channels a plugin advertises to hosts.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -8693,7 +9252,7 @@ console.log(collectSchemaMigrations([{ migrations: [] }])); // []
 
 Returns only input changes that can break an existing caller. Optional additions are compatible.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -8732,7 +9291,7 @@ console.log(compareInputSchemaCompatibility({ properties: { title: { type: "stri
 
 Returns only output changes that can break an existing consumer. Optional additions are compatible.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -8771,7 +9330,7 @@ console.log(compareOutputSchemaCompatibility(undefined, { type: "object" })); //
 
 Report removed tools, checked schema breaks and policy changes between snapshots.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -9191,7 +9750,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 One removed tool, schema incompatibility or execution-policy change.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -9247,7 +9806,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Compatibility decision and its detailed tool-level issues.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -9283,6 +9842,188 @@ Whether the supported compatibility checks found no issues; this is not a full J
 #### `issues`
 
 Detailed validation or compatibility problems, empty when the corresponding check reports success.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-convertAiDraftToProposal"></a>
+
+## [FUNCTION] `convertAiDraftToProposal`
+
+Builds an Appkit proposal envelope for the exact reviewed command values.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/proposal-ui`.
+
+### Signature
+
+```typescript
+declare function convertAiDraftToProposal(draft: CoreAiDraft, options: {
+    scope: string;
+    targetId: string;
+    baseVersion?: number;
+    createdAt?: string;
+    currentTitle?: string;
+    currentValues?: Readonly<Record<string, unknown>>;
+}): RecordProposal<StructuredProposalRecord>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `draft` | `CoreAiDraft` | Yes | Reviewed values and optional source scope, target and revision. |
+| `options` | `{     scope: string;     targetId: string;     baseVersion?: number;     createdAt?: string;     currentTitle?: string;     currentValues?: Readonly<Record<string, unknown>>; }` | Yes | Host-selected identity and the actual source envelope baseline. |
+
+### Returns
+
+`RecordProposal<StructuredProposalRecord>`
+
+A validated proposal; persistence and approval belong to the Host.
+
+### Remarks
+
+The title/data fields describe a review envelope, not arbitrary domain record fields.
+
+### Errors and rejections
+
+Rejects scope/target/version mismatches, missing edit baselines and non-JSON values.
+
+### Public members
+
+#### `options.scope`
+
+Host-selected workspace or plugin namespace.
+
+
+#### `options.targetId`
+
+Existing record ID or stable proposed-command identity.
+
+
+#### `options.baseVersion`
+
+Actual source revision; zero represents independent creation.
+
+
+#### `options.createdAt`
+
+Proposal timestamp; defaults to the current ISO time.
+
+
+#### `options.currentTitle`
+
+Current title of the stored review envelope.
+
+
+#### `options.currentValues`
+
+Actual source values; required for nonzero revisions.
+
+
+
+### Example
+
+```typescript
+import { convertAiDraftToProposal } from '@alneas/eaos-core/ai/proposal-ui';
+const proposal = convertAiDraftToProposal({ mode: 'create', values: { name: 'Draft' } }, { scope: 'notes', targetId: 'command-1' });
+```
+
+
+<a id="api-CoreAiDraft"></a>
+
+## [INTERFACE] `CoreAiDraft`
+
+Pure contract for an AI-assisted draft proposal for forms (AI-to-UI draft pattern).
+Owned by Core and bound to target record ID and base revision to prevent cross-record misapplication.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+interface CoreAiDraft {
+    mode: 'create' | 'edit' | string;
+    targetId?: string;
+    baseRevision?: number;
+    scope?: string;
+    riskLevel?: AIRiskLevel;
+    summary?: string;
+    fieldMetadata?: Readonly<Record<string, AiFieldMetadata>>;
+    simulation?: DraftImpactSimulation;
+    values: Readonly<Record<string, unknown>>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `mode` | `'create' \| 'edit' \| string` | Yes | Target form mode: create, edit, or specific command operation name |
+| `targetId` | `string` | No | Target record identity when proposing an edit or bound command |
+| `baseRevision` | `number` | No | Target record base revision when known, for CAS optimistic locking |
+| `scope` | `string` | No | Scope namespace or plugin ID |
+| `riskLevel` | `AIRiskLevel` | No | Operational risk tier evaluated at draft time |
+| `summary` | `string` | No | Human-readable summary of the draft |
+| `fieldMetadata` | `Readonly<Record<string, AiFieldMetadata>>` | No | Per-field extraction confidence ratings and source coordinates |
+| `simulation` | `DraftImpactSimulation` | No | Deterministic impact simulation before committing |
+| `values` | `Readonly<Record<string, unknown>>` | Yes | Proposed values parsed deterministically against schema |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[CoreAiDraft](#api-CoreAiDraft)
+
+### Public members
+
+#### `mode`
+
+Target form mode: create, edit, or specific command operation name
+
+
+#### `targetId`
+
+Target record identity when proposing an edit or bound command
+
+
+#### `baseRevision`
+
+Target record base revision when known, for CAS optimistic locking
+
+
+#### `scope`
+
+Scope namespace or plugin ID
+
+
+#### `riskLevel`
+
+Operational risk tier evaluated at draft time
+
+
+#### `summary`
+
+Human-readable summary of the draft
+
+
+#### `fieldMetadata`
+
+Per-field extraction confidence ratings and source coordinates
+
+
+#### `simulation`
+
+Deterministic impact simulation before committing
+
+
+#### `values`
+
+Proposed values parsed deterministically against schema
 
 
 
@@ -9602,7 +10343,7 @@ console.log(createApprovedExecutionEvent({ binding, producer: "notes", topic: "n
 
 Create an event bus scoped to one host or request context.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/event-bus`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/event-bus`.
 
 ### Signature
 
@@ -9717,6 +10458,45 @@ console.log(createLivenessReport(new Date("2026-10-19T00:00:00Z")));
 ```
 
 
+<a id="api-createMockDoclingParser"></a>
+
+## [FUNCTION] `createMockDoclingParser`
+
+Creates an in-memory / mock Docling parser adapter for deterministic testing and local offline runs.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/document-parser`.
+
+### Signature
+
+```typescript
+declare function createMockDoclingParser(handler?: (filename: string) => Partial<ParsedDocumentResult>): DocumentParserAdapter;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `handler` | `(filename: string) => Partial<ParsedDocumentResult>` | No | Optional filename callback supplying deterministic parsed fixtures. |
+
+### Returns
+
+`DocumentParserAdapter`
+
+An in-memory parser adapter for tests and local demonstrations; it does not perform OCR.
+
+### Errors and rejections
+
+Parsing rejects when the supplied fixture fails document normalization.
+
+### Example
+
+```typescript
+import { createMockDoclingParser } from '@alneas/eaos-core/ai/document-parser';
+const parser = createMockDoclingParser(() => ({ markdown: '# Fixture', tables: [] }));
+const parsed = await parser.parse({ filename: 'fixture.pdf', content: new Uint8Array() });
+```
+
+
 <a id="api-createOutboxEvent"></a>
 
 ## [FUNCTION] `createOutboxEvent`
@@ -9811,7 +10591,7 @@ function createHostContext(db: DataAccessAdapter, storage: StorageAdapter) {
 
 Normalize advertised tool schemas/policies into a deterministic plugin snapshot.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -9833,11 +10613,11 @@ A new snapshot with cloned schemas, normalized policy fields and SHA-256 tool/pl
 
 ### Remarks
 
-Requires node:crypto. Missing risk defaults to low; approval level derives from risk and human-review default is risk != low. The snapshot does not authorize execution.
+Requires node:crypto. Missing risk defaults to low; approval level derives from risk and human review defaults to approval level != L1_AUTO. AI tiers set minimum requirements. The snapshot does not authorize execution.
 
 ### Errors and rejections
 
-Cloning or strict canonical JSON hashing errors propagate.
+Cloning, invalid AI tier or strict canonical JSON hashing errors propagate.
 
 ### Example
 
@@ -9891,6 +10671,47 @@ import { definePlugin } from "@alneas/eaos-core/plugin-sdk/define-plugin";
 const plugin = definePlugin({ id: "notes", routes(router) { router.get("/status", () => ({ ready: true })); } });
 const harness = await createPluginTestHarness(plugin);
 console.log(await harness.as({ tenantId: "tenant-demo" }).get("/status"));
+```
+
+
+<a id="api-createProvenanceAuditedRecord"></a>
+
+## [FUNCTION] `createProvenanceAuditedRecord`
+
+Creates a provenanced audit container for an ERP record with pinned evidence.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/evidence-traceability`.
+
+### Signature
+
+```typescript
+declare function createProvenanceAuditedRecord<T extends Record<string, unknown>>(record: T, tenantId: string, evidence: RecordEvidenceMap): ProvenanceAuditedRecord<T>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `record` | `T` | Yes | Candidate record to associate with evidence; retained by reference. |
+| `tenantId` | `string` | Yes | Host-supplied tenant scope for the container. |
+| `evidence` | `RecordEvidenceMap` | Yes | Field or line citation map to retain alongside the record. |
+
+### Returns
+
+`ProvenanceAuditedRecord<T>`
+
+Container with supplied references, citation count and the first source document identity.
+
+### Type parameters
+
+- `T`: Host-defined record or candidate value type.
+
+### Example
+
+```typescript
+import { createProvenanceAuditedRecord } from '@alneas/eaos-core/ai/evidence-traceability';
+const record = createProvenanceAuditedRecord({ title: 'Memo' }, 'tenant-demo', {});
+console.log(record.auditSummary.totalFieldsWithEvidence); // 0
 ```
 
 
@@ -10191,7 +11012,7 @@ console.log(event.eventId);
 
 Shared value semantics. A business ID is opaque; an external key is never an authority.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -10775,7 +11596,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Frozen scalar JSON Schemas for identities, revisions, money, quantities, ratios, dates and instants.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -10901,7 +11722,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Convert exact decimal text to a safe integer without rounding.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
 
 ### Signature
 
@@ -10940,7 +11761,7 @@ console.log(decimalToMinor("12.50", 2)); // 1250
 
 Exact, bounded decimal strings. No implicit rounding or binary-float arithmetic.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
 
 ### Signature
 
@@ -10976,7 +11797,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Default 4 MiB payload limit, optional object storage, indefinite history and no archive.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -11046,7 +11867,7 @@ console.log(defaultRuntimePlacementPolicy().ai.agentRuntime.maxConcurrent); // 1
 
 Frozen plugin metadata with the collected route definitions replacing the registration callback.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -11088,7 +11909,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 No server/database import: hosts supply connected capabilities after live admission.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -11315,6 +12136,42 @@ Optional human-readable failure detail; absence does not independently establish
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-detectIngestionAnomalies"></a>
+
+## [FUNCTION] `detectIngestionAnomalies`
+
+Detects anomalies such as statistical outliers and duplicate entries during ingestion.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+declare function detectIngestionAnomalies(extractedAmount?: number, title?: string, options?: IngestionProcessingOptions): IngestionAnomalyAlert[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `extractedAmount` | `number` | No | Optional extracted amount to compare with supplied history. |
+| `title` | `string` | No | Optional extracted title used to narrow duplicate candidates. |
+| `options` | `IngestionProcessingOptions` | No | Optional duplicate candidates and historical amounts for statistical analysis. |
+
+### Returns
+
+`IngestionAnomalyAlert[]`
+
+Duplicate and outlier warnings; an empty list does not prove business correctness.
+
+### Example
+
+```typescript
+import { detectIngestionAnomalies } from '@alneas/eaos-core/ai/smart-ingestion';
+const alerts = detectIngestionAnomalies(100, 'Memo', { existingEntries: [{ title: 'Memo', amount: 100 }] });
+```
+
+
 <a id="api-DiscussionRound"></a>
 
 ## [INTERFACE] `DiscussionRound`
@@ -11504,13 +12361,211 @@ Optional host-approved discussion conclusion.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-DocumentBlock"></a>
+
+## [TYPE] `DocumentBlock`
+
+Union types for blocks within a Hybrid Block Document.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+type DocumentBlock = MarkdownTextBlock | ErpRecordTableBlock | AttachmentRefBlock;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-DocumentDraftExtractionTarget"></a>
+
+## [INTERFACE] `DocumentDraftExtractionTarget`
+
+Extraction target schema descriptor for converting parsed documents into ERP draft objects.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/document-parser`.
+
+### Signature
+
+```typescript
+interface DocumentDraftExtractionTarget<T = Record<string, unknown>> {
+    domain: string;
+    mode: 'create' | 'edit' | string;
+    riskLevel?: AIRiskLevel;
+    extract(parsed: ParsedDocumentResult): Promise<T> | T;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `domain` | `string` | Yes | Target domain object (e.g. 'construction_estimate', 'vendor_invoice') |
+| `mode` | `'create' \| 'edit' \| string` | Yes | Target UI mode for the draft ('create' \| 'edit' \| command name) |
+| `riskLevel` | `AIRiskLevel` | No | Associated risk level (defaults to Level 2 for routine drafting) |
+| `extract` | `Promise<T> \| T` | Yes | Deterministic conversion or LLM prompt extraction helper. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Host-defined record or candidate value type.
+
+### See also
+
+[sanitizeParsedDocument](#api-sanitizeParsedDocument)
+
+### Public members
+
+#### `domain`
+
+Target domain object (e.g. 'construction_estimate', 'vendor_invoice')
+
+
+#### `mode`
+
+Target UI mode for the draft ('create' | 'edit' | command name)
+
+
+#### `riskLevel`
+
+Associated risk level (defaults to Level 2 for routine drafting)
+
+
+#### `extract`
+
+Deterministic conversion or LLM prompt extraction helper.
+
+Parameters:
+
+- `parsed`: Normalized document to convert into candidate values.
+
+Returns: Host-defined draft values, directly or asynchronously.
+
+### Errors and rejections
+
+Host extraction failures propagate to the caller.
+
+Example:
+
+```typescript
+import type { DocumentDraftExtractionTarget, ParsedDocumentResult } from '@alneas/eaos-core/ai/document-parser';
+export function extractCandidate(target: DocumentDraftExtractionTarget, document: ParsedDocumentResult) {
+  return target.extract(document);
+}
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-DocumentParserAdapter"></a>
+
+## [INTERFACE] `DocumentParserAdapter`
+
+Host adapter interface for structured document parsing (e.g. Docling worker/container).
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/document-parser`.
+
+### Signature
+
+```typescript
+interface DocumentParserAdapter {
+    parse(input: {
+        filename: string;
+        content: Uint8Array | ArrayBuffer;
+        mimeType?: string;
+    }): Promise<ParsedDocumentResult>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `parse` | `Promise<ParsedDocumentResult>` | Yes | Parses raw document bytes or buffer into structured Markdown and tables. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[sanitizeParsedDocument](#api-sanitizeParsedDocument)
+
+### Public members
+
+#### `parse`
+
+Parses raw document bytes or buffer into structured Markdown and tables.
+
+Parameters:
+
+- `input`: Source filename, bytes and optional media type to parse through the host adapter.
+
+Returns: Normalized document text, tables and optional page/media metadata.
+
+### Errors and rejections
+
+Host parsing or source access errors reject the returned Promise.
+
+Example:
+
+```typescript
+import type { DocumentParserAdapter } from '@alneas/eaos-core/ai/document-parser';
+export async function parseSource(parser: DocumentParserAdapter, content: Uint8Array) {
+  return parser.parse({ filename: 'source.pdf', content, mimeType: 'application/pdf' });
+}
+```
+
+
+#### `parse.input.filename`
+
+Original file name supplied to the parsing adapter.
+
+
+#### `parse.input.content`
+
+Document bytes to parse without interpreting them as executable content.
+
+
+#### `parse.input.mimeType`
+
+Optional media type reported by the host or storage adapter.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-DomainEventBus"></a>
 
 ## [CLASS] `DomainEventBus`
 
 Maintain in-memory subscriptions and dispatch payloads synchronously.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/event-bus`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/event-bus`.
 
 ### Signature
 
@@ -11638,6 +12693,93 @@ bus.publish("note.created", { id: "note-1" });
 bus.unsubscribe("note.created", handler);
 ```
 
+
+<a id="api-DraftImpactSimulation"></a>
+
+## [INTERFACE] `DraftImpactSimulation`
+
+Impact simulation metrics calculated deterministically before committing the draft.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+interface DraftImpactSimulation {
+    title: string;
+    metrics: readonly {
+        label: string;
+        before?: string | number;
+        after: string | number;
+        change?: string | number;
+        alert?: boolean;
+    }[];
+    warning?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | Yes | Heading displayed above the host-computed impact preview. |
+| `metrics` | `readonly {     label: string;     before?: string \| number;     after: string \| number;     change?: string \| number;     alert?: boolean; }[]` | Yes | Ordered before-and-after measurements supplied for operator review. |
+| `warning` | `string` | No | Optional warning explaining assumptions or limitations of the preview. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[CoreAiDraft](#api-CoreAiDraft)
+
+### Public members
+
+#### `title`
+
+Heading displayed above the host-computed impact preview.
+
+
+#### `metrics`
+
+Ordered before-and-after measurements supplied for operator review.
+
+
+#### `metrics[].label`
+
+Human-readable metric label.
+
+
+#### `metrics[].before`
+
+Optional value before applying the proposed change.
+
+
+#### `metrics[].after`
+
+Projected value after the proposed change.
+
+
+#### `metrics[].change`
+
+Optional formatted difference between the before and after values.
+
+
+#### `metrics[].alert`
+
+Whether the viewer should emphasize this metric for review.
+
+
+#### `warning`
+
+Optional warning explaining assumptions or limitations of the preview.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-DurableAuditTrail"></a>
 
@@ -11916,7 +13058,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Shared eligibility contract used by training, procedure and task plugins.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/eligibility`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/eligibility`.
 
 ### Signature
 
@@ -11979,7 +13121,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Issuer-qualified credential identity required for eligibility.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/eligibility`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/eligibility`.
 
 ### Signature
 
@@ -12028,7 +13170,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Course and qualification requirements evaluated by host training/credential services.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/eligibility`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/eligibility`.
 
 ### Signature
 
@@ -12077,7 +13219,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Closed JSON Schema limiting course and qualification requirement arrays to 50 entries each.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/eligibility`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/eligibility`.
 
 ### Signature
 
@@ -12178,7 +13320,7 @@ console.log(eligibilityRequirementsSchema.properties.courses.maxItems); // 50
 
 Tenant/user eligibility decision with per-requirement satisfaction evidence and check time.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/eligibility`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/eligibility`.
 
 ### Signature
 
@@ -12288,7 +13430,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Admission preview as an allowed status/quota or a denied status/reason.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -12355,13 +13497,141 @@ Human-readable explanation of the decision or requested action.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-ErpRecordTableBlock"></a>
+
+## [INTERFACE] `ErpRecordTableBlock`
+
+Strict, transactional ERP ledger record table block.
+Must obey strict double-entry and immutable ledger rules.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+interface ErpRecordTableBlock extends BaseBlock {
+    type: 'erp_record_table';
+    entitySchema: string;
+    records: ImmutableLedgerEntry[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `type` | `'erp_record_table'` | Yes | Discriminator identifying a table of ledger record candidates. |
+| `entitySchema` | `string` | Yes | Host-defined schema identifier associated with the ledger table. |
+| `records` | `ImmutableLedgerEntry[]` | Yes | Array of transactional double-entry records |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Public members
+
+#### `type`
+
+Discriminator identifying a table of ledger record candidates.
+
+
+#### `entitySchema`
+
+Host-defined schema identifier associated with the ledger table.
+
+
+#### `records`
+
+Array of transactional double-entry records
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-evaluateAIRiskPolicy"></a>
+
+## [FUNCTION] `evaluateAIRiskPolicy`
+
+Evaluates whether an operation or tool execution is allowed under its AI risk tier.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+declare function evaluateAIRiskPolicy(riskLevel: AIRiskLevel, options?: {
+    isDirectMutation?: boolean;
+    hasHumanConfirmation?: boolean;
+}): {
+    allowed: boolean;
+    humanConfirmationRequired: boolean;
+    reason?: string;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `riskLevel` | `AIRiskLevel` | Yes | Operational risk tier (1: Read-only, 2: Routine draft, 3: Critical mutation). |
+| `options` | `{     isDirectMutation?: boolean;     hasHumanConfirmation?: boolean; }` | No | Execution context options. |
+
+### Returns
+
+`{     allowed: boolean;     humanConfirmationRequired: boolean;     reason?: string; }`
+
+Evaluation decision indicating whether immediate automated execution is permitted.
+
+### Public members
+
+#### `options.isDirectMutation`
+
+Whether the requested operation directly changes persisted state.
+
+
+#### `options.hasHumanConfirmation`
+
+Whether the host has obtained human confirmation for this operation.
+
+
+#### `result.allowed`
+
+Whether this advisory risk check permits the requested execution path.
+
+
+#### `result.humanConfirmationRequired`
+
+Whether the host must require a human action before proceeding.
+
+
+#### `result.reason`
+
+Optional explanation for a blocked execution path.
+
+
+
+### Example
+
+```typescript
+import { evaluateAIRiskPolicy } from '@alneas/eaos-core/ai/governance';
+const decision = evaluateAIRiskPolicy(2, { isDirectMutation: true, hasHumanConfirmation: false });
+if (!decision.allowed) console.log(decision.reason);
+```
+
+
 <a id="api-evaluatePluginEntitlement"></a>
 
 ## [FUNCTION] `evaluatePluginEntitlement`
 
 Pure preview shared by server and UI. A UI decision is never a server capability.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -12481,7 +13751,7 @@ console.log(evaluateWorkflowCondition({ path: "amount", operator: "greater_than"
 
 Listener called synchronously during publish; returned Promises are not awaited by DomainEventBus.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/event-bus`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/event-bus`.
 
 ### Signature
 
@@ -12595,6 +13865,8 @@ Imports: `@alneas/eaos-core`, `@alneas/eaos-core/agent/approved-execution`.
 
 ```typescript
 interface ExecutionContract {
+    aiRiskLevel?: AIRiskLevel;
+    requireHumanApproval?: boolean;
     operation: string;
     version: string;
     permission: string;
@@ -12610,6 +13882,8 @@ interface ExecutionContract {
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
+| `aiRiskLevel` | `AIRiskLevel` | No | Optional declared AI tier retained in the approval contract hash. |
+| `requireHumanApproval` | `boolean` | No | Optional resolved review requirement retained in the approval contract hash. |
 | `operation` | `string` | Yes | Operation identity whose meaning and permission are controlled by the host. |
 | `version` | `string` | Yes | Operation semantic version text captured in approval identity, at most 64 nonblank characters. |
 | `permission` | `string` | Yes | Host permission identity required for this operation. |
@@ -12628,6 +13902,16 @@ Type declaration; no runtime value.
 [createApprovalBinding](#api-createApprovalBinding)
 
 ### Public members
+
+#### `aiRiskLevel`
+
+Optional declared AI tier retained in the approval contract hash.
+
+
+#### `requireHumanApproval`
+
+Optional resolved review requirement retained in the approval contract hash.
+
 
 #### `operation`
 
@@ -12934,7 +14218,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Deliberately includes tenant, provider account/facility scope and entity kind.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -12978,7 +14262,7 @@ console.log(id);
 
 Provider system, account/facility scope, entity kind and opaque external ID.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -13028,6 +14312,100 @@ External provider entity category used with system/scope/ID to derive a collisio
 #### `externalId`
 
 Optional external resource identity reported by the provider.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ExtractedDocumentTable"></a>
+
+## [INTERFACE] `ExtractedDocumentTable`
+
+Normalized table structure parsed from complex documents (e.g. Docling extraction).
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/document-parser`.
+
+### Signature
+
+```typescript
+interface ExtractedDocumentTable {
+    title?: string;
+    headers: readonly string[];
+    rows: readonly (readonly string[])[];
+    cellBoxes?: readonly (readonly ({
+        page: number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    } | undefined)[])[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | No | Optional table title or label found in the document |
+| `headers` | `readonly string[]` | Yes | Column header labels in visual order |
+| `rows` | `readonly (readonly string[])[]` | Yes | 2D grid of cell values (rows x columns) |
+| `cellBoxes` | `readonly (readonly ({     page: number;     x: number;     y: number;     width: number;     height: number; } \| undefined)[])[]` | No | Optional cell-level bounding coordinates for pinpoint PDF preview |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[sanitizeParsedDocument](#api-sanitizeParsedDocument)
+
+### Public members
+
+#### `title`
+
+Optional table title or label found in the document
+
+
+#### `headers`
+
+Column header labels in visual order
+
+
+#### `rows`
+
+2D grid of cell values (rows x columns)
+
+
+#### `cellBoxes`
+
+Optional cell-level bounding coordinates for pinpoint PDF preview
+
+
+#### `cellBoxes[][].page`
+
+Source page index using the coordinate convention of the parser or document viewer.
+
+
+#### `cellBoxes[][].x`
+
+Horizontal origin in the source coordinate system.
+
+
+#### `cellBoxes[][].y`
+
+Vertical origin in the source coordinate system.
+
+
+#### `cellBoxes[][].width`
+
+Region width in the source coordinate system.
+
+
+#### `cellBoxes[][].height`
+
+Region height in the source coordinate system.
 
 
 
@@ -13372,12 +14750,13 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Role, risk and human-review requirements for one registered tool.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
 ```typescript
 interface GatekeeperPolicy {
+    aiRiskLevel?: AIRiskLevel;
     requiredRole?: string | string[];
     riskLevel?: RiskLevel;
     requireHumanApproval?: boolean;
@@ -13388,6 +14767,7 @@ interface GatekeeperPolicy {
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
+| `aiRiskLevel` | `AIRiskLevel` | No | Optional AI tier setting minimum risk, organizational approval and human review requirements. |
 | `requiredRole` | `string \| string[]` | No | Optional single role or alternatives; matching admin/SUPER_ADMIN roles bypass the named role requirement. |
 | `riskLevel` | `RiskLevel` | No | Declared operation risk used to determine review requirements; it does not itself grant authorization. |
 | `requireHumanApproval` | `boolean` | No | Whether execution must wait for an explicit host approval workflow. |
@@ -13402,6 +14782,11 @@ Type declaration; no runtime value.
 
 ### Public members
 
+#### `aiRiskLevel`
+
+Optional AI tier setting minimum risk, organizational approval and human review requirements.
+
+
 #### `requiredRole`
 
 Optional single role or alternatives; matching admin/SUPER_ADMIN roles bypass the named role requirement.
@@ -13415,6 +14800,151 @@ Declared operation risk used to determine review requirements; it does not itsel
 #### `requireHumanApproval`
 
 Whether execution must wait for an explicit host approval workflow.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-generateJournalDraftFromDocument"></a>
+
+## [FUNCTION] `generateJournalDraftFromDocument`
+
+Domain-agnostic pipeline helper that extracts line items from parsed document tables
+and generates an AI-to-UI draft (Level 2) with balanced double-entry lines.
+
+Hosts supply account mappings and context through an injected resolver.
+Unit-price-only columns are excluded; the helper requires a line-total amount column.
+Preview totals retain numeric minor units; hosts supply currency formatting.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/journal-draft`, `@alneas/eaos-core/plugin-sdk/construction-journal-pipeline`.
+
+### Signature
+
+```typescript
+declare function generateJournalDraftFromDocument<TContext = unknown>(request: GenerateJournalDraftRequest<TContext>): {
+    draftEntry: Omit<ImmutableLedgerEntry, 'id'>;
+    uiDraft: CoreAiDraft;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `request` | `GenerateJournalDraftRequest<TContext>` | Yes | Tenant, period, parsed source, actor and injected account mapping for the candidate. |
+
+### Returns
+
+`{     draftEntry: Omit<ImmutableLedgerEntry, 'id'>;     uiDraft: CoreAiDraft; }`
+
+Balanced DRAFT entry data and a corresponding reviewable UI proposal.
+
+### Type parameters
+
+- `TContext`: Host context type passed unchanged to the injected account resolver.
+
+### Errors and rejections
+
+If no positive whole minor-unit line amounts are found, balance validation fails, or the host mapping resolver throws.
+
+### Public members
+
+#### `result.draftEntry`
+
+Unposted balanced entry candidate without a persisted identifier.
+
+
+#### `result.uiDraft`
+
+Reviewable UI proposal containing candidate values; no persistence is performed.
+
+
+
+### Example
+
+```typescript
+import { generateJournalDraftFromDocument } from '@alneas/eaos-core/plugin-sdk/journal-draft';
+const result = generateJournalDraftFromDocument({ tenantId: 'tenant-demo', periodId: 'period-1', createdBy: 'actor-1', parsedDoc: { name: 'source.pdf', markdown: '2026-10-24', tables: [{ headers: ['項目', '金額'], rows: [['Service', '100']] }] }, mapping: { debitAccountId: 'account-debit', creditAccountId: 'account-credit' } });
+console.log(result.draftEntry.status); // DRAFT
+```
+
+
+<a id="api-GenerateJournalDraftRequest"></a>
+
+## [INTERFACE] `GenerateJournalDraftRequest`
+
+Input request for generating an accounting journal draft from a parsed document.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/journal-draft`, `@alneas/eaos-core/plugin-sdk/construction-journal-pipeline`.
+
+### Signature
+
+```typescript
+interface GenerateJournalDraftRequest<TContext = unknown> {
+    tenantId: string;
+    periodId: string;
+    parsedDoc: ParsedDocumentResult;
+    mapping: JournalDraftAccountMapping | AccountMappingResolver<TContext>;
+    context?: TContext;
+    createdBy: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantId` | `string` | Yes | Tenant identity supplied by the host; this field alone does not establish authorization. |
+| `periodId` | `string` | Yes | Host-selected accounting period identity. |
+| `parsedDoc` | `ParsedDocumentResult` | Yes | Normalized source document containing extracted tables and Markdown. |
+| `mapping` | `JournalDraftAccountMapping \| AccountMappingResolver<TContext>` | Yes | Either a static account mapping or a domain resolver function |
+| `context` | `TContext` | No | Optional domain context passed to mapping resolver |
+| `createdBy` | `string` | Yes | Identity of the user or agent creating the candidate. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `TContext`: Host context type passed unchanged to the injected account resolver.
+
+### See also
+
+[generateJournalDraftFromDocument](#api-generateJournalDraftFromDocument)
+
+### Public members
+
+#### `tenantId`
+
+Tenant identity supplied by the host; this field alone does not establish authorization.
+
+
+#### `periodId`
+
+Host-selected accounting period identity.
+
+
+#### `parsedDoc`
+
+Normalized source document containing extracted tables and Markdown.
+
+
+#### `mapping`
+
+Either a static account mapping or a domain resolver function
+
+
+#### `context`
+
+Optional domain context passed to mapping resolver
+
+
+#### `createdBy`
+
+Identity of the user or agent creating the candidate.
 
 
 
@@ -13502,6 +15032,45 @@ Requires node:crypto. Receivers must independently enforce timestamp freshness a
 ```typescript
 import { generateSignature } from "@alneas/eaos-core/webhook/delivery";
 console.log(generateSignature("1792368000000", "{}", "example-only-secret"));
+```
+
+
+<a id="api-getInlineCompletions"></a>
+
+## [FUNCTION] `getInlineCompletions`
+
+Resolves inline suggestions from a list of providers given an active input context.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/inline-completion`.
+
+### Signature
+
+```typescript
+declare function getInlineCompletions(context: InlineCompletionContext, providers?: InlineCompletionProvider[]): Promise<InlineSuggestion[]>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `context` | `InlineCompletionContext` | Yes | Active field value and optional sibling/source context to forward to each provider. |
+| `providers` | `InlineCompletionProvider[]` | No | Ordered provider list; omission uses the module-local registry. |
+
+### Returns
+
+`Promise<InlineSuggestion[]>`
+
+All provider suggestions concatenated in provider order.
+
+### Errors and rejections
+
+Provider failures reject the Promise and stop aggregation.
+
+### Example
+
+```typescript
+import { getInlineCompletions } from '@alneas/eaos-core/ai/inline-completion';
+const suggestions = await getInlineCompletions({ fieldName: 'notes', currentValue: '/summary' }, []);
 ```
 
 
@@ -13779,7 +15348,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Build metadata for a host-managed Go handler extension.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -14819,7 +16388,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Contextual help text and optional navigation/search metadata.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -14915,6 +16484,139 @@ Type declaration; no runtime value.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-HybridDocument"></a>
+
+## [INTERFACE] `HybridDocument`
+
+The top-level Hybrid Document container.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+interface HybridDocument {
+    id: string;
+    tenantId: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    blocks: DocumentBlock[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Host-assigned document identity. |
+| `tenantId` | `string` | Yes | Tenant identity supplied by the host; this field alone does not establish authorization. |
+| `title` | `string` | Yes | Document heading shown to operators. |
+| `createdAt` | `string` | Yes | Host-provided document creation timestamp. |
+| `updatedAt` | `string` | Yes | Host-provided last-update timestamp. |
+| `blocks` | `DocumentBlock[]` | Yes | Ordered document blocks to inspect and display. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Public members
+
+#### `id`
+
+Host-assigned document identity.
+
+
+#### `tenantId`
+
+Tenant identity supplied by the host; this field alone does not establish authorization.
+
+
+#### `title`
+
+Document heading shown to operators.
+
+
+#### `createdAt`
+
+Host-provided document creation timestamp.
+
+
+#### `updatedAt`
+
+Host-provided last-update timestamp.
+
+
+#### `blocks`
+
+Ordered document blocks to inspect and display.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HybridValidationResult"></a>
+
+## [INTERFACE] `HybridValidationResult`
+
+Collected structural and ledger validation results for a hybrid document.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+interface HybridValidationResult {
+    valid: boolean;
+    errors: string[];
+    verifiedBlocksCount: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `valid` | `boolean` | Yes | Whether the structural and embedded ledger checks found no errors. |
+| `errors` | `string[]` | Yes | Validation failures collected from the document and its blocks. |
+| `verifiedBlocksCount` | `number` | Yes | Number of blocks visited; this does not imply authorization or independent evidence verification. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Public members
+
+#### `valid`
+
+Whether the structural and embedded ledger checks found no errors.
+
+
+#### `errors`
+
+Validation failures collected from the document and its blocks.
+
+
+#### `verifiedBlocksCount`
+
+Number of blocks visited; this does not imply authorization or independent evidence verification.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-IdentitySchemaFile"></a>
 
 ## [INTERFACE] `IdentitySchemaFile`
@@ -14959,6 +16661,911 @@ Stable identity schema ID referenced by the configured default schema.
 Project-relative .json file path without traversal; the host reads it during rendering/bootstrap.
 
 
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ImmutableLedgerEntry"></a>
+
+## [INTERFACE] `ImmutableLedgerEntry`
+
+Immutable ledger entry structure adhering to double-entry and audit principles.
+Domain services own account/period validation, posting and durable audit.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/immutable-ledger`.
+
+### Signature
+
+```typescript
+interface ImmutableLedgerEntry {
+    id: string;
+    tenantId: string;
+    periodId: string;
+    date: string;
+    description: string;
+    sourceKey: string;
+    lines: readonly ImmutableLedgerLine[];
+    status: ImmutableLedgerEntryStatus;
+    createdBy: string;
+    reverses?: string;
+    provenance: ImmutableLedgerProvenance;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Unique business ID |
+| `tenantId` | `string` | Yes | Tenant boundary |
+| `periodId` | `string` | Yes | Accounting period ID |
+| `date` | `string` | Yes | Accounting transaction date (YYYY-MM-DD) |
+| `description` | `string` | Yes | Human-readable explanation |
+| `sourceKey` | `string` | Yes | Idempotent source event or invoice key |
+| `lines` | `readonly ImmutableLedgerLine[]` | Yes | Double-entry debit/credit lines |
+| `status` | `ImmutableLedgerEntryStatus` | Yes | Current state in the immutable lifecycle: DRAFT \| POSTED |
+| `createdBy` | `string` | Yes | Identity of creator |
+| `reverses` | `string` | No | Target journal ID when this entry references a reversal of an existing POSTED journal. |
+| `provenance` | `ImmutableLedgerProvenance` | Yes | Provenance & audit trail |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[assertBalancedLines](#api-assertBalancedLines)
+
+### Public members
+
+#### `id`
+
+Unique business ID
+
+
+#### `tenantId`
+
+Tenant boundary
+
+
+#### `periodId`
+
+Accounting period ID
+
+
+#### `date`
+
+Accounting transaction date (YYYY-MM-DD)
+
+
+#### `description`
+
+Human-readable explanation
+
+
+#### `sourceKey`
+
+Idempotent source event or invoice key
+
+
+#### `lines`
+
+Double-entry debit/credit lines
+
+
+#### `status`
+
+Current state in the immutable lifecycle: DRAFT | POSTED
+
+
+#### `createdBy`
+
+Identity of creator
+
+
+#### `reverses`
+
+Target journal ID when this entry references a reversal of an existing POSTED journal.
+
+
+#### `provenance`
+
+Provenance & audit trail
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ImmutableLedgerEntryStatus"></a>
+
+## [TYPE] `ImmutableLedgerEntryStatus`
+
+Lifecycle status of an immutable financial / transactional entry.
+
+Aligned with platform accounting contract:
+- DRAFT: Created by AI or human as an uncommitted candidate.
+- POSTED: Permanently committed to the general ledger (immutable).
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/immutable-ledger`.
+
+### Signature
+
+```typescript
+type ImmutableLedgerEntryStatus = 'DRAFT' | 'POSTED';
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[assertBalancedLines](#api-assertBalancedLines)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ImmutableLedgerLine"></a>
+
+## [INTERFACE] `ImmutableLedgerLine`
+
+Journal line in double-entry bookkeeping.
+Identical signature to accounting Line contract: `{ accountId: string, side: 'D' | 'C', amount: number }`.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/immutable-ledger`.
+
+### Signature
+
+```typescript
+interface ImmutableLedgerLine {
+    accountId: string;
+    side: 'D' | 'C';
+    amount: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `accountId` | `string` | Yes | Account identifier |
+| `side` | `'D' \| 'C'` | Yes | Debit (D) or credit (C) side. |
+| `amount` | `number` | Yes | Amount in currency minor units (positive integer) |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[assertBalancedLines](#api-assertBalancedLines)
+
+### Public members
+
+#### `accountId`
+
+Account identifier
+
+
+#### `side`
+
+Debit (D) or credit (C) side.
+
+
+#### `amount`
+
+Amount in currency minor units (positive integer)
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ImmutableLedgerProvenance"></a>
+
+## [INTERFACE] `ImmutableLedgerProvenance`
+
+Provenance tracking indicating whether and how AI participated in generating the entry.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/immutable-ledger`.
+
+### Signature
+
+```typescript
+interface ImmutableLedgerProvenance {
+    createdBy: string;
+    riskLevel: AIRiskLevel;
+    aiGenerated: boolean;
+    aiFields?: readonly string[];
+    humanReviewedFields?: readonly string[];
+    reviewNotes?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `createdBy` | `string` | Yes | Identity of the user or agent that created the entry |
+| `riskLevel` | `AIRiskLevel` | Yes | Operational risk tier evaluated at draft time |
+| `aiGenerated` | `boolean` | Yes | Whether this entry was initially generated by AI |
+| `aiFields` | `readonly string[]` | No | List of field names that were suggested by AI |
+| `humanReviewedFields` | `readonly string[]` | No | List of field names modified or confirmed by human operator |
+| `reviewNotes` | `string` | No | Optional review / approval notes |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[assertBalancedLines](#api-assertBalancedLines)
+
+### Public members
+
+#### `createdBy`
+
+Identity of the user or agent that created the entry
+
+
+#### `riskLevel`
+
+Operational risk tier evaluated at draft time
+
+
+#### `aiGenerated`
+
+Whether this entry was initially generated by AI
+
+
+#### `aiFields`
+
+List of field names that were suggested by AI
+
+
+#### `humanReviewedFields`
+
+List of field names modified or confirmed by human operator
+
+
+#### `reviewNotes`
+
+Optional review / approval notes
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionAnomalyAlert"></a>
+
+## [INTERFACE] `IngestionAnomalyAlert`
+
+Warning / anomaly flag generated during smart ingestion.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionAnomalyAlert {
+    type: 'duplicate_candidate' | 'outlier_amount' | 'unusual_vendor';
+    severity: 'info' | 'warning' | 'critical';
+    message: string;
+    score?: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `type` | `'duplicate_candidate' \| 'outlier_amount' \| 'unusual_vendor'` | Yes | Alert category produced by duplicate or outlier analysis. |
+| `severity` | `'info' \| 'warning' \| 'critical'` | Yes | Display severity of the detected anomaly. |
+| `message` | `string` | Yes | Human-readable description of the potential anomaly. |
+| `score` | `number` | No | Optional statistical score reported by the outlier detector. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `type`
+
+Alert category produced by duplicate or outlier analysis.
+
+
+#### `severity`
+
+Display severity of the detected anomaly.
+
+
+#### `message`
+
+Human-readable description of the potential anomaly.
+
+
+#### `score`
+
+Optional statistical score reported by the outlier detector.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionClassification"></a>
+
+## [INTERFACE] `IngestionClassification`
+
+Classified intent and target workspace routing.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionClassification {
+    domain: string;
+    targetMode: string;
+    confidence: 'high' | 'medium' | 'low';
+    riskLevel: AIRiskLevel;
+    rationale: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `domain` | `string` | Yes | Target workspace domain |
+| `targetMode` | `string` | Yes | Proposed operation name or workspace command |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | Confidence score of the domain classification |
+| `riskLevel` | `AIRiskLevel` | Yes | Operational risk tier |
+| `rationale` | `string` | Yes | Human-readable explanation of why this classification was chosen |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `domain`
+
+Target workspace domain
+
+
+#### `targetMode`
+
+Proposed operation name or workspace command
+
+
+#### `confidence`
+
+Confidence score of the domain classification
+
+
+#### `riskLevel`
+
+Operational risk tier
+
+
+#### `rationale`
+
+Human-readable explanation of why this classification was chosen
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionClassifier"></a>
+
+## [TYPE] `IngestionClassifier`
+
+Host-supplied synchronous text classifier used on the model-free ingestion path.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+type IngestionClassifier = (text: string) => IngestionClassification;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionDomainPluginHandler"></a>
+
+## [INTERFACE] `IngestionDomainPluginHandler`
+
+Pure contract for a domain-specific ingestion handler registered by business plugins.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionDomainPluginHandler {
+    domain: string;
+    mapToDraftValues(extractedFields: LlmIngestionExtraction['extractedFields'], item: IngestionItem): Record<string, unknown>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `domain` | `string` | Yes | Host-defined domain identifier used to select a registered handler. |
+| `mapToDraftValues` | `Record<string, unknown>` | Yes | Maps extracted fields into domain-specific record draft values without hardcoding in Core |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `domain`
+
+Host-defined domain identifier used to select a registered handler.
+
+
+#### `mapToDraftValues`
+
+Maps extracted fields into domain-specific record draft values without hardcoding in Core
+
+Parameters:
+
+- `extractedFields`: Generic extracted fields or source memo fields on the fallback path.
+- `item`: Original source item for host identity and context mapping.
+
+Returns: Host-domain candidate values for a UI draft.
+
+### Errors and rejections
+
+Host mapping or validation errors propagate.
+
+Example:
+
+```typescript
+import type { IngestionDomainPluginHandler, IngestionItem } from '@alneas/eaos-core/ai/smart-ingestion';
+export function mapMemo(handler: IngestionDomainPluginHandler, item: IngestionItem) {
+  return handler.mapToDraftValues({ title: item.title, notes: item.content }, item);
+}
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionItem"></a>
+
+## [INTERFACE] `IngestionItem`
+
+An item dropped or fed into the Smart Ingestion Inbox.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionItem {
+    id: string;
+    tenantId: string;
+    sourceType: IngestionSourceType;
+    title: string;
+    content: string;
+    createdAt: string;
+    metadata?: Record<string, unknown>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Host-assigned inbox item identity. |
+| `tenantId` | `string` | Yes | Tenant identity supplied by the host; this field alone does not establish authorization. |
+| `sourceType` | `IngestionSourceType` | Yes | Transport or media category of the original input. |
+| `title` | `string` | Yes | Human-readable title supplied with the source item. |
+| `content` | `string` | Yes | Unstructured source text to classify or extract. |
+| `createdAt` | `string` | Yes | Host-provided creation timestamp for the source item. |
+| `metadata` | `Record<string, unknown>` | No | Optional host metadata associated with the input. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `id`
+
+Host-assigned inbox item identity.
+
+
+#### `tenantId`
+
+Tenant identity supplied by the host; this field alone does not establish authorization.
+
+
+#### `sourceType`
+
+Transport or media category of the original input.
+
+
+#### `title`
+
+Human-readable title supplied with the source item.
+
+
+#### `content`
+
+Unstructured source text to classify or extract.
+
+
+#### `createdAt`
+
+Host-provided creation timestamp for the source item.
+
+
+#### `metadata`
+
+Optional host metadata associated with the input.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionModelAdapter"></a>
+
+## [INTERFACE] `IngestionModelAdapter`
+
+Model adapter interface for semantic AI understanding.
+Plugs into Vercel AI SDK (generateObject), LangChain or local models (MLX/Ollama).
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionModelAdapter {
+    extractIntent(input: {
+        item: IngestionItem;
+        context?: Partial<AIExecutionContext>;
+    }): Promise<LlmIngestionExtraction>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `extractIntent` | `Promise<LlmIngestionExtraction>` | Yes | Extract host-defined routing intent and candidate fields from an inbox item. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `extractIntent`
+
+Extract host-defined routing intent and candidate fields from an inbox item.
+
+Parameters:
+
+- `input`: Original source item and optional verified host execution scope.
+
+Returns: Structured model extraction for subsequent host mapping and review.
+
+### Errors and rejections
+
+Model/provider failures reject the Promise.
+
+Example:
+
+```typescript
+import type { IngestionItem, IngestionModelAdapter } from '@alneas/eaos-core/ai/smart-ingestion';
+export async function extract(adapter: IngestionModelAdapter, item: IngestionItem) { return adapter.extractIntent({ item }); }
+```
+
+
+#### `extractIntent.input.item`
+
+Original inbox item supplied to the model adapter.
+
+
+#### `extractIntent.input.context`
+
+Optional execution scope passed by the host.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionProcessingOptions"></a>
+
+## [INTERFACE] `IngestionProcessingOptions`
+
+Options for contextual anomaly detection during ingestion processing.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionProcessingOptions {
+    modelAdapter?: IngestionModelAdapter;
+    classifier?: IngestionClassifier;
+    domainHandlers?: Record<string, IngestionDomainPluginHandler>;
+    historicalAmounts?: readonly {
+        timestamp: number;
+        value: number;
+    }[];
+    existingEntries?: readonly {
+        title?: string;
+        amount?: number;
+        date?: string;
+        vendor?: string;
+    }[];
+    sourceCitation?: SourceEvidenceCitation;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `modelAdapter` | `IngestionModelAdapter` | No | Optional host adapter responsible for semantic intent extraction. |
+| `classifier` | `IngestionClassifier` | No | Optional synchronous host classifier used when no model adapter is supplied. |
+| `domainHandlers` | `Record<string, IngestionDomainPluginHandler>` | No | Optional domain plugin handlers to override default draft mapping |
+| `historicalAmounts` | `readonly {     timestamp: number;     value: number; }[]` | No | Historical transaction amounts for the detected category/vendor to check for outliers |
+| `existingEntries` | `readonly {     title?: string;     amount?: number;     date?: string;     vendor?: string; }[]` | No | Recent existing entries to detect duplicates |
+| `sourceCitation` | `SourceEvidenceCitation` | No | Optional source document citation for bounding box pinning |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `modelAdapter`
+
+Optional host adapter responsible for semantic intent extraction.
+
+
+#### `classifier`
+
+Optional synchronous host classifier used when no model adapter is supplied.
+
+
+#### `domainHandlers`
+
+Optional domain plugin handlers to override default draft mapping
+
+
+#### `historicalAmounts`
+
+Historical transaction amounts for the detected category/vendor to check for outliers
+
+
+#### `historicalAmounts[].timestamp`
+
+Timestamp of the historical numeric observation.
+
+
+#### `historicalAmounts[].value`
+
+Historical numeric amount in the same units as the extracted amount.
+
+
+#### `existingEntries`
+
+Recent existing entries to detect duplicates
+
+
+#### `existingEntries[].title`
+
+Human-readable title supplied with the source item.
+
+
+#### `existingEntries[].amount`
+
+Optional amount using the units agreed by the host and adapter.
+
+
+#### `existingEntries[].date`
+
+Optional extracted transaction date.
+
+
+#### `existingEntries[].vendor`
+
+Optional vendor identity retained in the host-provided history.
+
+
+#### `sourceCitation`
+
+Optional source document citation for bounding box pinning
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionProcessingResult"></a>
+
+## [INTERFACE] `IngestionProcessingResult`
+
+Result of smart ingestion processing, containing routing metadata and the reviewable UI draft.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface IngestionProcessingResult {
+    itemId: string;
+    classification: IngestionClassification;
+    uiDraft: CoreAiDraft;
+    extractedValues: Record<string, unknown>;
+    processedBy: 'llm_model' | 'heuristic_fallback';
+    alerts?: IngestionAnomalyAlert[];
+    citations?: Record<string, SourceEvidenceCitation>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `itemId` | `string` | Yes | Identity of the processed inbox item. |
+| `classification` | `IngestionClassification` | Yes | Domain routing and risk metadata for the proposed draft. |
+| `uiDraft` | `CoreAiDraft` | Yes | Reviewable UI proposal containing candidate values; no persistence is performed. |
+| `extractedValues` | `Record<string, unknown>` | Yes | Candidate values after optional host domain mapping. |
+| `processedBy` | `'llm_model' \| 'heuristic_fallback'` | Yes | Whether the result used a supplied model or the fallback classifier. |
+| `alerts` | `IngestionAnomalyAlert[]` | No | Proactive anomaly alerts (outliers, duplicate entries) |
+| `citations` | `Record<string, SourceEvidenceCitation>` | No | Pinned source citations (e.g. PDF bounding box coordinates) |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `itemId`
+
+Identity of the processed inbox item.
+
+
+#### `classification`
+
+Domain routing and risk metadata for the proposed draft.
+
+
+#### `uiDraft`
+
+Reviewable UI proposal containing candidate values; no persistence is performed.
+
+
+#### `extractedValues`
+
+Candidate values after optional host domain mapping.
+
+
+#### `processedBy`
+
+Whether the result used a supplied model or the fallback classifier.
+
+
+#### `alerts`
+
+Proactive anomaly alerts (outliers, duplicate entries)
+
+
+#### `citations`
+
+Pinned source citations (e.g. PDF bounding box coordinates)
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-IngestionSourceType"></a>
+
+## [TYPE] `IngestionSourceType`
+
+Raw unstructured input type supported by the Smart Ingestion Inbox.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+type IngestionSourceType = 'memo' | 'pdf' | 'audio_transcript' | 'image' | 'email';
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
 
 ### Example
 
@@ -15051,6 +17658,222 @@ Ingress upstream send timeout in seconds; defaults to 180.
 #### `proxy.buffering`
 
 Ingress proxy buffering selection; defaults to false.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-InlineCompletionContext"></a>
+
+## [INTERFACE] `InlineCompletionContext`
+
+Context payload passed to inline completion providers when triggered in an input or table cell.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/inline-completion`.
+
+### Signature
+
+```typescript
+interface InlineCompletionContext {
+    fieldName: string;
+    currentValue: string;
+    rowValues?: Record<string, unknown>;
+    attachedDocumentIds?: string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `fieldName` | `string` | Yes | The field being edited, e.g. "description", "amount", "accountId" |
+| `currentValue` | `string` | Yes | The current text value in the field (e.g. "/split" or partial prefix) |
+| `rowValues` | `Record<string, unknown>` | No | All sibling field values in the current row/form |
+| `attachedDocumentIds` | `string[]` | No | Document IDs or context references attached to the record |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[getInlineCompletions](#api-getInlineCompletions)
+
+### Public members
+
+#### `fieldName`
+
+The field being edited, e.g. "description", "amount", "accountId"
+
+
+#### `currentValue`
+
+The current text value in the field (e.g. "/split" or partial prefix)
+
+
+#### `rowValues`
+
+All sibling field values in the current row/form
+
+
+#### `attachedDocumentIds`
+
+Document IDs or context references attached to the record
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-InlineCompletionProvider"></a>
+
+## [INTERFACE] `InlineCompletionProvider`
+
+Interface for pluggable inline completion providers (LLM or deterministic helpers).
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/inline-completion`.
+
+### Signature
+
+```typescript
+interface InlineCompletionProvider {
+    name: string;
+    provideCompletions(context: InlineCompletionContext): Promise<InlineSuggestion[]>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Provider identity used by host registration and diagnostics. |
+| `provideCompletions` | `Promise<InlineSuggestion[]>` | Yes | Produce reviewable suggestions for the active input context. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[getInlineCompletions](#api-getInlineCompletions)
+
+### Public members
+
+#### `name`
+
+Provider identity used by host registration and diagnostics.
+
+
+#### `provideCompletions`
+
+Produce reviewable suggestions for the active input context.
+
+Parameters:
+
+- `context`: Field value, sibling values and optional source references supplied by the host.
+
+Returns: Provider suggestions, possibly empty; proposals do not apply mutations.
+
+### Errors and rejections
+
+Provider failures reject the Promise.
+
+Example:
+
+```typescript
+import type { InlineCompletionProvider } from '@alneas/eaos-core/ai/inline-completion';
+export async function suggest(provider: InlineCompletionProvider) {
+  return provider.provideCompletions({ fieldName: 'notes', currentValue: '/summary' });
+}
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-InlineSuggestion"></a>
+
+## [INTERFACE] `InlineSuggestion`
+
+A single inline suggestion rendered in a slash menu or autocomplete popover.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/inline-completion`.
+
+### Signature
+
+```typescript
+interface InlineSuggestion {
+    id: string;
+    command?: string;
+    label: string;
+    description: string;
+    riskLevel: AIRiskLevel;
+    proposedPatch: Record<string, unknown>;
+    confidence: 'high' | 'medium' | 'low';
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Provider-assigned identity for the suggestion. |
+| `command` | `string` | No | Command trigger if invoked via slash command, e.g. "/split", "/doc" |
+| `label` | `string` | Yes | Label shown in the suggestion dropdown |
+| `description` | `string` | Yes | Detailed explanation of what this action does |
+| `riskLevel` | `AIRiskLevel` | Yes | Risk level supplied by the completion provider; Core does not assign a default |
+| `proposedPatch` | `Record<string, unknown>` | Yes | The preview value to be displayed in the field/row before confirmation. Can be a single field value or multiple field mutations (e.g., splitting into multiple lines). |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | Confidence rating of the AI suggestion |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[getInlineCompletions](#api-getInlineCompletions)
+
+### Public members
+
+#### `id`
+
+Provider-assigned identity for the suggestion.
+
+
+#### `command`
+
+Command trigger if invoked via slash command, e.g. "/split", "/doc"
+
+
+#### `label`
+
+Label shown in the suggestion dropdown
+
+
+#### `description`
+
+Detailed explanation of what this action does
+
+
+#### `riskLevel`
+
+Risk level supplied by the completion provider; Core does not assign a default
+
+
+#### `proposedPatch`
+
+The preview value to be displayed in the field/row before confirmation.
+Can be a single field value or multiple field mutations (e.g., splitting into multiple lines).
+
+
+#### `confidence`
+
+Confidence rating of the AI suggestion
 
 
 
@@ -15276,6 +18099,45 @@ Requested maximum result count; vector request validation permits integers from 
 import { InstinctEngine } from "@alneas/eaos-core/agentic/instinct-engine";
 const engine = new InstinctEngine();
 console.log(await engine.findRelevantInstincts({ tenantId: "tenant-demo", domain: "notes" })); // []
+```
+
+
+<a id="api-invertJournalLines"></a>
+
+## [FUNCTION] `invertJournalLines`
+
+Inverts the debit/credit sides of balanced journal lines without creating or posting an entry.
+Pure mathematical operation compatible with any accounting plugin.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/immutable-ledger`.
+
+### Signature
+
+```typescript
+declare function invertJournalLines(lines: readonly ImmutableLedgerLine[]): ImmutableLedgerLine[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `lines` | `readonly ImmutableLedgerLine[]` | Yes | Original journal lines. |
+
+### Returns
+
+`ImmutableLedgerLine[]`
+
+Reversing lines with 'D' and 'C' swapped.
+
+### Errors and rejections
+
+If input lines fail the balance, count, account, side or minor-unit amount checks.
+
+### Example
+
+```typescript
+import { invertJournalLines } from '@alneas/eaos-core/plugin-sdk/immutable-ledger';
+const inverted = invertJournalLines([{ accountId: 'account-debit', side: 'D', amount: 100 }, { accountId: 'account-credit', side: 'C', amount: 100 }]); // No entry is posted.
 ```
 
 
@@ -15554,6 +18416,62 @@ API-key hash-only metadata suitable for host persistence; it excludes the return
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-JournalDraftAccountMapping"></a>
+
+## [INTERFACE] `JournalDraftAccountMapping`
+
+Generic account mapping contract for mapping extracted billable documents into double-entry drafts.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/journal-draft`, `@alneas/eaos-core/plugin-sdk/construction-journal-pipeline`.
+
+### Signature
+
+```typescript
+interface JournalDraftAccountMapping {
+    debitAccountId: string;
+    creditAccountId: string;
+    taxAccountId?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `debitAccountId` | `string` | Yes | Debit account identifier |
+| `creditAccountId` | `string` | Yes | Credit account identifier |
+| `taxAccountId` | `string` | No | Optional host tax account metadata; this helper does not split or calculate tax |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[generateJournalDraftFromDocument](#api-generateJournalDraftFromDocument)
+
+### Public members
+
+#### `debitAccountId`
+
+Debit account identifier
+
+
+#### `creditAccountId`
+
+Credit account identifier
+
+
+#### `taxAccountId`
+
+Optional host tax account metadata; this helper does not split or calculate tax
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-JsonDocumentContract"></a>
 
 ## [INTERFACE] `JsonDocumentContract`
@@ -15665,7 +18583,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Explicit adapter for existing numeric feeds, preserving their displayed decimal value.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
 
 ### Signature
 
@@ -15746,13 +18664,145 @@ Timestamp associated with the reported evaluation or measurement.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-LlmIngestionExtraction"></a>
+
+## [INTERFACE] `LlmIngestionExtraction`
+
+Structured extraction payload produced by LLM models with semantic intent.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+interface LlmIngestionExtraction {
+    domain: string;
+    targetMode: string;
+    summary: string;
+    confidence: 'high' | 'medium' | 'low';
+    extractedFields: {
+        title?: string;
+        date?: string;
+        amount?: number;
+        partyName?: string;
+        notes?: string;
+        lineItems?: readonly {
+            name: string;
+            amount: number;
+            quantity?: number;
+            unit?: string;
+        }[];
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `domain` | `string` | Yes | Host-defined domain identifier used to select a registered handler. |
+| `targetMode` | `string` | Yes | Host command or form mode proposed for review. |
+| `summary` | `string` | Yes | Human-readable extraction summary for the review interface. |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | Confidence category reported by the classifier or model adapter. |
+| `extractedFields` | `{     title?: string;     date?: string;     amount?: number;     partyName?: string;     notes?: string;     lineItems?: readonly {         name: string;         amount: number;         quantity?: number;         unit?: string;     }[]; }` | Yes | Normalized candidate fields returned by the model; business validation remains host-owned. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[processSmartIngestionWithAi](#api-processSmartIngestionWithAi)
+
+### Public members
+
+#### `domain`
+
+Host-defined domain identifier used to select a registered handler.
+
+
+#### `targetMode`
+
+Host command or form mode proposed for review.
+
+
+#### `summary`
+
+Human-readable extraction summary for the review interface.
+
+
+#### `confidence`
+
+Confidence category reported by the classifier or model adapter.
+
+
+#### `extractedFields`
+
+Normalized candidate fields returned by the model; business validation remains host-owned.
+
+
+#### `extractedFields.title`
+
+Human-readable title supplied with the source item.
+
+
+#### `extractedFields.date`
+
+Optional extracted transaction date.
+
+
+#### `extractedFields.amount`
+
+Optional amount using the units agreed by the host and adapter.
+
+
+#### `extractedFields.partyName`
+
+Optional person or organization name extracted from the input.
+
+
+#### `extractedFields.notes`
+
+Optional extracted free-text notes.
+
+
+#### `extractedFields.lineItems`
+
+Optional extracted line candidates; no posting or tax policy is applied.
+
+
+#### `extractedFields.lineItems[].name`
+
+Display name of an extracted line item.
+
+
+#### `extractedFields.lineItems[].amount`
+
+Optional amount using the units agreed by the host and adapter.
+
+
+#### `extractedFields.lineItems[].quantity`
+
+Optional extracted quantity for the line item.
+
+
+#### `extractedFields.lineItems[].unit`
+
+Optional unit label associated with the quantity.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-majorAmountToMinor"></a>
 
 ## [FUNCTION] `majorAmountToMinor`
 
 Exact decimal conversion; requires an explicit power-of-ten currency scale.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/data-standards`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/data-standards`.
 
 ### Signature
 
@@ -15784,6 +18834,112 @@ import { majorAmountToMinor } from "@alneas/eaos-core/plugin-sdk/data-standards"
 console.log(majorAmountToMinor(12.5, 100)); // 1250
 ```
 
+
+<a id="api-mapAIRiskToGatekeeper"></a>
+
+## [FUNCTION] `mapAIRiskToGatekeeper`
+
+Translates AIRiskLevel (1|2|3) to the platform Gatekeeper RiskLevel and ApprovalLevel.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+declare function mapAIRiskToGatekeeper(aiRisk: AIRiskLevel): {
+    riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    approvalLevel: 'L1_AUTO' | 'L2_LEAD' | 'L3_MANAGER' | 'L4_EXECUTIVE';
+    requireHumanApproval: boolean;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `aiRisk` | `AIRiskLevel` | Yes | AI operational risk tier to translate. |
+
+### Returns
+
+`{     riskLevel: 'low' \| 'medium' \| 'high' \| 'critical';     approvalLevel: 'L1_AUTO' \| 'L2_LEAD' \| 'L3_MANAGER' \| 'L4_EXECUTIVE';     requireHumanApproval: boolean; }`
+
+Platform risk category, approval tier and human-approval requirement.
+
+### Public members
+
+#### `result.riskLevel`
+
+Risk category selected for the proposed operation.
+
+
+#### `result.approvalLevel`
+
+Platform approval tier associated with the AI risk level.
+
+
+#### `result.requireHumanApproval`
+
+Whether the mapped tier requires explicit human approval.
+
+
+
+### Example
+
+```typescript
+import { mapAIRiskToGatekeeper } from '@alneas/eaos-core/ai/governance';
+const policy = mapAIRiskToGatekeeper(2); // medium risk, L2_LEAD, human approval required.
+```
+
+
+<a id="api-MarkdownTextBlock"></a>
+
+## [INTERFACE] `MarkdownTextBlock`
+
+Free-form unstructured rich text / notes block (Notion-like flexibility).
+Has lightweight schema constraints.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+interface MarkdownTextBlock extends BaseBlock {
+    type: 'markdown';
+    content: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `type` | `'markdown'` | Yes | Discriminator identifying a Markdown block. |
+| `content` | `string` | Yes | Unstructured Markdown text; validation does not sanitize or render HTML. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[validateHybridDocument](#api-validateHybridDocument)
+
+### Public members
+
+#### `type`
+
+Discriminator identifying a Markdown block.
+
+
+#### `content`
+
+Unstructured Markdown text; validation does not sanitize or render HTML.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-McpCacheManager"></a>
 
@@ -15965,7 +19121,7 @@ console.log(cache.getCache("tenant-demo", "notes.list", {}));
 
 The ordered set of MCP tools advertised by a plugin.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -16072,6 +19228,10 @@ Parameters:
 - `policy`: Role, risk and review policy; later external mutation changes future evaluations.
 
 Returns: No value; the policy has been replaced.
+
+### Errors and rejections
+
+Error when the declared AI risk tier is not 1, 2 or 3.
 
 Example:
 
@@ -16308,7 +19468,7 @@ console.log(gatekeeper.validateCall({ toolName: "notes.preview", userRoles: ["me
 
 Host-executed tool metadata, argument schema and asynchronous handler.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -16427,7 +19587,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Format a safe integer amount at an explicit decimal scale.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/decimal-values`.
 
 ### Signature
 
@@ -16659,7 +19819,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 A labeled navigation group with sorting order and child links.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -16722,7 +19882,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 One child navigation link with its display label and optional icon.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -16778,7 +19938,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Whether plugin data may or must use external object storage.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -17630,6 +20790,77 @@ Example:
 import type { OutboxStore } from "@alneas/eaos-core/events/outbox";
 async function failHostEvent(store: OutboxStore, id: string, claimToken: string) { await store.markFailed(id, claimToken, "Temporary failure", new Date(Date.now() + 1000)); }
 ```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-ParsedDocumentResult"></a>
+
+## [INTERFACE] `ParsedDocumentResult`
+
+Result of document structure parsing.
+Preserves hierarchical Markdown text, structured tables and metadata.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/document-parser`.
+
+### Signature
+
+```typescript
+interface ParsedDocumentResult {
+    name: string;
+    markdown: string;
+    tables: readonly ExtractedDocumentTable[];
+    pageCount?: number;
+    mimeType?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Document title or filename |
+| `markdown` | `string` | Yes | Clean Markdown representation preserving document hierarchy |
+| `tables` | `readonly ExtractedDocumentTable[]` | Yes | Formatted tables extracted without column shifts |
+| `pageCount` | `number` | No | Total number of pages or sections parsed |
+| `mimeType` | `string` | No | Document format (pdf, docx, xlsx, etc.) |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[sanitizeParsedDocument](#api-sanitizeParsedDocument)
+
+### Public members
+
+#### `name`
+
+Document title or filename
+
+
+#### `markdown`
+
+Clean Markdown representation preserving document hierarchy
+
+
+#### `tables`
+
+Formatted tables extracted without column shifts
+
+
+#### `pageCount`
+
+Total number of pages or sections parsed
+
+
+#### `mimeType`
+
+Document format (pdf, docx, xlsx, etc.)
 
 
 
@@ -18575,7 +21806,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Archive strategy and required delay for modes other than none.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -18660,7 +21891,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Admitted plugin identity and host-scoped capabilities provided to route handlers.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -18884,7 +22115,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Plugin version and ordered tool contracts captured for compatibility review.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
@@ -18947,7 +22178,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Input metadata and synchronous route-registration callback for definePlugin.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -19043,7 +22274,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Paths and searchable help metadata for plugin documentation.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -19133,7 +22364,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Plugin subscription, tenant allowlist and optional metering requirements.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -19209,7 +22440,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Describe an optional industry or tenant extension and its private schema ownership.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -19285,7 +22516,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Locale resources and optional default locale supplied by a plugin.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -19334,7 +22565,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Plugin discovery, compatibility, schema, integration and UI metadata consumed by a host.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -19649,7 +22880,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Keep plugin manifests in memory and expose discovery, tools, skills and help metadata.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/registry`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/registry`.
 
 ### Signature
 
@@ -19992,7 +23223,7 @@ console.log(registry.getAll()); // []
 
 One captured HTTP method, plugin-relative path and handler.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -20068,7 +23299,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Synchronous registration surface for plugin HTTP routes.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -20277,7 +23508,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Route callback receiving scoped capabilities and decoded input; execution timing and input validation belong to the host.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/define-plugin`.
 
 ### Signature
 
@@ -20320,7 +23551,7 @@ const handler: PluginRouteHandler<{ title: string }> = (_ctx, input) => ({ title
 
 Declare an environment secret needed by a plugin at boot.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -20376,7 +23607,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Describe one plugin setting field for a host settings UI.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -20473,7 +23704,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Bind plugin records to a versioned shared table contract and namespace.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -20543,7 +23774,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Per-record payload bounds, object-storage requirement and history/archive retention policy.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -20872,7 +24103,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Browser-safe contracts. The server must resolve these from its control plane.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -20904,7 +24135,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Verified runtime context supplied by the EAOS MCP host to a plugin tool.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -21129,6 +24360,49 @@ Verified host execution scope propagated to adapters/guards/hooks; callers must 
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-prepareAiDraftSubmission"></a>
+
+## [FUNCTION] `prepareAiDraftSubmission`
+
+Prepares an EAOS command through Appkit's proposal consistency and candidate engine.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/proposal-ui`.
+
+### Signature
+
+```typescript
+declare function prepareAiDraftSubmission(draft: CoreAiDraft, options: AiDraftSubmissionOptions): AiDraftSubmission;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `draft` | `CoreAiDraft` | Yes | Values after the operator has edited and submitted the owning form. |
+| `options` | `AiDraftSubmissionOptions` | Yes | Owning operation, target and actual source baseline. |
+
+### Returns
+
+`AiDraftSubmission`
+
+Detached command input from Appkit's prepared candidate and its validated proposal.
+
+### Remarks
+
+Calling this helper does not grant approval or save a record. The Host verifies durable approval and current authorization before its owning command executes.
+
+### Errors and rejections
+
+Rejects invalid JSON, conflicting scope/target/version or failed proposal preflight.
+
+### Example
+
+```typescript
+import { prepareAiDraftSubmission } from '@alneas/eaos-core/ai/proposal-ui';
+const request = prepareAiDraftSubmission({ mode: 'create', scope: 'notes', values: { title: 'Reviewed' } }, { scope: 'notes', operation: 'create', targetId: 'command-1' });
+```
+
+
 <a id="api-PreToolHookHandler"></a>
 
 ## [TYPE] `PreToolHookHandler`
@@ -21300,7 +24574,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 Shared resolved procedure plan shape; plugins provide their binding type.
   *
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/procedure`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/procedure`.
 
 ### Signature
 
@@ -21694,13 +24968,140 @@ console.log(plan.units.length); // 0
 ```
 
 
+<a id="api-processSmartIngestionWithAi"></a>
+
+## [FUNCTION] `processSmartIngestionWithAi`
+
+Process an unstructured item with a host model adapter, or use a host classifier
+or general memo classification when no model adapter is supplied.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/smart-ingestion`.
+
+### Signature
+
+```typescript
+declare function processSmartIngestionWithAi(item: IngestionItem, optionsOrAdapter?: IngestionModelAdapter | IngestionProcessingOptions): Promise<IngestionProcessingResult>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `item` | `IngestionItem` | Yes | Original tenant-scoped source item to turn into a reviewable candidate. |
+| `optionsOrAdapter` | `IngestionModelAdapter \| IngestionProcessingOptions` | No | Optional semantic adapter or host classification, mapping, evidence and anomaly options. |
+
+### Returns
+
+`Promise<IngestionProcessingResult>`
+
+Routing metadata, candidate values and a UI draft without persisting a business record.
+
+### Errors and rejections
+
+Host model, classifier and domain-mapping failures propagate to the caller.
+
+### Example
+
+```typescript
+import { processSmartIngestionWithAi } from '@alneas/eaos-core/ai/smart-ingestion';
+const result = await processSmartIngestionWithAi({ id: 'memo-1', tenantId: 'tenant-demo', sourceType: 'memo', title: 'Review memo', content: 'Source text', createdAt: '2026-10-24T00:00:00Z' });
+console.log(result.uiDraft.values);
+```
+
+
+<a id="api-ProvenanceAuditedRecord"></a>
+
+## [INTERFACE] `ProvenanceAuditedRecord`
+
+Container tying an ERP record or draft to its full evidence audit trail.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/evidence-traceability`.
+
+### Signature
+
+```typescript
+interface ProvenanceAuditedRecord<T = Record<string, unknown>> {
+    record: T;
+    tenantId: string;
+    evidence: RecordEvidenceMap;
+    auditSummary: {
+        totalFieldsWithEvidence: number;
+        unverifiedFieldsCount: number;
+        primaryDocumentId?: string;
+    };
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `record` | `T` | Yes | Original record retained in the evidence container without cloning. |
+| `tenantId` | `string` | Yes | Tenant identity supplied by the host; this field alone does not establish authorization. |
+| `evidence` | `RecordEvidenceMap` | Yes | Field-name or line-ID mapping to source citations. |
+| `auditSummary` | `{     totalFieldsWithEvidence: number;     unverifiedFieldsCount: number;     primaryDocumentId?: string; }` | Yes | Evidence counts and first-citation document reference; this is not independent verification. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Host-defined record or candidate value type.
+
+### See also
+
+[createProvenanceAuditedRecord](#api-createProvenanceAuditedRecord)
+
+### Public members
+
+#### `record`
+
+Original record retained in the evidence container without cloning.
+
+
+#### `tenantId`
+
+Tenant identity supplied by the host; this field alone does not establish authorization.
+
+
+#### `evidence`
+
+Field-name or line-ID mapping to source citations.
+
+
+#### `auditSummary`
+
+Evidence counts and first-citation document reference; this is not independent verification.
+
+
+#### `auditSummary.totalFieldsWithEvidence`
+
+Number of citation entries supplied in the evidence map.
+
+
+#### `auditSummary.unverifiedFieldsCount`
+
+Initial count set to zero by this container helper; it does not certify the record.
+
+
+#### `auditSummary.primaryDocumentId`
+
+Document identity from the first citation, when evidence is present.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-ProvidedAgentConfig"></a>
 
 ## [INTERFACE] `ProvidedAgentConfig`
 
 Plugin-advertised agent role, model tier, budget and capability limits.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -22043,6 +25444,72 @@ Type declaration; no runtime value.
 ### Example
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-RecordEvidenceMap"></a>
+
+## [TYPE] `RecordEvidenceMap`
+
+Map of field name or line ID to its pinned source evidence.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/evidence-traceability`.
+
+### Signature
+
+```typescript
+type RecordEvidenceMap = Record<string, SourceEvidenceCitation>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createProvenanceAuditedRecord](#api-createProvenanceAuditedRecord)
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-registerInlineCompletionProvider"></a>
+
+## [FUNCTION] `registerInlineCompletionProvider`
+
+Append a host provider to the module-local completion registry.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/inline-completion`.
+
+### Signature
+
+```typescript
+declare function registerInlineCompletionProvider(provider: InlineCompletionProvider): void;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `provider` | `InlineCompletionProvider` | Yes | Completion provider to invoke after previously registered providers. |
+
+### Returns
+
+`void`
+
+No value; subsequent registry-based requests include the provider.
+
+### Example
+
+```typescript
+import { registerInlineCompletionProvider } from '@alneas/eaos-core/ai/inline-completion';
+registerInlineCompletionProvider({ name: 'empty-provider', async provideCompletions() { return []; } });
+```
+
 
 <a id="api-RegistrationHookBody"></a>
 
@@ -22823,7 +26290,7 @@ console.log(config.services.backend.port); // 3000
 
 Resolve an optional storage policy through the standard validator.
 
-Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/storage-policy`.
 
 ### Signature
 
@@ -22945,7 +26412,7 @@ console.log(revokeApiKey(issued.record).revokedAt);
 
 Risk labels used by approval and execution policies.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -23398,13 +26865,51 @@ Model tier suggested by heuristic classification; not a provider-policy guarante
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-sanitizeParsedDocument"></a>
+
+## [FUNCTION] `sanitizeParsedDocument`
+
+Validates and normalizes parsed tables to ensure no undefined or irregular shapes.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/document-parser`.
+
+### Signature
+
+```typescript
+declare function sanitizeParsedDocument(parsed: ParsedDocumentResult): ParsedDocumentResult;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `parsed` | `ParsedDocumentResult` | Yes | Parsed source document to normalize. |
+
+### Returns
+
+`ParsedDocumentResult`
+
+A new document with trimmed Markdown, string table cells and normalized headings.
+
+### Errors and rejections
+
+If the document name is empty/nonstring or Markdown is not a string.
+
+### Example
+
+```typescript
+import { sanitizeParsedDocument } from '@alneas/eaos-core/ai/document-parser';
+const document = sanitizeParsedDocument({ name: 'memo.pdf', markdown: ' # Memo ', tables: [] });
+```
+
+
 <a id="api-SchemaConfig"></a>
 
 ## [INTERFACE] `SchemaConfig`
 
 Plugin table ownership, shared data dependencies, migration order and storage policy metadata.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -24767,6 +28272,167 @@ Required/available host capability families used during skill eligibility checks
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-SourceBoundingBox"></a>
+
+## [INTERFACE] `SourceBoundingBox`
+
+Visual bounding box coordinates on the original source document (e.g. PDF).
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/governance`.
+
+### Signature
+
+```typescript
+interface SourceBoundingBox {
+    page: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `page` | `number` | Yes | Source page index using the coordinate convention of the parser or document viewer. |
+| `x` | `number` | Yes | Horizontal origin in the source coordinate system. |
+| `y` | `number` | Yes | Vertical origin in the source coordinate system. |
+| `width` | `number` | Yes | Region width in the source coordinate system. |
+| `height` | `number` | Yes | Region height in the source coordinate system. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[CoreAiDraft](#api-CoreAiDraft)
+
+### Public members
+
+#### `page`
+
+Source page index using the coordinate convention of the parser or document viewer.
+
+
+#### `x`
+
+Horizontal origin in the source coordinate system.
+
+
+#### `y`
+
+Vertical origin in the source coordinate system.
+
+
+#### `width`
+
+Region width in the source coordinate system.
+
+
+#### `height`
+
+Region height in the source coordinate system.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-SourceEvidenceCitation"></a>
+
+## [INTERFACE] `SourceEvidenceCitation`
+
+Citation data pinning a structured field to a source region; hosts own storage and immutability.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/evidence-traceability`.
+
+### Signature
+
+```typescript
+interface SourceEvidenceCitation {
+    id: string;
+    documentId: string;
+    documentTitle: string;
+    pageNumber: number;
+    boundingBox: SourceBoundingBox;
+    rawText: string;
+    extractedAt: string;
+    confidence: 'high' | 'medium' | 'low';
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Unique ID of the citation |
+| `documentId` | `string` | Yes | Reference to the source document (e.g. storage URL or document ID) |
+| `documentTitle` | `string` | Yes | Human-readable document name, such as '20261024_source_invoice.pdf'. |
+| `pageNumber` | `number` | Yes | Page number where the evidence is located (1-based) |
+| `boundingBox` | `SourceBoundingBox` | Yes | Visual bounding coordinates (normalized 0..1 or PDF points) |
+| `rawText` | `string` | Yes | Extracted raw text snippet at this location |
+| `extractedAt` | `string` | Yes | Ingestion / parse timestamp |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | Confidence score of the OCR / layout parse |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createProvenanceAuditedRecord](#api-createProvenanceAuditedRecord)
+
+### Public members
+
+#### `id`
+
+Unique ID of the citation
+
+
+#### `documentId`
+
+Reference to the source document (e.g. storage URL or document ID)
+
+
+#### `documentTitle`
+
+Human-readable document name, such as '20261024_source_invoice.pdf'.
+
+
+#### `pageNumber`
+
+Page number where the evidence is located (1-based)
+
+
+#### `boundingBox`
+
+Visual bounding coordinates (normalized 0..1 or PDF points)
+
+
+#### `rawText`
+
+Extracted raw text snippet at this location
+
+
+#### `extractedAt`
+
+Ingestion / parse timestamp
+
+
+#### `confidence`
+
+Confidence score of the OCR / layout parse
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-StopHookHandler"></a>
 
 ## [TYPE] `StopHookHandler`
@@ -25407,6 +29073,54 @@ Structured draft/event data or cached result; serialization and validation occur
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-StructuredProposalRecord"></a>
+
+## [TYPE] `StructuredProposalRecord`
+
+Primitive Appkit review envelope for a structured JSON command.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/proposal-ui`.
+
+### Signature
+
+```typescript
+type StructuredProposalRecord = Record<string, unknown> & {
+    title: string;
+    data: string;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| — | — | — | No call parameters. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[convertAiDraftToProposal](#api-convertAiDraftToProposal)
+
+### Public members
+
+#### `title`
+
+Human-readable review title.
+
+
+#### `data`
+
+Canonical JSON command or source snapshot represented as a primitive field.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-StructuredToolCall"></a>
 
 ## [INTERFACE] `StructuredToolCall`
@@ -25663,7 +29377,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Optional navigation groups for web and LINE clients.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -26472,7 +30186,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Host-controlled tenant subscription snapshot and quota overrides.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/entitlements`, `@alneas/eaos-core/plugin-sdk/index`.
 
 ### Signature
 
@@ -26852,12 +30566,13 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Normalized tool schemas and execution policy captured with a deterministic content hash.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/contract-compatibility`.
 
 ### Signature
 
 ```typescript
 interface ToolContractSnapshot {
+    aiRiskLevel?: AIRiskLevel;
     name: string;
     version: string;
     inputSchema: Record<string, unknown>;
@@ -26875,6 +30590,7 @@ interface ToolContractSnapshot {
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
+| `aiRiskLevel` | `AIRiskLevel` | No | Declared AI tier retained in approval identity even when explicit requirements are stricter. |
 | `name` | `string` | Yes | Exact registered tool identity; parsing/discovery does not authorize its execution. |
 | `version` | `string` | Yes | Normalized operation contract version; defaults to 1.0.0 when tool metadata omits it. |
 | `inputSchema` | `Record<string, unknown>` | Yes | JSON Schema describing admitted operation input. |
@@ -26895,6 +30611,11 @@ Type declaration; no runtime value.
 [createPluginContractSnapshot](#api-createPluginContractSnapshot)
 
 ### Public members
+
+#### `aiRiskLevel`
+
+Declared AI tier retained in approval identity even when explicit requirements are stricter.
+
 
 #### `name`
 
@@ -27104,7 +30825,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Tenant and user identity plus role and optional permission claims supplied by the host.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 
@@ -27213,6 +30934,48 @@ import { validateApprovalBinding } from "@alneas/eaos-core/agent/approved-execut
 import { createApprovalBinding } from "@alneas/eaos-core/agent/approved-execution";
 const input = { tenantId: "tenant-demo", requestedBy: "user-demo", operation: "note.read", input: { id: "note-1" }, contract: { operation: "note.read", version: "1.0.0", permission: "notes:read", sideEffect: "read", riskLevel: "low", approvalLevel: "L1_AUTO", inputSchema: { type: "object" } } } as const;
 console.log(validateApprovalBinding(createApprovalBinding(input)).operation);
+```
+
+
+<a id="api-validateHybridDocument"></a>
+
+## [FUNCTION] `validateHybridDocument`
+
+Validates a Hybrid Block Document.
+Reuses Appkit JSON Schema validation for the EAOS projection without coercing or modifying input.
+Then checks unique block identities, ledger tenant consistency and exact line balances.
+Editor schema and serialization remain owned by Appkit; this is a ledger-oriented projection.
+Hosts own content sanitization, authorization and business lifecycle validation.
+
+Imports: `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/hybrid-document`.
+
+### Signature
+
+```typescript
+declare function validateHybridDocument(doc: unknown): HybridValidationResult;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `doc` | `unknown` | Yes | Untrusted document candidate to validate structurally before inspecting ledger constraints. |
+
+### Returns
+
+`HybridValidationResult`
+
+Collected errors and visited block count; malformed structure returns zero visited blocks.
+
+### Errors and rejections
+
+Appkit validator configuration or schema compilation errors indicate a programming/configuration failure; malformed document data returns an invalid result.
+
+### Example
+
+```typescript
+import { validateHybridDocument } from '@alneas/eaos-core/plugin-sdk/hybrid-document';
+const result = validateHybridDocument({ id: 'doc-1', tenantId: 'tenant-demo', title: 'Memo', createdAt: '2026-10-24T00:00:00Z', updatedAt: '2026-10-24T00:00:00Z', blocks: [{ id: 'block-1', type: 'markdown', content: '# Memo' }] });
 ```
 
 
@@ -27590,6 +31353,58 @@ console.log(verifyAuditChain([])); // true
 ```
 
 
+<a id="api-verifyFieldCitation"></a>
+
+## [FUNCTION] `verifyFieldCitation`
+
+Compare a field value with cited text using whitespace-delimited text or complete numeric tokens.
+Numeric matching ignores currency formatting and grouping separators; text matching preserves whitespace boundaries.
+
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/ai`, `@alneas/eaos-core/ai/evidence-traceability`.
+
+### Signature
+
+```typescript
+declare function verifyFieldCitation(fieldValue: unknown, citation: SourceEvidenceCitation): {
+    matched: boolean;
+    note?: string;
+};
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `fieldValue` | `unknown` | Yes | Candidate value to compare with the citation text. |
+| `citation` | `SourceEvidenceCitation` | Yes | Pinned source citation whose raw text is checked. |
+
+### Returns
+
+`{     matched: boolean;     note?: string; }`
+
+A normalized text/token match decision and optional mismatch explanation; coordinates are not verified.
+
+### Public members
+
+#### `result.matched`
+
+Whether the normalized value matches the cited text under this helper’s token rules.
+
+
+#### `result.note`
+
+Optional reason the normalized value did not match.
+
+
+
+### Example
+
+```typescript
+import { verifyFieldCitation, type SourceEvidenceCitation } from '@alneas/eaos-core/ai/evidence-traceability';
+export function verifyAmount(citation: SourceEvidenceCitation) { return verifyFieldCitation(100, citation); }
+```
+
+
 <a id="api-verifySignature"></a>
 
 ## [FUNCTION] `verifySignature`
@@ -27697,7 +31512,7 @@ See the owning declaration and linked feature guide for usage; no standalone exa
 
 Browser-executed tool metadata with an optional local handler.
 
-Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/types`.
+Imports: `@alneas/eaos-core`, `@alneas/eaos-core/plugin-sdk`, `@alneas/eaos-core/plugin-sdk/index`, `@alneas/eaos-core/plugin-sdk/types`.
 
 ### Signature
 

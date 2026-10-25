@@ -21,10 +21,9 @@ Use the toolchain and checks in [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Step-by-Step Implementation
 
 1. Select an explicit last-release baseline per package and inspect accumulated
-   Changesets plus runtime dependency impact. A retained initial commit provides
-   a review baseline, not a published release. The unpublished collection stays
-   at `@alneas/eaos-plugins@0.1.0`; do not invent a later version or treat the three
-   former unpublished plugin package names as release targets.
+   Changesets plus runtime dependency impact. The aggregate `v0.1.0` release is the published baseline.
+   Review later changes independently for each owner; the three former plugin
+   package names are not release targets.
 2. Run `bun run release:plan` to inspect versions, dependency order and required
    distribution tags. This plan lists the five-package candidate set; it does
    not infer semantic impact from paths or certify registry prerequisites. The
@@ -132,7 +131,7 @@ npm dist-tag add <package>@<version> latest --registry=https://registry.npmjs.or
 npm view <package> dist-tags --json --registry=https://registry.npmjs.org
 ```
 
-For these `0.1.0` packages, both `beta` and `latest` must point to the verified
+For packages below `1.0.0`, both `beta` and `latest` must point to the verified
 version. Do not rebuild or repack between targets. Retain the exact archives,
 notes, handoff and bundle manifest; raw local receipts remain private. Afterwards
 verify every public integrity and perform a registry-only consumer installation

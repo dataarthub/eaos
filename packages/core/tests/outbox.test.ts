@@ -54,3 +54,26 @@ describe('outbox contracts', () => {
     expect(events[0].status).toBe('failed')
   })
 })
+
+
+test('lost publication acknowledgement retries the same delivery identity until explicit exhaustion', async () => {
+ const event = createOutboxEvent({ tenantId: 'tenant-a', producer: 'fixture', topic: 'notify', idempotencyKey: 'command', payload: { message: 'once' }, availableAt: '2026-10-01T00:00:00Z' })
+ const events: OutboxEvent[] = [structuredClone(event)], durable = store(events), delivered = new Set<string>(), attempts: string[] = []
+ let current = new Date('2026-10-02T00:00:00Z')
+ const dispatcher = new OutboxDispatcher({ store: { ...durable, markPublished: async () => { throw new Error('acknowledgement lost after remote success') } }, handlers: { notify: async value => { attempts.push(value.id); delivered.add(value.id) } }, now: () => current, retryPolicy: { maxAttempts: 2, baseDelayMs: 10, maxDelayMs: 10 } })
+ expect(await dispatcher.runOnce()).toMatchObject({ published: 0, retried: 1 })
+ current = new Date(current.getTime() + 10)
+ expect(await dispatcher.runOnce()).toMatchObject({ published: 0, failed: 1 })
+ expect(attempts).toEqual([event.id, event.id]); expect(delivered.size).toBe(1)
+ expect(events[0]).toMatchObject({ status: 'failed', attempts: 2, idempotencyKey: 'command', payloadHash: event.payloadHash })
+ expect(await dispatcher.runOnce()).toMatchObject({ claimed: 0 })
+})
+
+test('suspension after claim prevents the deferred effect and quarantines work without granting replay authority', async () => {
+ const events: OutboxEvent[] = [structuredClone(createOutboxEvent({ tenantId: 'tenant-a', producer: 'fixture', topic: 'notify', idempotencyKey: 'suspended', payload: {}, availableAt: '2026-10-01T00:00:00Z' }))]
+ const durable = store(events); let active = true, effects = 0
+ const dispatcher = new OutboxDispatcher({ store: { ...durable, claim: async (now, limit) => { const result = await durable.claim(now, limit); active = false; return result } }, handlers: { notify: async () => { effects++ } }, execute: async (_event, operation) => { if (!active) throw new OutboxDispatchError('activation revoked', { retryable: false }); await operation() } })
+ expect(await dispatcher.runOnce()).toMatchObject({ claimed: 1, failed: 1, retried: 0 })
+ expect(effects).toBe(0); active = true
+ expect(await dispatcher.runOnce()).toMatchObject({ claimed: 0 }); expect(effects).toBe(0)
+})

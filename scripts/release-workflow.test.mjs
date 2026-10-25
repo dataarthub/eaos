@@ -38,7 +38,7 @@ async function fixture(t) {
     assert.notEqual(result.status,0,result.stdout)
     assert.match(result.stderr,pattern)
   }
-  for(const script of ['release','check-public','release-contract','source-state','verification-state','release-notes','release-handoff','release-preflight'])
+  for(const script of ['appkit-versions','release','check-public','release-contract','source-state','verification-state','release-notes','release-handoff','release-preflight'])
     await cp(new URL(`./${script}.mjs`,import.meta.url),join(root,'scripts',script+'.mjs'))
   // Only installed external dependencies are linked; release sources are regular fixture files.
   await symlink(resolve(import.meta.dirname,'../node_modules'),join(root,'node_modules'),'dir')

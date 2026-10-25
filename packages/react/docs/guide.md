@@ -51,4 +51,5 @@ Use `record-workspace` for independent records, `command-workspace` for aggregat
 
 Empty numeric input remains `NaN`, not zero. Server validation still enforces numeric types/ranges. `titleRecordSchema` adds presentation labels without changing the canonical schema. `createWorkspaceClientBindings` connects typed clients to existing snapshot/session boundaries. `useWorkspaceTask` suppresses duplicate UI submissions and stale responses; unmounting does not undo completed server work. Reload after uncertain failures.
 
+
 DOM tests exercise save/reload, input, previews, revocation and delayed responses. Coverage is not a measure of production identity or complete end-to-end UI acceptance. See [plugin runtime](plugin-runtime.md) and [browser computation](client/docs/compute.md).

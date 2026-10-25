@@ -1,5 +1,20 @@
 # @alneas/eaos-react
 
+## 0.2.0
+
+### Added
+
+- Review AI draft edits through the owning Host approval route before saving. Bind exact inputs to current scope, resource and revision; retain pending review state and prevent duplicate saves.
+
+### Changed
+
+- Declare EAOS Core ^0.2.0 explicitly and adopt Appkit React exactly 0.3.0 with Appkit Core 0.2.0.
+- Align hosts with React/React DOM 19.2.3 or later, Lucide React 1.61 or later and shared Query/query-core 5.104.5.
+
+### Upgrade
+
+- Configure `reviewAiDraft` for AI draft saves and retain the documented Appkit stylesheet and providers. Update the host lockfile and follow Appkit's native drag migration for custom low-level drag composition.
+
 ## 0.1.0
 
 ### Changed

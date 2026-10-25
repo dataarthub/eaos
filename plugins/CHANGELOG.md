@@ -1,5 +1,20 @@
 # @alneas/eaos-plugins
 
+## 0.2.0
+
+### Added
+
+- Connect exact reviewed draft commands to the existing staged approval service. Verify retained proposals, current input/target/contract bindings and final decision receipts before invoking the owning save command.
+- Mount authenticated draft review routes only when the Host configures durable proposal retention, live contract resolution and domain execution ports.
+
+### Changed
+
+- Adopt matching EAOS Core, Server and React ^0.2.0 contracts and Appkit React 0.3.0 for plugin UI. Keep generic approval, field customization and admin implementations in the public collection.
+
+### Upgrade
+
+- Configure the approval feature's reviewed-draft ports. Hosts retain final authorization, CAS, durable command idempotency and transaction boundaries. Update UI peers/styles as documented; publishing code does not activate a tenant.
+
 ## 0.1.0
 
 Initial unpublished candidate. A version heading and retained initial source commit are not evidence of npm publication.

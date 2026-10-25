@@ -3,7 +3,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
-export async function sourceHash(root, ignored=new Set(['.git','.verification','node_modules','dist','artifacts','.DS_Store'])) {
+export async function sourceHash(root, ignored=new Set(['.git','.cache','.verification','node_modules','dist','artifacts','.DS_Store'])) {
   const hash=createHash('sha256')
   async function walk(dir) {
     for (const item of (await readdir(join(root,dir),{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))) {

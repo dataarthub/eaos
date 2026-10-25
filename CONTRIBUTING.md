@@ -14,7 +14,7 @@ tags: ["eaos", "maintenance"]
 
 Use Node.js 24 and Bun 1.4.3, as declared in package.json and CI. All dependencies
 come from npmjs; no private registry credentials or sibling checkout is required.
-Appkit Core and React are pinned to 0.2.0. Read [AGENTS.md](https://github.com/dataarthub/eaos/blob/main/AGENTS.md) and the
+Appkit Core is pinned to 0.2.0 and Appkit React to 0.3.0. Read [AGENTS.md](https://github.com/dataarthub/eaos/blob/main/AGENTS.md) and the
 [shared development policy](https://tech-docs.alneas.com/policies/development-policy.md).
 
 ## Step-by-Step Implementation
@@ -53,7 +53,7 @@ Consumers install the exact archives outside this checkout, verify their hashes,
 load representative server/browser entries, type-check supported imports and
 the shipped/root README examples, then exercise a real Chromium workspace header/help dialog. The browser matrix runs
 sequentially at 1280×800 and 390×844 in light/dark with default, blue, green,
-rose, orange and future (the palettes shipped by Appkit 0.2.0; future has a
+rose, orange and future (the palettes shipped by Appkit React 0.3.0; future has a
 dark-only stylesheet and falls back to default in light mode). It asserts active
 styles, axe WCAG failures (including opened overlays), alpha-composited contrast
 for scroll-clipped text that axe flags for review, modal focus containment,
@@ -80,10 +80,9 @@ published-version eligibility before portal delivery (see [RELEASING.md](RELEASI
 Private guides and operator evidence are excluded. Japanese portal translations belong to github-docs;
 project-owned runtime help remains here.
 
-The standard plugin consolidation remains part of the unpublished initial
-`@alneas/eaos-plugins@0.1.0` candidate. Its retained initial commit is a review
-baseline, not evidence of publication; record that no new version increment is
-needed for this initial candidate.
+The standard plugin collection was published as `@alneas/eaos-plugins@0.1.0`.
+Use that release as the baseline for accumulated changes; prepare later versions
+independently and preserve feature lifecycle identities.
 
 Add a reviewed .changeset fragment naming affected packages, version increments,
 consumer impact and upgrade steps. Use minor increments for pre-1.0 breaking
@@ -140,3 +139,7 @@ On Linux, install Chromium system dependencies with
 
 See [RELEASING.md](RELEASING.md) before versioning or publishing. A local check
 never authorizes a commit, push, tag, registry write or deployment.
+
+## Generated workflow maintenance
+
+See [workflow supply and local quality](docs/workflow-supply.md) for `quality:commit`, `quality:push`, generated workflow checks and the actual selection/reuse limits.

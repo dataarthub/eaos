@@ -12,7 +12,7 @@ tags: ["packaging", "exports", "npm"]
 
 ## Motivation
 
-Application authors need a small set of predictable imports without installing server or release tooling in browser applications. The recommended publication layout keeps the existing Core, Server and React runtime packages and distributes CLI tooling separately. The fifth npm package, `@alneas/eaos-plugins`, owns approval, field customization and admin as independently selected modules. This layout describes the unpublished initial 0.1.0 candidate; it does not certify registry availability.
+Application authors need a small set of predictable imports without installing server or release tooling in browser applications. The recommended publication layout keeps the existing Core, Server and React runtime packages and distributes CLI tooling separately. The fifth npm package, `@alneas/eaos-plugins`, owns approval, field customization and admin as independently selected modules. The collection was published as 0.1.0. This checkout prepares the independent 0.2.0 React, CLI and collection candidates; candidate metadata does not establish their registry availability.
 
 ## Architectural Diagram
 
@@ -82,7 +82,7 @@ without importing or activating them.
 tenant. Each feature retains its own runtime/frontend inventory and isolated
 `dist/<id>/` outputs. Keep feature IDs, authorization, schema and migration
 identities unchanged when adopting the shared archive. The three former plugin
-package names were unpublished; this initial candidate replaces them rather than
+package names were unpublished; the published collection replaces them rather than
 publishing compatibility packages.
 
 See the [collection architecture](../plugins/docs/architecture.md) for ownership
@@ -106,7 +106,7 @@ A future shortening such as `/lifecycle` should first be proposed as a canonical
 
 ### Publication gates
 
-1. Use public `@alneas/appkit-core` and `@alneas/appkit-react` 0.2.0 with Node.js 24 or later. Resolve every used symbol against the actual npmjs artifact and verify real archive consumers; a package rename alone is insufficient. Follow [the contributor checks](../CONTRIBUTING.md) and [release preparation](../RELEASING.md).
+1. Use public `@alneas/appkit-core` 0.2.0 and `@alneas/appkit-react` 0.3.0 with Node.js 24 or later. Resolve every used symbol against the actual npmjs artifact and verify real archive consumers; a package rename alone is insufficient. Follow [the contributor checks](../CONTRIBUTING.md) and [release preparation](../RELEASING.md).
 2. Inventory every export as canonical, compatibility, host-extension or asset. Decide the supported surface before removing any entry, and keep Changesets and consumer coverage with API changes.
 3. Make browser, server and CLI entry graphs independent. Do not rely on optional peers to make an unconditional backend import browser-safe. Keep React/context dependencies as compatible peers to prevent duplicate contexts. Add CommonJS only if its declarations and runtime are actually built and verified; current foundation manifests advertise ESM imports.
 4. Review `files`, license/notices, repository metadata and package README presentation. Keep portal metadata in a generated landing page when preparing plain npm/GitHub READMEs. API cards, machine indexes and feature-guide examples must agree with the final exports.

@@ -1,0 +1,13 @@
+import {clearHookGitEnvironment} from './quality.mjs';
+// A hook's Git directory/index belongs to its caller, never to these disposable repositories.
+clearHookGitEnvironment();
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+export async function fixture(work){const root=mkdtempSync(join(tmpdir(),'public-actions-'));try{
+ mkdirSync(join(root,'.github'),{recursive:true});mkdirSync(join(root,'scripts/workflow-project'),{recursive:true});
+ writeFileSync(join(root,'package.json'),JSON.stringify({private:true}));
+ const project={source:{jobs:{verify:{'runs-on':'ubuntu-latest',strategy:{matrix:{node:[24,26]}},steps:[{uses:'actions/checkout@v6'},{uses:'actions/setup-node@v6',with:{'node-version':'${{ matrix.node }}'}},{uses:'oven-sh/setup-bun@v2',with:{'bun-version':'1.4.0'}},{run:'bun run quality:ci'},{uses:'actions/cache/save@v4',with:{path:'.turbo/cache',key:'fixture'}}]}}},publish:{jobs:{verify:{permissions:{contents:'read',actions:'read'},if:"startsWith(github.event.release.tag_name, 'fixture-v')",'runs-on':'ubuntu-latest',steps:[{run:'node verify.mjs'},{uses:'actions/upload-artifact@v7',with:{name:'bundle',path:'bundle','if-no-files-found':'error'}}]},stage:{needs:'verify','runs-on':'ubuntu-latest',permissions:{contents:'read',actions:'read','id-token':'write'},steps:[{uses:'actions/download-artifact@v8',with:{'artifact-ids':'${{ needs.verify.outputs.artifact }}','digest-mismatch':'error'}},{run:'node stage.mjs'}]},resolve:{'runs-on':'ubuntu-latest',steps:[{run:'node resolve.mjs'}]},complete:{needs:'resolve','runs-on':'ubuntu-latest',permissions:{contents:'read',actions:'read','id-token':'write'},steps:[{uses:'actions/download-artifact@v8',with:{'artifact-ids':'${{ needs.resolve.outputs.artifact }}','run-id':'${{ needs.resolve.outputs.run }}','digest-mismatch':'error'}},{run:'node complete.mjs'}]}}}};
+ writeFileSync(join(root,'scripts/workflow-project/roles.json'),JSON.stringify(project));
+ writeFileSync(join(root,'.github/workflow-adapter.json'),JSON.stringify({schemaVersion:1,distribution:'npm',repository:'example/public',project:'scripts/workflow-project/roles.json',runtime:{nodeVersions:[24,26],bunVersion:'1.4.0'}}));return await work(root,project);
+}finally{rmSync(root,{recursive:true,force:true});}}

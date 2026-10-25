@@ -1,4 +1,4 @@
-import type { SkillCatalogEntry } from '../ai/governance'
+import type { AIRiskLevel, SkillCatalogEntry } from '../ai/governance'
 import type { AIHostAdapters } from '../ai/host-adapters'
 import type { PluginStoragePolicy } from './storage-policy'
 
@@ -391,6 +391,9 @@ export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
  * @see {@link PluginRegistry}
  */
 export interface GatekeeperPolicy {
+  /** Optional AI tier setting minimum risk, organizational approval and human review requirements. */
+  aiRiskLevel?: AIRiskLevel
+
   
 /** Optional single role or alternatives; matching admin/SUPER_ADMIN roles bypass the named role requirement. */
   requiredRole?: string | string[]

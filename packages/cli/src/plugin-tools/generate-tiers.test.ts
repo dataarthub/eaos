@@ -6,12 +6,14 @@ import {generatePlugin} from './commands/generate-plugin'
 import {inspectPlugin} from './inspect'
 test('generator emits four distributable tier identities and fail-closed paid/tenant policy',async()=>{
  const root=await mkdtemp(join(tmpdir(),'eaos-tiers-'))
+ const coreVersion=JSON.parse(await readFile(new URL('../../../core/package.json',import.meta.url),'utf8')).version
  try{
   for(const tier of ['public','standard','pro','corporate']){
    await generatePlugin(root,{name:tier,...tier==='public'?{}:{tier},...tier==='corporate'?{allowedTenants:'tenant-a'}:{}})
    const pkg=JSON.parse(await readFile(join(root,'plugins',tier,'package.json'),'utf8'))
    expect(pkg.name).toBe(tier==='public'?'@alneas/eaos-plugin-public':tier==='standard'?'@dataarthub/plugin-standard':tier==='pro'?'@dataarthub/pro-pro':'corporate')
    expect(pkg.private??false).toBe(tier==='corporate')
+   expect(pkg.peerDependencies['@alneas/eaos-core']).toBe(coreVersion)
    expect(await readFile(join(root,'plugins',tier,'manifest.ts'),'utf8')).toContain('entitlement: '+JSON.stringify(tier==='pro'?{tier,addonId:'addon-pro',metering:{unit:'request',defaultMonthlyQuota:0}}:tier==='corporate'?{tier,allowedTenants:['tenant-a']}:{tier}))
    expect(inspectPlugin(root,tier).issues.filter(i=>i.code==='source.unresolved')).toEqual([])
   }

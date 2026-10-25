@@ -353,6 +353,7 @@ async submit(p: PluginPrincipal, input: Record<string, unknown>): Promise<Plugin
  * Reads one approval after both general and document-level authorization.
  * @param p - Verified current principal.
  * @param id - Nonblank approval record ID.
+ * @param options - Opt into live host binding verification before using the request for execution; default reads retain review visibility.
  * @returns The persisted approval record.
  * @throws Rejects missing record (404), denied access (403), invalid ID or propagated store/authorization failures.
  *
@@ -363,10 +364,15 @@ async submit(p: PluginPrincipal, input: Record<string, unknown>): Promise<Plugin
  * export function read(service: ApprovalService, principal: PluginPrincipal, id: string) { return service.read(principal, id); }
  * ```
  */
-async read(p: PluginPrincipal, id: string) {
+async read(p: PluginPrincipal, id: string, options: {
+  /** Require the retained host proposal/action to match the stored binding. */
+  verifyBinding?: boolean
+ } = {}) {
   await this.allow(p, 'read'); const record = await this.options.store.read(p.tenantId, textInput(id, 'request'))
   if (!record) throw new PluginError(404, 'Approval not found')
-  await this.allow(p, 'read', record.value); return record
+  await this.allow(p, 'read', record.value)
+  if (options.verifyBinding && (!record.value.binding || !this.options.verifyBinding || await this.options.verifyBinding(structuredClone(p), structuredClone(record.value.binding)) !== true)) throw new PluginError(403, 'Approval binding could not be verified by host')
+  return record
  }
  /**
  * Lists approval records and filters out documents denied by live host authorization.

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "distribution": "npm",
+  "repository": "dataarthub/eaos",
+  "project": "scripts/workflow-project/roles.json",
+  "runtime": {
+    "nodeVersions": [
+      24
+    ],
+    "bunVersion": "1.4.3"
+  },
+  "retiredWorkflows": [
+    ".github/workflows/quality.yml",
+    ".github/workflows/docs-generated.yml"
+  ]
+}

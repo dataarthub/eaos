@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { chmod, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -34,7 +34,8 @@ else { console.error('wrong-output-key'); process.exit(8); }
   return { root, child, stdout: child.stdout.toString(), stderr: child.stderr.toString(), calls: await readFile(calls, 'utf8').catch(() => '') }
 }
 
-describe.skipIf(!hasKamal)('Kamal 2 secret-template consumption', () => {
+describe('Kamal 2 secret-template consumption', () => {
+  beforeAll(() => { if (!hasKamal) throw Error('Install Kamal 2.12.0 before running CLI source tests; see docs/testing.md') })
   test('uses host credentials byte-for-byte without running command text inside them', async () => {
     const marker = join(tmpdir(), 'eaos-should-not-execute-' + crypto.randomUUID())
     roots.push(marker)

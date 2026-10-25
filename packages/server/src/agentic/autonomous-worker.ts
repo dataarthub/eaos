@@ -1,7 +1,21 @@
+import {createOpenAICompatibleChatAdapter, type AIChatAdapter} from '@alneas/appkit-core/ai/ai-chat'
+import {createChatClient, type ChatClientOptions} from '../execution/chat'
 import { defaultRuntimePlacementPolicy, McpGatekeeper, type AgentRuntimeResourcePolicy } from '@alneas/eaos-core'
 import { ServerAgentExecutionError, type ServerAgentExecutor, type ServerAgentTaskRequest, type ServerAgentTaskResult, type ServerAgentWorkerType } from './types'
 import { randomUUID } from 'node:crypto'
 import { createCommandAgentExecutor, validateAgentRuntimePolicy } from './executor'
+
+/**
+ * Host composition of the shared chat path for built-in model tasks.
+ * @remarks Defaults retain the worker gatekeeper, 60-second task timeout and worker output bound. Tools are undisclosed; action orchestration belongs to createToolAgent. No model transport or credential is selected from model output.
+ * @see ServerWorkerOptions for complete worker configuration.
+ */
+export interface ServerWorkerChatOptions extends Omit<ChatClientOptions, 'adapter' | 'authorize' | 'tools'> {
+  /** Optional host adapter; omission uses Appkit's OpenAI-compatible LiteLLM transport. */
+  adapter?: AIChatAdapter
+  /** Optional live Host authorization, combined with the worker gatekeeper before and after asynchronous work. */
+  authorize?: ChatClientOptions['authorize']
+}
 
 /**
  * Trusted gatekeeper, runtime endpoints/adapters, and execution limits for {@link ServerAutonomousWorker}.
@@ -17,6 +31,10 @@ export interface ServerWorkerOptions {
   litellmEndpoint?: string
   /** Host model identifier; defaults to LITELLM_MODEL and is required for built-in LiteLLM execution. */
   litellmModel?: string
+  /** Host-owned provider headers; captured at construction and never read from task/model input. */
+  litellmHeaders?: Readonly<Record<string, string>>
+  /** Optional shared chat model routing, live authorization, limits, guards, usage, budget and observability. */
+  chat?: ServerWorkerChatOptions
   /** Combined command output/string result ceiling, safe integer 1–10000000; defaults to 1000000. */
   maxOutputChars?: number
   /** Framework default is safe for the ARM agent host. Host adapters may tighten it. */
@@ -58,6 +76,8 @@ export class ServerAutonomousWorker {
   private hermesAgentPath: string
   private litellmUrl: string
   private litellmModel?: string
+  private litellmHeaders: Record<string, string>
+  private chatOptions: ServerWorkerChatOptions
   private maxOutputChars: number
   private runtimePolicy: AgentRuntimeResourcePolicy
   private runtimeRole: ServerRuntimeRole
@@ -76,6 +96,8 @@ export class ServerAutonomousWorker {
     this.hermesAgentPath = options?.hermesAgentBinaryPath || process.env.HERMES_AGENT_BIN_PATH || 'hermes'
     this.litellmUrl = options?.litellmEndpoint || process.env.LITELLM_ENDPOINT || 'http://localhost:4000/v1'
     this.litellmModel = options?.litellmModel || process.env.LITELLM_MODEL
+    this.litellmHeaders = {...options?.litellmHeaders}
+    this.chatOptions = {...options?.chat, parameters: structuredClone(options?.chat?.parameters)}
     this.maxOutputChars = options?.maxOutputChars ?? 1_000_000
     this.runtimePolicy = validateAgentRuntimePolicy(options?.runtimePolicy || defaultRuntimePlacementPolicy().ai.agentRuntime)
     this.runtimeRole = options?.runtimeRole || inferRuntimeRole()
@@ -88,9 +110,10 @@ export class ServerAutonomousWorker {
   /**
    * Checks task limits and gatekeeper policy before dispatching one runtime attempt.
    * @param request - Verified task identity and instructions; required strings must be nonblank, title at most 500 characters, instructions at most 1000000, and timeout a safe integer 1–3600000 milliseconds when provided.
+   * @param execution - Optional cancellation signal for built-in shared chat tasks; does not change injected executor or process contracts.
    * @returns COMPLETED text output, PENDING_APPROVAL ticket data without execution, or FAILED data with error and optional classification/retry advice. Duration is measured in wall-clock milliseconds.
    * @throws Can reject a throwing gatekeeper or malformed gatekeeper interaction before dispatch; runtime execution errors are normally returned as FAILED data.
-   * @remarks Gatekeeper receives fixed agent/server_bot roles rather than request user roles. Approval tickets are generated but not persisted here. The configured framework policy overrides request.runtimePolicy before execution. Injected executors and built-in LiteLLM outputs are bounded by maxOutputChars; LiteLLM response bodies are parsed before text length is checked.
+   * @remarks Gatekeeper receives fixed agent/server_bot roles rather than request user roles. Approval tickets are generated but not persisted here. The configured framework policy overrides request.runtimePolicy before execution. Injected executors and built-in chat outputs are bounded by maxOutputChars. LiteLLM uses Appkit SSE transport through createChatClient; JSON-only endpoints require a Host adapter or executor. Existing FAILED/PENDING_APPROVAL/COMPLETED envelopes and injected-executor priority remain unchanged.
    * @example
    * ```typescript
    * import { ServerAutonomousWorker, type ServerWorkerOptions } from "@alneas/eaos-server/agentic/autonomous-worker";
@@ -100,7 +123,10 @@ export class ServerAutonomousWorker {
    * }
    * ```
    */
-  async runTask(request: ServerAgentTaskRequest): Promise<ServerAgentTaskResult> {
+  async runTask(request: ServerAgentTaskRequest, execution: {
+    /** Cooperatively cancel built-in shared chat. Injected executors and Goose/Hermes retain their own cancellation contracts. */
+    signal?: AbortSignal
+  } = {}): Promise<ServerAgentTaskResult> {
     const startTime = Date.now()
 
     if (!request || [request.id, request.tenantId, request.userId, request.title, request.instructions].some(value => typeof value !== 'string' || !value.trim())) {
@@ -167,7 +193,7 @@ export class ServerAutonomousWorker {
     // 2. Dispatch according to worker type
     if (frameworkManaged) this.activeTasks += 1
     try {
-      const output = await this.execute({ ...structuredClone(request), runtimePolicy: structuredClone(this.runtimePolicy) })
+      const output = await this.execute({ ...structuredClone(request), runtimePolicy: structuredClone(this.runtimePolicy) }, execution.signal)
       return {
         taskId: request.id,
         status: 'COMPLETED',
@@ -187,12 +213,12 @@ export class ServerAutonomousWorker {
     }
   }
 
-  private async execute(request: ServerAgentTaskRequest): Promise<string> {
+  private async execute(request: ServerAgentTaskRequest, signal?: AbortSignal): Promise<string> {
     const injected = this.executors[request.workerType]
     if (injected) return this.boundOutput(await injected(structuredClone(request)))
     if (request.workerType === 'goose') return this.executeHeadlessGoose(request)
     if (request.workerType === 'hermes_agent') return this.executeHeadlessHermesAgent(request)
-    if (request.workerType === 'litellm') return this.executeLiteLlm(request)
+    if (request.workerType === 'litellm') return this.executeLiteLlm(request, signal)
     throw new Error(`No executor configured for worker type '${request.workerType}'`)
   }
 
@@ -226,27 +252,52 @@ export class ServerAutonomousWorker {
   /**
    * Execute a host-selected model through LiteLLM.
    */
-  private async executeLiteLlm(request: ServerAgentTaskRequest): Promise<string> {
-    if (!this.litellmModel) throw new Error('LiteLLM model is not configured')
-    const endpoint = new URL(this.litellmUrl)
-    if (!['http:', 'https:'].includes(endpoint.protocol)) throw new Error('Invalid LiteLLM endpoint')
-    endpoint.pathname = `${endpoint.pathname.replace(/\/$/, '')}/chat/completions`
-    const response = await this.fetchImpl(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.litellmModel,
-        messages: [{ role: 'user', content: request.instructions }],
-        metadata: { tenantId: request.tenantId, taskId: request.id },
-      }),
-      signal: AbortSignal.timeout(request.timeoutMs ?? 60_000),
-      redirect: 'error',
+  private async executeLiteLlm(request: ServerAgentTaskRequest, signal?: AbortSignal): Promise<string> {
+    const configured = this.chatOptions
+    let adapter = configured.adapter
+    if (!adapter) {
+      if (!this.litellmModel) throw new Error('LiteLLM model is not configured')
+      const endpoint = new URL(this.litellmUrl)
+      if (!['http:', 'https:'].includes(endpoint.protocol)) throw new Error('Invalid LiteLLM endpoint')
+      endpoint.pathname = `${endpoint.pathname.replace(/\/$/, '')}/chat/completions`
+      adapter = createOpenAICompatibleChatAdapter({
+        api: endpoint.href, model: this.litellmModel, headers: this.litellmHeaders,
+        maxResponseChars: Math.min(10_000_000, this.maxOutputChars * 6 + 65_536),
+        fetch: async (input, init) => {
+          const response = await this.fetchImpl(input, {...init, redirect: 'error'})
+          if (!response.ok) {
+            try { void response.body?.cancel().catch(() => {}) } catch { /* Preserve the provider status while releasing unread bodies. */ }
+            throw new Error(`LiteLLM request failed (${response.status})`)
+          }
+          return response
+        },
+      })
+    }
+    const metadata = configured.parameters?.metadata
+    const timeout = request.timeoutMs ?? 60_000
+    const chat = createChatClient({
+      ...configured, adapter,
+      timeoutMs: Math.min(timeout, configured.timeoutMs ?? timeout),
+      maxInputChars: configured.maxInputChars ?? 7_000_000,
+      maxOutputChars: Math.min(10_000_000, configured.maxOutputChars ?? this.maxOutputChars * 6 + 65_536),
+      parameters: {...configured.parameters, metadata: {
+        ...(metadata && typeof metadata === 'object' && !Array.isArray(metadata) ? metadata : {}),
+        tenantId: request.tenantId, taskId: request.id,
+      }},
+      governance: {...configured.governance, sessionId: configured.governance?.sessionId ?? request.id},
+      authorize: async (principal, operation) => {
+        if (principal.tenantId !== request.tenantId || principal.userId !== request.userId) return false
+        if (configured.authorize && await configured.authorize(principal, operation) !== true) return false
+        const decision = this.gatekeeper.validateCall({toolName: 'server_agent_litellm', userRoles: ['agent', 'server_bot'], tenantId: principal.tenantId})
+        return decision.allowed && !decision.requireHumanApproval
+      },
     })
-    if (!response.ok) throw new Error(`LiteLLM request failed (${response.status})`)
-    const body = await response.json() as { choices?: Array<{ message?: { content?: unknown } }> }
-    const output = body.choices?.[0]?.message?.content
-    if (typeof output !== 'string') throw new Error('LiteLLM returned no assistant content')
-    return this.boundOutput(output)
+    const completed = await chat.complete({tenantId: request.tenantId, userId: request.userId}, {
+      messages: [{id: request.id, role: 'user', parts: [{type: 'text', text: request.instructions}]}],
+      tools: 'none', signal,
+    })
+    if (completed.message.parts.some(part => part.type !== 'text')) throw new Error('LiteLLM returned no assistant content')
+    return this.boundOutput(completed.message.parts.map(part => part.type === 'text' ? part.text : '').join(''))
   }
 
   private boundOutput(output: string): string {
