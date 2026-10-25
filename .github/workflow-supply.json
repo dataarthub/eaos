@@ -36,7 +36,7 @@
   "bundleSha256": "69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6",
   "outputs": {
     ".github/workflows/ci.yml": "e7ffc3b85bf0de32f5c99deb2e607ea8686fb016c7cbb182372662ef5d6d2d4d",
-    ".github/workflows/package-quality.yml": "913118bdc140e783b51ba286d39d7012292d5bed810336227b295676363a66ea",
+    ".github/workflows/package-quality.yml": "d14ac9f05019596df624ffe4d22ec2023c09bdfbcacb2120f2332a2cad09055b",
     ".github/workflows/publish.yml": "683677be40e3ac164a159c24d66fc8297c9f75217c6aaa1ebf96d1a6e26ed1b7",
     ".github/workflows/complete-approved.yml": "791646ca0d53802f967962969cf2bd2dfa580e8c8a1909c97b06bac774024f78"
   }

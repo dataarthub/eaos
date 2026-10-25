@@ -39,6 +39,11 @@ jobs:
         run: "bun install --frozen-lockfile --ignore-scripts --linker hoisted"
         name: "Project: Run declared project check"
       -
+        name: "Project: Prepare pinned Kamal test consumer"
+        run: |
+          gem install --user-install kamal --version 2.12.0 --no-document
+          ruby -e 'require "kamal"; require "kamal/cli"; abort "Unexpected Kamal version" unless Gem.loaded_specs.fetch("kamal").version.to_s == "2.12.0"'
+      -
         run: "bun run secrets:setup"
         name: "Project: Run declared project check"
       -
