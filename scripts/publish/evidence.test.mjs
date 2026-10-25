@@ -43,3 +43,30 @@ test('accepted HTTP 204 dispatch does not parse an empty response body',async()=
   assert.equal(await githubRequest('/actions/workflows/publish.yml/dispatches',{method:'POST',body:'{}'}),null)
  }finally{globalThis.fetch=original;if(token===undefined)delete process.env.GITHUB_TOKEN;else process.env.GITHUB_TOKEN=token}
 })
+
+test('transient evidence GET failures retry within bounds; mutations and denied reads never retry',async()=>{
+ const original=globalThis.fetch,token=process.env.GITHUB_TOKEN;process.env.GITHUB_TOKEN='fixture-only';
+ try{
+  let calls=0;
+  globalThis.fetch=async()=>{calls++;if(calls===1)throw new TypeError('fetch failed');return {ok:true,status:200,json:async()=>({verified:true})};};
+  assert.deepEqual(await githubRequest('/actions/runs/123'),{verified:true});assert.equal(calls,2);
+  calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('fetch failed');};
+  await assert.rejects(githubRequest('/actions/workflows/publish.yml/dispatches',{method:'POST',body:'{}'}));assert.equal(calls,1);
+  calls=0;globalThis.fetch=async()=>{calls++;return {ok:false,status:401};};
+  await assert.rejects(githubRequest('/actions/runs/123'));assert.equal(calls,1);
+  calls=0;globalThis.fetch=async()=>{calls++;return calls===1?{ok:false,status:503}:{ok:true,status:200,json:async()=>({verified:true})};};
+  assert.deepEqual(await githubRequest('/actions/runs/123'),{verified:true});assert.equal(calls,2);
+  calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('fetch failed');};
+  await assert.rejects(githubRequest('/actions/runs/123'));assert.equal(calls,3);
+ }finally{globalThis.fetch=original;if(token===undefined)delete process.env.GITHUB_TOKEN;else process.env.GITHUB_TOKEN=token;}
+});
+
+test('read retries do not shorten the existing mutating-request timeout',async()=>{
+ const originalFetch=globalThis.fetch,originalTimeout=AbortSignal.timeout,token=process.env.GITHUB_TOKEN;process.env.GITHUB_TOKEN='fixture-only';const budgets=[];
+ try{
+  AbortSignal.timeout=ms=>{budgets.push(ms);return originalTimeout(ms);};
+  globalThis.fetch=async()=>({ok:true,status:204});
+  await githubRequest('/actions/workflows/publish.yml/dispatches',{method:'POST',body:'{}',timeoutMs:20000});
+  assert(budgets[0]>15000&&budgets[0]<=20000,'Preserve the full caller budget for an ambiguous mutation');
+ }finally{globalThis.fetch=originalFetch;AbortSignal.timeout=originalTimeout;if(token===undefined)delete process.env.GITHUB_TOKEN;else process.env.GITHUB_TOKEN=token;}
+});

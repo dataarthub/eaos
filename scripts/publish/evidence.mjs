@@ -10,12 +10,26 @@ const workflow = '.github/workflows/publish.yml';
 export async function githubRequest(path, options = {}) {
   assert(process.env.GITHUB_TOKEN, 'GitHub evidence token unavailable');
   const {timeoutMs=30000,...requestOptions}=options;
-  const response = await fetch(`https://api.github.com/repos/${repository}${path}`, {
-    ...requestOptions, headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
-    redirect: 'error', signal: AbortSignal.timeout(Math.max(1,Math.floor(Math.min(timeoutMs,30000)))),
-  });
-  assert(response.ok, 'GitHub evidence request failed');
-  return response.status === 204 ? null : response.json();
+  const method=(requestOptions.method??'GET').toUpperCase(),readOnly=method==='GET';
+  const deadline=performance.now()+Math.max(1,Math.floor(Math.min(timeoutMs,30000)));
+  for(let attempt=1;attempt<=(readOnly?3:1);attempt++){
+    try{
+      const remaining=Math.max(1,Math.floor(deadline-performance.now()));
+      const response=await fetch(`https://api.github.com/repos/${repository}${path}`,{
+        ...requestOptions,headers:{Authorization:`Bearer ${process.env.GITHUB_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+        redirect:'error',signal:AbortSignal.timeout(readOnly?Math.min(remaining,10000):remaining),
+      });
+      if(response.status===429||response.status>=500)throw new TypeError('GitHub evidence service temporarily unavailable');
+      assert(response.ok,'GitHub evidence request failed');
+      return response.status===204?null:await response.json();
+    }catch(error){
+      const transport=error instanceof TypeError||['TimeoutError','AbortError'].includes(error?.name);
+      const remaining=deadline-performance.now();
+      if(!readOnly||!transport||attempt===3||remaining<=1)throw error;
+      await new Promise(resolve=>setTimeout(resolve,Math.min(200,remaining)));
+    }
+  }
+
 }
 export async function resolveStagingRun(value, { request = githubRequest, now = Date.now() } = {}) {
   assert(/^[1-9]\d*$/.test(String(value)) && Number.isSafeInteger(Number(value)), 'Invalid staging run ID');

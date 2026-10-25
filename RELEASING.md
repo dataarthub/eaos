@@ -219,8 +219,8 @@ Release/source, and verify public bytes and tags before recording Deployment.
 
 The Core 0.2.0 candidate `core-020-source-evidence` repairs original run
 `40243722994`, which failed before packing because source-quality reuse lacked
-its GitHub evidence token. Its tag and Release remain unchanged. After reviewed
-main integration and checks, the authorized command is:
+its GitHub evidence token. Its tag and Release remain unchanged. Its original invocation is retained below as history; this spent candidate must
+not be dispatched again:
 
 ```bash
 gh workflow run publish.yml --ref main -f staged_run=recover:core-020-source-evidence
@@ -231,6 +231,25 @@ ID, never the failed release run or another recovery dispatch. Keep the catalog
 entry immutable while its stage/completion evidence remains active. Retire a
 spent candidate through ordinary reviewed maintenance after completion; preserve
 its historical records. Recovery is not a direct-publish or re-staging fallback.
+
+The first recovery producer `40245914939` completed the full source and exact
+archive checks but failed on a final GitHub evidence GET before upload. Its
+resolve job failed, complete writer was skipped and artifact count is zero.
+The separately reviewed `core-020-read-recovery` candidate pins that predecessor
+and its control commit. It rechecks those facts and its original catalog identity
+before allowing a fresh verification/initial submission; every other producer
+blocks it. The old candidate stays unchanged and cannot be retried. The new
+candidate is still single-use:
+
+```bash
+gh workflow run publish.yml --ref main -f staged_run=recover:core-020-read-recovery
+```
+
+Evidence GET requests have at most three attempts within a total 30-second
+budget for transport errors, HTTP 429 or 5xx responses. Authorization failures
+and all mutating requests, including dispatch, are never retried automatically.
+A changed or ambiguous predecessor blocks recovery even when the registry still
+has no public version. Successful completion retains the original package source.
 
 ### Dependency order for the prepared 0.2.0 set
 
