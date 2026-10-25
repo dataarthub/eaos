@@ -309,10 +309,10 @@ export interface AIBudgetGate {
   
   /**
    * Report usage to optional host accounting after execution.
-   * @param input - Verified scope and measured/reported usage to record.
+   * @param input - Verified scope and optional measured/reported usage; absence requires Host reconciliation and never means zero use.
    * @returns No value; returned Promise completion means the host accounting callback completed.
    * @throws Host accounting errors/rejections propagate.
-   * @remarks Optional host accounting port; retry/deduplication semantics must be defined by the implementation.
+   * @remarks Optional host accounting port; retry/deduplication and unknown-usage reconciliation remain Host-owned. Providers may omit usage metadata even after billable work.
    * @example
    * ```typescript
    * import type { AIBudgetGate } from "@alneas/eaos-core/ai/governance";
@@ -326,7 +326,7 @@ export interface AIBudgetGate {
   /** Verified host execution scope propagated to adapters/guards/hooks; callers must establish identity and authorization before use. */
   context: AIExecutionContext; 
   /** Optional token/cost telemetry reported by a host/runtime; absence does not mean zero use. */
-  usage: AIUsage }): Promise<void> | void
+  usage?: AIUsage }): Promise<void> | void
 }
 
 /**

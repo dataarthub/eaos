@@ -296,6 +296,14 @@
     "./plugin-sdk": {
       "types": "./dist/plugin-sdk.d.ts",
       "import": "./dist/plugin-sdk.js"
+    },
+    "./execution/chat": {
+      "types": "./dist/execution/chat.d.ts",
+      "import": "./dist/execution/chat.js"
+    },
+    "./execution/tool-agent": {
+      "types": "./dist/execution/tool-agent.d.ts",
+      "import": "./dist/execution/tool-agent.js"
     }
   },
   "files": [

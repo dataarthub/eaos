@@ -2111,7 +2111,7 @@ interface AIBudgetGate {
     }): Promise<AIBudgetDecision> | AIBudgetDecision;
     recordUsage?(input: {
         context: AIExecutionContext;
-        usage: AIUsage;
+        usage?: AIUsage;
     }): Promise<void> | void;
 }
 ```
@@ -2175,13 +2175,13 @@ Report usage to optional host accounting after execution.
 
 Parameters:
 
-- `input`: Verified scope and measured/reported usage to record.
+- `input`: Verified scope and optional measured/reported usage; absence requires Host reconciliation and never means zero use.
 
 Returns: No value; returned Promise completion means the host accounting callback completed.
 
 ### Remarks
 
-Optional host accounting port; retry/deduplication semantics must be defined by the implementation.
+Optional host accounting port; retry/deduplication and unknown-usage reconciliation remain Host-owned. Providers may omit usage metadata even after billable work.
 
 ### Errors and rejections
 

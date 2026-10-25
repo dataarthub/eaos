@@ -1,4 +1,5 @@
 import { test, expect } from 'bun:test'
+import {inc} from 'semver'
 import { Database } from 'bun:sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -73,7 +74,7 @@ test('approval: shared/dedicated deployments, independent control clients, retai
   sharedApp = app('shared', open('shared.sqlite'), restarted)
   const retained = await (await request(sharedApp, `/requests/${record.id}`, 'alpha-user')).json() as any
   expect(retained.value.status).toBe('approved'); expect(retained.value.history).toHaveLength(2)
-  expect(await new PluginLifecycle({ ...project, plugins: [upgraded] }, '0.2.0').isEnabled('shared', 'alpha', 'approval')).toBe(false)
+  expect(await new PluginLifecycle({ ...project, plugins: [upgraded] }, inc(FRAMEWORK_VERSION, 'minor')!).isEnabled('shared', 'alpha', 'approval')).toBe(false)
   expect(shared.query("SELECT name FROM sqlite_master WHERE name = 'approval_tenant_idx'").get()).toBeTruthy()
  } finally { for (const db of dbs) db.close(); await rm(dir, { recursive: true, force: true }) }
 })

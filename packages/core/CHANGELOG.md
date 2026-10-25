@@ -6,6 +6,7 @@
 
 - Add configurable document ingestion, evidence citations, inline completion and balanced journal draft contracts. Hosts supply industry classification, account mapping and model adapters.
 - Prepare exact reviewed command inputs through Appkit proposals and normalize AI risk requirements in shared execution contracts.
+- Represent unavailable provider usage explicitly in Host accounting callbacks; unknown usage never implies zero tokens or cost.
 
 ### Changed
 
