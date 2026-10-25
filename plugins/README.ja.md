@@ -57,4 +57,4 @@ export function bindApprovalHost(
 - [コレクションのアーキテクチャ](docs/architecture.md)
 - [変更履歴](https://github.com/dataarthub/eaos/blob/main/plugins/CHANGELOG.md)
 
-英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告は[セキュリティ方針](https://github.com/dataarthub/eaos/blob/main/SECURITY.md)に従ってください。
+英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告には [GitHubの非公開報告機能](https://github.com/dataarthub/eaos/security/advisories/new)を利用できます。

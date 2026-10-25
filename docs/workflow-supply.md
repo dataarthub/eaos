@@ -167,13 +167,10 @@ Portal wrappers exclude the GitHub language selector because portal language
 navigation and translations remain owned by github-docs. Production ingestion
 still waits for the selected package's actual publication.
 
-[SECURITY.md](https://github.com/dataarthub/eaos/blob/main/SECURITY.md) and
 [CONTRIBUTING.md](https://github.com/dataarthub/eaos/blob/main/CONTRIBUTING.md)
-now name dataarthub as the accountable human owner. The experimental MIT project
-has one maintainer and no backup. The reporting guide states the actual single-maintainer, as-is operating model,
-with no promised response/fix deadline, backup staffing or continuing support.
-The shared operating-obligation mandates are being removed universally, rather
-than introducing an OSS-only exception. Actual contractual commitments remain
+names the actual maintainer and reporting channel. Shared policy no longer
+imposes the added operating obligations on any project.
+Actual contractual commitments remain
 independent of adopting these policies. Required artifact,
 confidentiality, authorization and publication gates are unchanged. The earlier
 security/support observations remain dated findings; they do not create a promise

@@ -8,7 +8,7 @@
 
 ### Changed
 
-- Align English/Japanese setup and support guidance with actual package requirements; document private vulnerability reporting and as-is reporting terms without a support guarantee.
+- Align English/Japanese setup and support guidance with actual package requirements; link the existing GitHub private reporting channel without adding a support guarantee.
 
 - Declare EAOS Core ^0.2.0 explicitly and adopt Appkit React exactly 0.3.0 with Appkit Core 0.2.0.
 - Align hosts with React/React DOM 19.2.3 or later, Lucide React 1.61 or later and shared Query/query-core 5.104.5.

@@ -147,9 +147,8 @@ See [workflow supply and local quality](docs/workflow-supply.md) for `quality:co
 ## Support and accountable review
 
 Questions and non-sensitive issue reports in English are welcome in
-[GitHub Issues](https://github.com/dataarthub/eaos/issues). Report vulnerabilities
-privately using [SECURITY.md](https://github.com/dataarthub/eaos/blob/main/SECURITY.md); it describes the actual single-maintainer
-capacity and best-effort support scope.
+[GitHub Issues](https://github.com/dataarthub/eaos/issues). Private vulnerability reports can use
+[GitHub private reporting](https://github.com/dataarthub/eaos/security/advisories/new).
 
 The repository administrator **dataarthub** is the accountable human reviewer for
 public APIs, authorization/tenant boundaries, data/migration contracts, provider

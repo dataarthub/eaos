@@ -9,7 +9,7 @@
 
 ### Changed
 
-- Align English/Japanese setup and support guidance with actual package requirements; document private vulnerability reporting and as-is reporting terms without a support guarantee.
+- Align English/Japanese setup and support guidance with actual package requirements; link the existing GitHub private reporting channel without adding a support guarantee.
 
 - Adopt matching EAOS Core, Server and React ^0.2.0 contracts and Appkit React 0.3.0 for plugin UI. Keep generic approval, field customization and admin implementations in the public collection.
 

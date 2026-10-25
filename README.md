@@ -64,4 +64,4 @@ export const status = definePlugin({
 - [Verify adoption](docs/testing.md)
 - [Documentation ownership and preflight](docs/documentation.md)
 
-Questions and issue reports in English are welcome in [GitHub Issues](https://github.com/dataarthub/eaos/issues). For private vulnerability reports, follow the [security policy](https://github.com/dataarthub/eaos/blob/main/SECURITY.md).
+Questions and issue reports in English are welcome in [GitHub Issues](https://github.com/dataarthub/eaos/issues). Private vulnerability reports can use [GitHub private reporting](https://github.com/dataarthub/eaos/security/advisories/new).

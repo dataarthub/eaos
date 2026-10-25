@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Align English/Japanese setup and support guidance with actual package requirements; document private vulnerability reporting and as-is reporting terms without a support guarantee.
+- Align English/Japanese setup and support guidance with actual package requirements; link the existing GitHub private reporting channel without adding a support guarantee.
 
 - Consume matching EAOS Core, Server and optional React ^0.2.0 contracts.
 - Derive generated plugin Core requirements and platform receipt framework versions from the independently versioned Core package instead of the CLI version.

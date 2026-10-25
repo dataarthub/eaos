@@ -46,4 +46,4 @@ console.log(canonical({ format: 1, operation: 'inspect' }))
 - [API リファレンス](docs/api.md)
 - [EAOS の構成](https://tech-docs.alneas.com/eaos-workspace/architecture/)
 
-英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告は[セキュリティ方針](https://github.com/dataarthub/eaos/blob/main/SECURITY.md)に従ってください。
+英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告には [GitHubの非公開報告機能](https://github.com/dataarthub/eaos/security/advisories/new)を利用できます。
