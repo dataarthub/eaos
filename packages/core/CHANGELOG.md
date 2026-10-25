@@ -10,6 +10,8 @@
 
 ### Changed
 
+- Align English/Japanese setup and support guidance with actual package requirements; document private vulnerability reporting and as-is reporting terms without a support guarantee.
+
 - Keep Core independent of Server and business plugins. Posting, reversal, tenant authorization and persistence remain with their owning commands.
 
 ### Upgrade

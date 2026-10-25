@@ -1,5 +1,9 @@
 # CLI authoring and release tools
 
+[English](https://github.com/dataarthub/eaos/blob/main/packages/cli/README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/packages/cli/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js minimum 24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases) [![Appkit Core dependency 0.2.0](https://img.shields.io/badge/Appkit_Core-0.2.0-3178C6?style=flat)](https://www.npmjs.com/package/@alneas/appkit-core)
+
 ## Elevator Pitch
 
 Plugin and host developers use the CLI to generate, diagnose and verify EAOS packages.
@@ -40,3 +44,5 @@ console.log(baselineImages.oracle)
 - [Architecture and boundaries](docs/guide.md)
 - [API reference](docs/api.md)
 - [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+
+Questions and issue reports in English are welcome in [GitHub Issues](https://github.com/dataarthub/eaos/issues). For private vulnerability reports, follow the [security policy](https://github.com/dataarthub/eaos/blob/main/SECURITY.md).

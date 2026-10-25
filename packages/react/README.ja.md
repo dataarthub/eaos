@@ -1,30 +1,39 @@
-# eaos-react
+# React ワークスペースとブラウザクライアント
 
-## 概要
+[English](https://github.com/dataarthub/eaos/blob/main/packages/react/README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/packages/react/README.ja.md)
 
-EAOSを組み込む開発者向けに、所有する公開機能と型付きの利用入口を提供します。
+[ドキュメントサイトの日本語ページ](https://tech-docs.alneas.com/ja/eaos-workspace/react/)でプロジェクト全体の日本語ドキュメントを案内しています。未翻訳・レビュー待ちのページは英語にフォールバックする場合があります。公開サイトは公開済みバージョンの案内であり、この README の 0.2.0 候補と一致しない場合は、対応する英語ガイドと変更履歴を確認してください。
 
-## 目的と利点
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js minimum 24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases) [![React peer major 19](https://img.shields.io/badge/React-19-149ECA?style=flat&logo=react&logoColor=white)](https://react.dev/)
 
-共通の実装を再利用し、業務機能とホストの接続・認可を分離します。実装の正本は公開Monorepoにあり、本番の設定や運用証拠は含めません。コードの導入、スキーマ適用、組織への有効化は別操作です。
+## Elevator Pitch
 
-## 主な機能
+アプリケーション開発者は React ワークスペースとホストに依存しないクライアントを使い、認証された製品 UI を接続できます。
 
-- 公開パッケージの型付きAPI
-- 明示的なホスト接続と現在の認可
-- パッケージ単位の検証と配布
+## Why & Value
 
-## クイックスタート
+定義がドメインのフィールドとコマンドを表し、共通コンポーネントが表示とセッションの変更を扱います。バックエンドによる現在の状態の検査は引き続き必須です。この MIT パッケージの実装と型宣言は公開モノレポで管理します。
 
-このcheckoutは0.2.0のリリース候補です。0.1.0は公開済みですが、0.2.0の公開前はworkspaceが作成・検証したSHA固定tarballを使用してください。以下の導入コマンドは0.2.0の公開後に使用します。パッケージのsubpath自体をbun addの引数にはしません。
+## Key Highlights
 
-Node.js 24以上、および対応するCore peerとAppkit Core 0.2.0が必要です。このUI例にはReact/React DOM 19系、Appkit React 0.3.0、Lucide Reactが必要です。CSSと2つのProviderを含めて、ホストのReactルートから描画します。表示だけで認証・認可は行いません。
+- 定義に基づくワークスペース
+- セッションに結び付いた実行
+- ブラウザ Worker による計算
+- 共通ヘルプ
+
+## Quickstart
+
+この checkout は 0.2.0 のリリース準備用です。0.1.0 は公開済みです。0.2.0 の公開まではチェックサムを固定した候補 tarball を導入し、以下のコマンドは公開後に使用してください。
+
+### 公開 API の import
+
+ツールには Node.js 24 以上を使用し、ブラウザの React ホストを用意してください。対応する Core peer と Appkit Core 0.2.0 を導入します。この UI entry には、19 系の React と React DOM 19.2.3 以上、Appkit React ちょうど 0.3.0、および Lucide React が必要です。例のとおり Appkit の stylesheet を import し、ThemeProvider と SidebarProvider の両方の内側で描画してください。ヘッダーの表示だけでは利用者の認証や認可は行いません。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
 bun add @alneas/eaos-react@0.2.0 @alneas/eaos-core@^0.2.0 @alneas/appkit-core@0.2.0 @alneas/appkit-react@0.3.0 react@^19.2.3 react-dom@^19.2.3 lucide-react@^1.61.0
 ```
 
-TypeScript環境でCSS entryの型宣言がない場合は、`declare module '@alneas/appkit-react/styles';` を記述した `appkit-styles.d.ts` をtsconfigの対象に含めてください。CSS自体はブラウザのbundlerが読み込みます。
+bundler がこの CSS entry の型を宣言しない場合は、`declare module '@alneas/appkit-react/styles';` を記述した `appkit-styles.d.ts` を TypeScript プロジェクトに含めてください。ブラウザの bundler は実際の stylesheet を解決して読み込みます。
 
 ```tsx
 import * as React from 'react'
@@ -41,10 +50,13 @@ export function WorkspaceExample() {
 }
 ```
 
-## 次の手順
+アプリケーションの React ルートから `WorkspaceExample` を描画してください。クライアント専用の import は要件が異なるため、パッケージガイドを確認してください。
 
-- [Architecture and boundaries](docs/guide.md)
-- [API reference](docs/api.md)
-- [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+## Next Steps
 
 - [変更履歴](https://github.com/dataarthub/eaos/blob/main/packages/react/CHANGELOG.md)
+- [アーキテクチャと境界](docs/guide.md)
+- [API リファレンス](docs/api.md)
+- [EAOS の構成](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+
+英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告は[セキュリティ方針](https://github.com/dataarthub/eaos/blob/main/SECURITY.md)に従ってください。

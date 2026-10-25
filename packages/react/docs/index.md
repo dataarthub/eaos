@@ -12,6 +12,8 @@ tags: ["eaos","explanation"]
 
 # React workspaces and browser clients
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js minimum 24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases) [![React peer major 19](https://img.shields.io/badge/React-19-149ECA?style=flat&logo=react&logoColor=white)](https://react.dev/)
+
 ## Elevator Pitch
 
 Application authors use React workspaces and portable clients to bind authenticated product UI.
@@ -64,3 +66,5 @@ Render `WorkspaceExample` from your application's React root. Portable client-on
 - [Architecture and boundaries](guide.md)
 - [API reference](api.md)
 - [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+
+Questions and issue reports in English are welcome in [GitHub Issues](https://github.com/dataarthub/eaos/issues). For private vulnerability reports, follow the [security policy](https://github.com/dataarthub/eaos/blob/main/SECURITY.md).

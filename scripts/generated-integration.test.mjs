@@ -24,3 +24,16 @@ test('actual project generators honor temporary destinations without repairing n
  assert.equal(reports.length, config.jobs.length);
  assert.deepEqual(snapshot(), before, 'Freshness validation must not rewrite normal outputs');
 });
+test('portal landings omit GitHub language selectors while keeping their canonical README pairs', () => {
+ const landings = JSON.parse(readFileSync(join(root, 'readme-landings.json'), 'utf8'));
+ for (const { source, output } of landings) {
+  const canonical = readFileSync(join(root, source), 'utf8');
+  const translated = readFileSync(join(root, source.replace('README.md', 'README.ja.md')), 'utf8');
+  const landing = readFileSync(join(root, output), 'utf8');
+  assert.match(canonical.split('\n')[2], /^\[English\]\(.+\) \| \[日本語\]\(.+\)$/);
+  assert.match(translated.split('\n')[2], /^\[English\]\(.+\) \| \[日本語\]\(.+\)$/);
+  assert(!landing.includes('[日本語]('), output + ': portal owns language navigation');
+  assert(!landing.includes('README.ja.md'), output + ': Japanese README is not a portal translation source');
+  assert(landing.includes('## Quickstart'), output + ': preserve the source introduction');
+ }
+});

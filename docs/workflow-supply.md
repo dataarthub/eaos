@@ -152,3 +152,35 @@ heap setting and preserved containment/user flags. The aggregate 6144 MiB proces
 limit and 20-minute source deadline remain enforced; increasing a child's configured
 heap does not permit exceeding that aggregate limit. This corrects verifier environment
 composition and requires no package release.
+
+### Public 0.2.0 policy alignment
+
+The source revisions used for this release-preparation review are recorded in
+the release task. The older clause catalog and dated runtime review above remain
+historical, scoped evidence; their structural result is not a whole-policy
+certificate. Common policy does not add backup staffing, response/fix deadlines,
+continuous monitoring or ongoing support guarantees to any project.
+
+The owning READMEs and Japanese counterparts now provide reciprocal navigation,
+actual technology requirements, English support and private reporting guidance.
+Portal wrappers exclude the GitHub language selector because portal language
+navigation and translations remain owned by github-docs. Production ingestion
+still waits for the selected package's actual publication.
+
+[SECURITY.md](https://github.com/dataarthub/eaos/blob/main/SECURITY.md) and
+[CONTRIBUTING.md](https://github.com/dataarthub/eaos/blob/main/CONTRIBUTING.md)
+now name dataarthub as the accountable human owner. The experimental MIT project
+has one maintainer and no backup. The reporting guide states the actual single-maintainer, as-is operating model,
+with no promised response/fix deadline, backup staffing or continuing support.
+The shared operating-obligation mandates are being removed universally, rather
+than introducing an OSS-only exception. Actual contractual commitments remain
+independent of adopting these policies. Required artifact,
+confidentiality, authorization and publication gates are unchanged. The earlier
+security/support observations remain dated findings; they do not create a promise
+of staffed support or turn such staffing into a package-release prerequisite.
+
+The private consumer's compatibility and schema-history repair are tracked in its
+restricted repository. Actual registry adoption waits for verified public versions.
+Private targets and receipts do not enter these public release artifacts. Production
+restore/provider acceptance and deployed branch-protection configuration remain
+outside this package-only release verification.

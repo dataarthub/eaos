@@ -9,6 +9,8 @@
 
 ### Changed
 
+- Align English/Japanese setup and support guidance with actual package requirements; document private vulnerability reporting and as-is reporting terms without a support guarantee.
+
 - Adopt matching EAOS Core, Server and React ^0.2.0 contracts and Appkit React 0.3.0 for plugin UI. Keep generic approval, field customization and admin implementations in the public collection.
 
 ### Upgrade
@@ -17,7 +19,7 @@
 
 ## 0.1.0
 
-Initial unpublished candidate. A version heading and retained initial source commit are not evidence of npm publication.
+Publication-status correction: this version is registered on public npm. The initial preparation record called it an unpublished candidate; that wording describes its preparation state, not its current availability. The original feature and dependency notes below are retained.
 
 ### Added
 
