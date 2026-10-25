@@ -80,6 +80,7 @@
     "dist",
     "docs",
     "README.md",
+    "README.ja.md",
     "LICENSE",
     "src/workspace-guide.json",
     "CHANGELOG.md",
