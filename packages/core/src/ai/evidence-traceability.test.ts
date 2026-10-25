@@ -73,6 +73,23 @@ describe('Evidence Traceability & PDF BoundingBox Pinning', () => {
     expect(verifyFieldCitation(350000.5, decimalCitation).matched).toBe(true)
   })
 
+  it('matches every complete numeric token when adjacent tokens share delimiters', () => {
+    const citation = { ...sampleCitation, rawText: '100/200/300' }
+    for (const amount of [100, 200, 300]) {
+      expect(verifyFieldCitation(amount, citation).matched).toBe(true)
+    }
+    expect(verifyFieldCitation(20, citation).matched).toBe(false)
+    expect(verifyFieldCitation(350000, { ...citation, rawText: '100/-350000' }).matched).toBe(false)
+  })
+
+  it('preserves whitespace boundaries for text and rejects partial names', () => {
+    const citation = { ...sampleCitation, rawText: 'Vendor Acme Services' }
+    expect(verifyFieldCitation('Acme', citation).matched).toBe(true)
+    expect(verifyFieldCitation('Acme Services', citation).matched).toBe(true)
+    expect(verifyFieldCitation('Ac', citation).matched).toBe(false)
+    expect(verifyFieldCitation('Acme', { ...citation, rawText: 'Vendor AcmeCorp' }).matched).toBe(false)
+  })
+
   it('rejects empty strings or empty fields gracefully without false positives', () => {
     const emptyCitation: SourceEvidenceCitation = {
       ...sampleCitation,

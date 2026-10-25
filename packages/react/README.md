@@ -21,10 +21,10 @@ Registry installation requires a published release. During pre-publication devel
 
 ### Public import
 
-Use Node.js 24 or later for tooling and a browser React host. This UI entry needs React and React DOM 19.2.3 or later within major 19, Appkit React exactly 0.2.0 and Lucide React. Import the Appkit stylesheet and render inside both ThemeProvider and SidebarProvider, as shown. Header presentation does not authenticate or authorize a user. The subpath is an import target, not a separately installed package.
+Use Node.js 24 or later for tooling and a browser React host. Install the matching Core peer and Appkit Core 0.2.0. This UI entry needs React and React DOM 19.2.3 or later within major 19, Appkit React exactly 0.2.0 and Lucide React. Import the Appkit stylesheet and render inside both ThemeProvider and SidebarProvider, as shown. Header presentation does not authenticate or authorize a user. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-react @alneas/appkit-react@0.2.0 react@^19.2.3 react-dom@^19.2.3 lucide-react@^1.57.0
+bun add @alneas/eaos-react @alneas/eaos-core@^0.1.0 @alneas/appkit-core@0.2.0 @alneas/appkit-react@0.2.0 react@^19.2.3 react-dom@^19.2.3 lucide-react@^1.57.0
 ```
 
 Include an `appkit-styles.d.ts` containing `declare module '@alneas/appkit-react/styles';` in your TypeScript project when the bundler does not declare this CSS entry. The browser bundler still resolves and loads the real stylesheet.

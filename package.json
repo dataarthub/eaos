@@ -42,7 +42,8 @@
     "conformance:check": "node scripts/workflow-supply/public/conformance.mjs check --project-root .",
     "conformance:verify": "node scripts/workflow-supply/public/conformance.mjs verify --project-root .",
     "check:selected": "node scripts/verified-run.mjs quality --selected",
-    "conformance:audit": "node scripts/workflow-supply/public/policy-report.mjs"
+    "conformance:audit": "node scripts/workflow-supply/public/policy-report.mjs",
+    "test:ai-drafts:browser": "node scripts/test-ai-draft-browser.mjs"
   },
   "devDependencies": {
     "@alneas/appkit-core": "0.2.0",

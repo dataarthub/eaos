@@ -1,18 +1,84 @@
-import { validateProposalInput, proposalFieldTypes, type RecordProposal } from '@alneas/appkit-core/ai/proposal'
+import { validateProposalInput, proposalFieldTypes, prepareProposalBatch, type RecordProposal } from '@alneas/appkit-core/ai/proposal'
 import { createGenerativeUIContract, type GenerativeUIDocument } from '@alneas/appkit-core/ai/generative-ui'
 import type { CoreAiDraft } from './governance'
+import type { ExecutionTarget } from '../agent/approved-execution'
+import { canonicalJson } from '../serialization/json'
 
 /**
- * Converts a CoreAiDraft to a durable platform RecordProposal for human-in-the-loop audit and approval.
+ * A reviewed command and its Appkit proposal envelope, sent to a trusted Host.
+ * @see {@link convertAiDraftToProposal}
+ */
+export interface AiDraftSubmission {
+  /** Owning workspace or plugin namespace. */
+  scope: string
+  /** Registered owning command operation. */
+  operation: string
+  /** Exact schema-normalized command input after operator edits. */
+  input: Record<string, unknown>
+  /** Immutable Appkit envelope whose data change contains the exact input. */
+  proposal: RecordProposal<StructuredProposalRecord>
+  /** Bound resource identity and source revision; omitted for independent creation. */
+  target?: ExecutionTarget
+  /** Existing durable approval request to check before saving the same command. */
+  approvalRequestId?: string
+}
+
+/**
+ * Host response; pending approval never represents a saved domain record.
+ * @typeParam T - Response from the owning domain save command.
+ * @see {@link AiDraftSubmission}
+ */
+export type AiDraftReviewResult<T> =
+  | {
+    /** A durable approval exists but the domain command has not executed. */
+    status: 'pending';
+    /** Approval request to reconcile on the next save attempt. */
+    approvalRequestId: string
+  }
+  | {
+    /** The owning command returned its save response. */
+    status: 'applied';
+    /** Domain command response; the consumer still validates its scope. */
+    result: T
+  }
+
+/**
+ * Builds an Appkit proposal envelope for the exact reviewed command values.
+ * @param draft - Reviewed values and optional source scope, target and revision.
+ * @param options - Host-selected identity and the actual source envelope baseline.
+ * @returns A validated proposal; persistence and approval belong to the Host.
+ * @throws Rejects scope/target/version mismatches, missing edit baselines and non-JSON values.
+ * @remarks The title/data fields describe a review envelope, not arbitrary domain record fields.
+ * @example
+ * ```typescript
+ * import { convertAiDraftToProposal } from '@alneas/eaos-core/ai/proposal-ui';
+ * const proposal = convertAiDraftToProposal({ mode: 'create', values: { name: 'Draft' } }, { scope: 'notes', targetId: 'command-1' });
+ * ```
  */
 export function convertAiDraftToProposal(
   draft: CoreAiDraft,
-  options: { scope: string; targetId: string; baseVersion?: number; createdAt?: string }
+  options: {
+    /** Host-selected workspace or plugin namespace. */
+    scope: string;
+    /** Existing record ID or stable proposed-command identity. */
+    targetId: string;
+    /** Actual source revision; zero represents independent creation. */
+    baseVersion?: number;
+    /** Proposal timestamp; defaults to the current ISO time. */
+    createdAt?: string;
+    /** Current title of the stored review envelope. */
+    currentTitle?: string;
+    /** Actual source values; required for nonzero revisions. */
+    currentValues?: Readonly<Record<string, unknown>>
+  }
 ): RecordProposal<StructuredProposalRecord> {
-  const scope = draft.scope ?? options.scope
-  const targetId = draft.targetId ?? options.targetId
+  const {scope, targetId} = options
+  if (draft.scope !== undefined && draft.scope !== scope) throw new Error('Draft scope differs')
+  if (draft.targetId !== undefined && draft.targetId !== targetId) throw new Error('Draft target differs')
+  const baseVersion = options.baseVersion ?? 0
+  if (draft.baseRevision !== undefined && draft.baseRevision !== baseVersion) throw new Error('Draft revision differs')
+  if (baseVersion !== 0 && options.currentValues === undefined) throw new Error('Current edit baseline required')
   const createdAt = options.createdAt ?? new Date().toISOString()
-  const baseVersion = draft.baseRevision ?? options.baseVersion ?? 0
 
   const checked = validateProposalInput<StructuredProposalRecord>(
     {
@@ -21,14 +87,54 @@ export function convertAiDraftToProposal(
       baseVersion,
       createdAt,
       changes: [
-        { field: 'title', before: '', after: draft.summary ?? 'AI Draft Proposal', reason: 'AI draft proposal' },
-        { field: 'data', before: '', after: JSON.stringify(draft.values), reason: 'AI draft proposal values' },
+        { field: 'title', before: options.currentTitle ?? '', after: draft.summary ?? 'AI Draft Proposal', reason: 'AI draft proposal' },
+        { field: 'data', before: canonicalJson(options.currentValues ?? {}), after: canonicalJson(draft.values), reason: 'AI draft proposal values' },
       ],
     },
     { fields: { title: proposalFieldTypes.string, data: proposalFieldTypes.string } }
   )
   if (!checked.ok) throw new Error(`Invalid ${scope} proposal: ${checked.errors?.[0]?.message ?? 'validation failed'}`)
   return checked.data
+}
+
+/**
+ * Host identity and source baseline used to prepare a reviewed command submission.
+ * @see {@link prepareAiDraftSubmission}
+ */
+export type AiDraftSubmissionOptions = Parameters<typeof convertAiDraftToProposal>[1] & {
+  /** Registered operation whose exact input the operator has reviewed. */
+  operation: string
+  /** Existing resource and source revision; omitted for independent creation. */
+  target?: ExecutionTarget
+}
+
+/**
+ * Prepares an EAOS command through Appkit's proposal consistency and candidate engine.
+ * @param draft - Values after the operator has edited and submitted the owning form.
+ * @param options - Owning operation, target and actual source baseline.
+ * @returns Detached command input from Appkit's prepared candidate and its validated proposal.
+ * @throws Rejects invalid JSON, conflicting scope/target/version or failed proposal preflight.
+ * @remarks Calling this helper does not grant approval or save a record. The Host verifies durable approval and current authorization before its owning command executes.
+ * @example
+ * ```typescript
+ * import { prepareAiDraftSubmission } from '@alneas/eaos-core/ai/proposal-ui';
+ * const request = prepareAiDraftSubmission({ mode: 'create', scope: 'notes', values: { title: 'Reviewed' } }, { scope: 'notes', operation: 'create', targetId: 'command-1' });
+ * ```
+ */
+export function prepareAiDraftSubmission(draft: CoreAiDraft, options: AiDraftSubmissionOptions): AiDraftSubmission {
+  const version = options.baseVersion ?? 0
+  if (options.target && (options.target.type !== options.scope || options.target.id !== options.targetId || options.target.revision !== version)) throw new Error('Draft target or revision differs')
+  const proposal = convertAiDraftToProposal(draft, options)
+  const prepared = prepareProposalBatch<StructuredProposalRecord>([{
+    proposal, selected: true, decisions: {title: 'accepted', data: 'accepted'}, currentVersion: version,
+    currentRecord: {title: options.currentTitle ?? '', data: canonicalJson(options.currentValues ?? {})},
+  }])
+  if (!prepared.canApply) throw new Error('Draft proposal preflight failed')
+  return {
+    scope: options.scope, operation: options.operation, proposal,
+    input: JSON.parse(prepared.payloads[0].candidateRecord.data),
+    ...(options.target ? {target: structuredClone(options.target)} : {}),
+  }
 }
 
 /**
@@ -40,7 +146,16 @@ export interface StructuredDraft {
   title: string; 
   /** Structured draft/event data or cached result; serialization and validation occur at the owning API boundary. */
   data: Record<string, unknown> }
-type StructuredProposalRecord = Record<string, unknown> & { title: string; data: string }
+/**
+ * Primitive Appkit review envelope for a structured JSON command.
+ * @see {@link convertAiDraftToProposal}
+ */
+export type StructuredProposalRecord = Record<string, unknown> & {
+  /** Human-readable review title. */
+  title: string;
+  /** Canonical JSON command or source snapshot represented as a primitive field. */
+  data: string
+}
 
 /**
  * Shared reviewable AI draft contract for official plugins.

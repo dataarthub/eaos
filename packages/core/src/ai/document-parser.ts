@@ -2,6 +2,7 @@ import type { AIRiskLevel } from './governance'
 
 /**
  * Normalized table structure parsed from complex documents (e.g. Docling extraction).
+ * @see {@link sanitizeParsedDocument}
  */
 export interface ExtractedDocumentTable {
   /** Optional table title or label found in the document */
@@ -11,12 +12,34 @@ export interface ExtractedDocumentTable {
   /** 2D grid of cell values (rows x columns) */
   rows: readonly (readonly string[])[]
   /** Optional cell-level bounding coordinates for pinpoint PDF preview */
-  cellBoxes?: readonly (readonly ({ page: number; x: number; y: number; width: number; height: number } | undefined)[])[]
+  cellBoxes?: readonly (readonly ({
+    /**
+    * Source page index using the coordinate convention of the parser or document viewer.
+    */
+    page: number;
+    /**
+    * Horizontal origin in the source coordinate system.
+    */
+    x: number;
+    /**
+    * Vertical origin in the source coordinate system.
+    */
+    y: number;
+    /**
+    * Region width in the source coordinate system.
+    */
+    width: number;
+    /**
+    * Region height in the source coordinate system.
+    */
+    height: number
+  } | undefined)[])[]
 }
 
 /**
  * Result of document structure parsing.
  * Preserves hierarchical Markdown text, structured tables and metadata.
+ * @see {@link sanitizeParsedDocument}
  */
 export interface ParsedDocumentResult {
   /** Document title or filename */
@@ -33,20 +56,42 @@ export interface ParsedDocumentResult {
 
 /**
  * Host adapter interface for structured document parsing (e.g. Docling worker/container).
+ * @see {@link sanitizeParsedDocument}
  */
 export interface DocumentParserAdapter {
   /**
    * Parses raw document bytes or buffer into structured Markdown and tables.
+   * @param input - Source filename, bytes and optional media type to parse through the host adapter.
+   * @returns Normalized document text, tables and optional page/media metadata.
+   * @example
+   * ```typescript
+   * import type { DocumentParserAdapter } from '@alneas/eaos-core/ai/document-parser';
+   * export async function parseSource(parser: DocumentParserAdapter, content: Uint8Array) {
+   *   return parser.parse({ filename: 'source.pdf', content, mimeType: 'application/pdf' });
+   * }
+   * ```
+   * @throws Host parsing or source access errors reject the returned Promise.
    */
   parse(input: {
+    /**
+     * Original file name supplied to the parsing adapter.
+     */
     filename: string
+    /**
+     * Document bytes to parse without interpreting them as executable content.
+     */
     content: Uint8Array | ArrayBuffer
+    /**
+     * Optional media type reported by the host or storage adapter.
+     */
     mimeType?: string
   }): Promise<ParsedDocumentResult>
 }
 
 /**
  * Extraction target schema descriptor for converting parsed documents into ERP draft objects.
+ * @typeParam T - Host-defined record or candidate value type.
+ * @see {@link sanitizeParsedDocument}
  */
 export interface DocumentDraftExtractionTarget<T = Record<string, unknown>> {
   /** Target domain object (e.g. 'construction_estimate', 'vendor_invoice') */
@@ -57,12 +102,30 @@ export interface DocumentDraftExtractionTarget<T = Record<string, unknown>> {
   riskLevel?: AIRiskLevel
   /**
    * Deterministic conversion or LLM prompt extraction helper.
+   * @param parsed - Normalized document to convert into candidate values.
+   * @returns Host-defined draft values, directly or asynchronously.
+   * @example
+   * ```typescript
+   * import type { DocumentDraftExtractionTarget, ParsedDocumentResult } from '@alneas/eaos-core/ai/document-parser';
+   * export function extractCandidate(target: DocumentDraftExtractionTarget, document: ParsedDocumentResult) {
+   *   return target.extract(document);
+   * }
+   * ```
+   * @throws Host extraction failures propagate to the caller.
    */
   extract(parsed: ParsedDocumentResult): Promise<T> | T
 }
 
 /**
  * Validates and normalizes parsed tables to ensure no undefined or irregular shapes.
+ * @param parsed - Parsed source document to normalize.
+ * @returns A new document with trimmed Markdown, string table cells and normalized headings.
+ * @example
+ * ```typescript
+ * import { sanitizeParsedDocument } from '@alneas/eaos-core/ai/document-parser';
+ * const document = sanitizeParsedDocument({ name: 'memo.pdf', markdown: ' # Memo ', tables: [] });
+ * ```
+ * @throws If the document name is empty/nonstring or Markdown is not a string.
  */
 export function sanitizeParsedDocument(parsed: ParsedDocumentResult): ParsedDocumentResult {
   if (!parsed.name || typeof parsed.name !== 'string') {
@@ -90,6 +153,15 @@ export function sanitizeParsedDocument(parsed: ParsedDocumentResult): ParsedDocu
 
 /**
  * Creates an in-memory / mock Docling parser adapter for deterministic testing and local offline runs.
+ * @param handler - Optional filename callback supplying deterministic parsed fixtures.
+ * @returns An in-memory parser adapter for tests and local demonstrations; it does not perform OCR.
+ * @example
+ * ```typescript
+ * import { createMockDoclingParser } from '@alneas/eaos-core/ai/document-parser';
+ * const parser = createMockDoclingParser(() => ({ markdown: '# Fixture', tables: [] }));
+ * const parsed = await parser.parse({ filename: 'fixture.pdf', content: new Uint8Array() });
+ * ```
+ * @throws Parsing rejects when the supplied fixture fails document normalization.
  */
 export function createMockDoclingParser(
   handler?: (filename: string) => Partial<ParsedDocumentResult>

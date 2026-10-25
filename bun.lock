@@ -75,6 +75,7 @@
       "name": "@alneas/eaos-react",
       "version": "0.1.0",
       "devDependencies": {
+        "@alneas/eaos-core": "^0.1.0",
         "@types/node": "^22.20.5",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
@@ -86,6 +87,7 @@
       },
       "peerDependencies": {
         "@alneas/appkit-react": "0.2.0",
+        "@alneas/eaos-core": "^0.1.0",
         "lucide-react": "^0.475.0 || ^1.57.0",
         "react": "^18.3.0 || ^19.0.0",
       },

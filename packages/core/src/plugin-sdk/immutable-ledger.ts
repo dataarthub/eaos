@@ -1,4 +1,4 @@
-import { assertBusinessId, assertBusinessDate, assertMoneyMinor } from './data-standards'
+import { assertBusinessId, assertMoneyMinor } from './data-standards'
 import type { AIRiskLevel } from '../ai/governance'
 
 /**
@@ -7,19 +7,19 @@ import type { AIRiskLevel } from '../ai/governance'
  * Aligned with platform accounting contract:
  * - DRAFT: Created by AI or human as an uncommitted candidate.
  * - POSTED: Permanently committed to the general ledger (immutable).
- *
- * (PENDING / REVERSED states are supported as extended review/history flags)
+ * @see {@link assertBalancedLines}
  */
-export type ImmutableLedgerEntryStatus = 'DRAFT' | 'PENDING' | 'POSTED' | 'REVERSED'
+export type ImmutableLedgerEntryStatus = 'DRAFT' | 'POSTED'
 
 /**
- * Journal line in double-entry bookkeeping (貸借一致).
+ * Journal line in double-entry bookkeeping.
  * Identical signature to accounting Line contract: `{ accountId: string, side: 'D' | 'C', amount: number }`.
+ * @see {@link assertBalancedLines}
  */
 export interface ImmutableLedgerLine {
   /** Account identifier */
   accountId: string
-  /** Debit (借方: D) or Credit (貸方: C) */
+  /** Debit (D) or credit (C) side. */
   side: 'D' | 'C'
   /** Amount in currency minor units (positive integer) */
   amount: number
@@ -27,6 +27,7 @@ export interface ImmutableLedgerLine {
 
 /**
  * Provenance tracking indicating whether and how AI participated in generating the entry.
+ * @see {@link assertBalancedLines}
  */
 export interface ImmutableLedgerProvenance {
   /** Identity of the user or agent that created the entry */
@@ -45,7 +46,8 @@ export interface ImmutableLedgerProvenance {
 
 /**
  * Immutable ledger entry structure adhering to double-entry and audit principles.
- * Fully compatible with official accounting `Journal` contract.
+ * Domain services own account/period validation, posting and durable audit.
+ * @see {@link assertBalancedLines}
  */
 export interface ImmutableLedgerEntry {
   /** Unique business ID */
@@ -62,23 +64,27 @@ export interface ImmutableLedgerEntry {
   sourceKey: string
   /** Double-entry debit/credit lines */
   lines: readonly ImmutableLedgerLine[]
-  /** Current state in the immutable lifecycle: DRAFT | POSTED (with PENDING / REVERSED support) */
+  /** Current state in the immutable lifecycle: DRAFT | POSTED */
   status: ImmutableLedgerEntryStatus
   /** Identity of creator */
-  createdBy?: string
-  /** Target journal ID if this entry reverses an existing POSTED journal (赤伝票) */
+  createdBy: string
+  /** Target journal ID when this entry references a reversal of an existing POSTED journal. */
   reverses?: string
-  /** Backward-compatible alias for reverses */
-  reversesEntryId?: string
   /** Provenance & audit trail */
   provenance: ImmutableLedgerProvenance
 }
 
 /**
- * Asserts that journal lines satisfy double-entry balance (借方合計 === 貸方合計).
+ * Asserts that debit and credit totals match exactly.
  *
  * @param lines - List of debit and credit lines.
  * @throws Error if unbalanced, fewer than 2 lines, or invalid amounts.
+ * @returns No value when all lines are valid and debit/credit totals match exactly.
+ * @example
+ * ```typescript
+ * import { assertBalancedLines } from '@alneas/eaos-core/plugin-sdk/immutable-ledger';
+ * assertBalancedLines([{ accountId: 'account-debit', side: 'D', amount: 100 }, { accountId: 'account-credit', side: 'C', amount: 100 }]);
+ * ```
  */
 export function assertBalancedLines(lines: readonly ImmutableLedgerLine[]): void {
   if (!Array.isArray(lines) || lines.length < 2 || lines.length > 200) {
@@ -99,40 +105,17 @@ export function assertBalancedLines(lines: readonly ImmutableLedgerLine[]): void
 }
 
 /**
- * Validates state transition rules for immutable ledger entries.
- *
- * In accordance with enterprise audit rules:
- * - Once POSTED, records cannot be mutated or deleted.
- * - Modifications require a Reversing Entry (赤伝票) and a new Correcting Entry.
- */
-export function assertImmutableTransition(
-  currentStatus: ImmutableLedgerEntryStatus,
-  targetStatus: ImmutableLedgerEntryStatus
-): void {
-  if (currentStatus === 'POSTED') {
-    if (targetStatus === 'REVERSED') {
-      return
-    }
-    throw new Error('POSTED ledger entries are immutable and cannot be updated. Use a reversing entry instead.')
-  }
-  if (currentStatus === 'REVERSED') {
-    throw new Error('REVERSED ledger entries are finalized and cannot undergo further state transitions.')
-  }
-  if (currentStatus === 'DRAFT' && (targetStatus === 'PENDING' || targetStatus === 'POSTED')) {
-    return
-  }
-  if (currentStatus === 'PENDING' && (targetStatus === 'POSTED' || targetStatus === 'DRAFT')) {
-    return
-  }
-  throw new Error(`Invalid ledger transition from ${currentStatus} to ${targetStatus}`)
-}
-
-/**
- * Inverts the debit/credit sides of journal lines to produce a reversing entry (赤伝票).
+ * Inverts the debit/credit sides of balanced journal lines without creating or posting an entry.
  * Pure mathematical operation compatible with any accounting plugin.
  *
  * @param lines - Original journal lines.
  * @returns Reversing lines with 'D' and 'C' swapped.
+ * @example
+ * ```typescript
+ * import { invertJournalLines } from '@alneas/eaos-core/plugin-sdk/immutable-ledger';
+ * const inverted = invertJournalLines([{ accountId: 'account-debit', side: 'D', amount: 100 }, { accountId: 'account-credit', side: 'C', amount: 100 }]); // No entry is posted.
+ * ```
+ * @throws If input lines fail the balance, count, account, side or minor-unit amount checks.
  */
 export function invertJournalLines(lines: readonly ImmutableLedgerLine[]): ImmutableLedgerLine[] {
   assertBalancedLines(lines)
@@ -143,55 +126,4 @@ export function invertJournalLines(lines: readonly ImmutableLedgerLine[]): Immut
   }))
   assertBalancedLines(inverted)
   return inverted
-}
-
-/**
- * Generates a reversing journal entry (赤伝票: 反対仕訳) for a POSTED entry.
- *
- * @param original - The original POSTED journal entry.
- * @param reversalDate - Date for the reversal transaction (YYYY-MM-DD).
- * @param reversedBy - User identity authorizing the reversal.
- * @param reason - Business justification for reversing the entry.
- * @returns A newly generated reversing entry ready for posting.
- */
-export function createReversingEntry(
-  original: ImmutableLedgerEntry,
-  reversalDate: string,
-  reversedBy: string,
-  reason: string
-): Omit<ImmutableLedgerEntry, 'id'> {
-  if (original.status !== 'POSTED') {
-    throw new Error('Only POSTED entries can be reversed')
-  }
-  assertBusinessDate(reversalDate)
-  assertBusinessId(reversedBy)
-
-  // Swap D and C on all lines (赤伝票)
-  const reversedLines: ImmutableLedgerLine[] = original.lines.map(line => ({
-    accountId: line.accountId,
-    side: line.side === 'D' ? 'C' : 'D',
-    amount: line.amount,
-  }))
-
-  assertBalancedLines(reversedLines)
-
-  return {
-    tenantId: original.tenantId,
-    periodId: original.periodId,
-    date: reversalDate,
-    description: `[REVERSAL of ${original.id}] ${reason}`,
-    sourceKey: `reversal:${original.id}`,
-    lines: reversedLines,
-    status: 'POSTED',
-    createdBy: reversedBy,
-    reverses: original.id,
-    reversesEntryId: original.id,
-    provenance: {
-      createdBy: reversedBy,
-      riskLevel: 3, // Financial reversal is Level 3 critical
-      aiGenerated: false,
-      humanReviewedFields: ['lines', 'date', 'description'],
-      reviewNotes: reason,
-    },
-  }
 }

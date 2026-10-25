@@ -40,6 +40,7 @@ export default defineConfig({entry:[
   "src/platform/config/index.ts",
   "src/plugin-bundles.ts",
   "src/plugin-sdk/construction-journal-pipeline.ts",
+    "src/plugin-sdk/journal-draft.ts",
   "src/plugin-sdk/contract-compatibility.ts",
   "src/plugin-sdk/data-standards.ts",
   "src/plugin-sdk/decimal-values.ts",

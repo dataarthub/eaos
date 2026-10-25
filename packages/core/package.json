@@ -305,7 +305,11 @@
       "types": "./dist/contracts/platform-records.d.ts",
       "import": "./dist/contracts/platform-records.js"
     },
-    "./contracts/platform-records.json": "./schemas/platform-records.json"
+    "./contracts/platform-records.json": "./schemas/platform-records.json",
+    "./plugin-sdk/journal-draft": {
+      "types": "./dist/plugin-sdk/journal-draft.d.ts",
+      "import": "./dist/plugin-sdk/journal-draft.js"
+    }
   },
   "files": [
     "dist",

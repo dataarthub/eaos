@@ -1,5 +1,6 @@
 import type { ApprovalLevel } from '../security/gatekeeper'
 import type { RiskLevel } from '../plugin-sdk/types'
+import type { AIRiskLevel } from '../ai/governance'
 import { canonicalJsonHash } from '../serialization/index'
 import { createOutboxEvent, type OutboxEvent } from '../events/outbox'
 
@@ -15,6 +16,10 @@ export type ExecutionSideEffect = 'read' | 'write' | 'external'
  * @see {@link createApprovalBinding}
  */
 export interface ExecutionContract {
+  /** Optional declared AI tier retained in the approval contract hash. */
+  aiRiskLevel?: AIRiskLevel
+  /** Optional resolved review requirement retained in the approval contract hash. */
+  requireHumanApproval?: boolean
   
 /** Operation identity whose meaning and permission are controlled by the host. */
   operation: string

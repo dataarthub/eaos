@@ -48,7 +48,6 @@ HTTP and MCP use host-verified principals, current activation and resource permi
 
 Native and server placement is explicit. A failed local operation never silently uploads its input. Registered Python or CLI operations are trusted host code, not an operating-system sandbox.
 
-External AI agents, orchestrators and CLI runners operate on EAOS as an MCP (Model Context Protocol) resource server; host-enforced `AIRiskLevel` governance prevents automated processes from committing transactions directly. Mutating commands generate uncommitted `DRAFT` proposals with structured provenance, requiring operator review in dual-mode UI forms or keyboard-navigated tables before deterministic commitment to immutable ledgers.
 
 ## Adoption and verification boundaries
 

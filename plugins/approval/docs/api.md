@@ -643,6 +643,53 @@ export function Page(props: Omit<React.ComponentProps<typeof ApprovalProvider>, 
 ```
 
 
+<a id="api-ApprovalPluginOptions"></a>
+
+## [INTERFACE] `ApprovalPluginOptions`
+
+Approval service configuration with optional Host ports for reviewed draft submission and domain saves.
+
+Imports: `@alneas/eaos-plugins/approval`.
+
+### Signature
+
+```typescript
+interface ApprovalPluginOptions extends ApprovalOptions {
+    reviewedDrafts?: Omit<ReviewedDraftHandlerOptions<unknown>, 'approval'>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `reviewedDrafts` | `Omit<ReviewedDraftHandlerOptions<unknown>, 'approval'>` | No | Connects POST /drafts/review to durable Host proposal retention, live execution contracts and the owning save command. Omit this option to leave the endpoint unavailable. The existing ApprovalService instance owns requests and decisions. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[createRoutes](#api-createRoutes)
+
+### Public members
+
+#### `reviewedDrafts`
+
+Connects POST /drafts/review to durable Host proposal retention, live execution contracts and the owning save command.
+Omit this option to leave the endpoint unavailable. The existing ApprovalService instance owns requests and decisions.
+
+### Remarks
+
+The execute adapter retains responsibility for final authorization, domain validation, durable idempotency, CAS and transactions.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-ApprovalProvider"></a>
 
 ## [FUNCTION] `ApprovalProvider`
@@ -825,7 +872,9 @@ Imports: `@alneas/eaos-plugins/approval`, `@alneas/eaos-plugins/approval/service
 declare class ApprovalService {
     constructor(options: ApprovalOptions);
     submit(p: PluginPrincipal, input: Record<string, unknown>): Promise<PluginRecord<ApprovalDocument>>;
-    read(p: PluginPrincipal, id: string): Promise<PluginRecord<ApprovalDocument>>;
+    read(p: PluginPrincipal, id: string, options?: {
+        verifyBinding?: boolean;
+    }): Promise<PluginRecord<ApprovalDocument>>;
     list(p: PluginPrincipal, limit?: number): Promise<PluginRecord<ApprovalDocument>[]>;
     decide(p: PluginPrincipal, id: string, input: Record<string, unknown>): Promise<{
         id: string;
@@ -894,6 +943,7 @@ Parameters:
 
 - `p`: Verified current principal.
 - `id`: Nonblank approval record ID.
+- `options`: Opt into live host binding verification before using the request for execution; default reads retain review visibility.
 
 Returns: The persisted approval record.
 
@@ -908,6 +958,11 @@ import { ApprovalService } from '@alneas/eaos-plugins/approval/service';
 import type { PluginPrincipal } from '@alneas/eaos-server/plugin-data';
 export function read(service: ApprovalService, principal: PluginPrincipal, id: string) { return service.read(principal, id); }
 ```
+
+
+#### `read.options.verifyBinding`
+
+Require the retained host proposal/action to match the stored binding.
 
 
 #### `list`
@@ -1267,14 +1322,14 @@ Imports: `@alneas/eaos-plugins/approval`.
 ### Signature
 
 ```typescript
-declare function createPlugin(options: ApprovalOptions, resolvePrincipal: (c: Context) => Promise<PluginPrincipal | null>): PluginManifest;
+declare function createPlugin(options: ApprovalPluginOptions, resolvePrincipal: (c: Context) => Promise<PluginPrincipal | null>): PluginManifest;
 ```
 
 ### Parameters
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
-| `options` | `ApprovalOptions` | Yes | Live host configuration; see ApprovalOptions. |
+| `options` | `ApprovalPluginOptions` | Yes | Live host configuration; see ApprovalPluginOptions. |
 | `resolvePrincipal` | `(c: Context) => Promise<PluginPrincipal \| null>` | Yes | Current authenticated Hono principal resolver; null denies admission. |
 
 ### Returns
@@ -1290,8 +1345,56 @@ Supplying a manifest does not activate a tenant or perform migrations. Host admi
 ### Example
 
 ```typescript
-import { createPlugin, type ApprovalOptions } from '@alneas/eaos-plugins/approval';
-export function configure(options: ApprovalOptions, resolvePrincipal: Parameters<typeof createPlugin>[1]) { return createPlugin(options, resolvePrincipal); }
+import { createPlugin, type ApprovalPluginOptions } from '@alneas/eaos-plugins/approval';
+export function configure(options: ApprovalPluginOptions, resolvePrincipal: Parameters<typeof createPlugin>[1]) { return createPlugin(options, resolvePrincipal); }
+```
+
+
+<a id="api-createReviewedDraftHandler"></a>
+
+## [FUNCTION] `createReviewedDraftHandler`
+
+Connects reviewable structured drafts to the existing staged approval service and owning save command.
+
+Imports: `@alneas/eaos-plugins/approval`.
+
+### Signature
+
+```typescript
+declare function createReviewedDraftHandler<T>(options: ReviewedDraftHandlerOptions<T>): (principal: PluginPrincipal, submission: AiDraftSubmission) => Promise<AiDraftReviewResult<T>>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `options` | `ReviewedDraftHandlerOptions<T>` | Yes | Live host authorization, proposal persistence, approval service and idempotent command adapters. |
+
+### Returns
+
+`(principal: PluginPrincipal, submission: AiDraftSubmission) => Promise<AiDraftReviewResult<T>>`
+
+A principal-scoped handler that creates a pending request or executes an unchanged, finally approved request.
+
+### Type parameters
+
+- `T`: Result returned by the host domain command.
+
+### Remarks
+
+The host proposal store must support ApprovalService.verifyBinding. This helper does not supply durable command idempotency, domain validation, final authorization, CAS or a transaction across stores; execute owns those guarantees. An uncertain submission response may follow persisted proposal/approval writes, so the host must reconcile before resubmission.
+
+### Errors and rejections
+
+Rejects invalid envelopes, unavailable host authorization and approvals that are pending, rejected, foreign or stale.
+
+### Example
+
+```typescript
+import { createReviewedDraftHandler, type ReviewedDraftHandlerOptions } from '@alneas/eaos-plugins/approval';
+export function connectReviewedSave<T>(options: ReviewedDraftHandlerOptions<T>) {
+  return createReviewedDraftHandler(options);
+}
 ```
 
 
@@ -1299,21 +1402,21 @@ export function configure(options: ApprovalOptions, resolvePrincipal: Parameters
 
 ## [FUNCTION] `createRoutes`
 
-Creates tenant-scoped approval request, decision and withdrawal routes.
+Creates tenant-scoped approval routes and the optional Host-connected reviewed-draft endpoint.
 
 Imports: `@alneas/eaos-plugins/approval`.
 
 ### Signature
 
 ```typescript
-declare function createRoutes(options: ApprovalOptions, resolvePrincipal: (c: Context) => Promise<PluginPrincipal | null>): hono.Hono<_alneas_eaos_server_plugin_data.PluginHttpEnv, hono_types.BlankSchema, "/">;
+declare function createRoutes(options: ApprovalPluginOptions, resolvePrincipal: (c: Context) => Promise<PluginPrincipal | null>): hono.Hono<_alneas_eaos_server_plugin_data.PluginHttpEnv, hono_types.BlankSchema, "/">;
 ```
 
 ### Parameters
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
-| `options` | `ApprovalOptions` | Yes | Live host persistence and authorization configuration; see ApprovalOptions. |
+| `options` | `ApprovalPluginOptions` | Yes | Live host persistence and authorization configuration; see ApprovalPluginOptions. |
 | `resolvePrincipal` | `(c: Context) => Promise<PluginPrincipal \| null>` | Yes | Resolves current authenticated principal per Hono request, or null to deny access. |
 
 ### Returns
@@ -1329,8 +1432,8 @@ The host owns authentication, current tenant membership and plugin activation. S
 ### Example
 
 ```typescript
-import { createRoutes, type ApprovalOptions } from '@alneas/eaos-plugins/approval';
-export function connectRoutes(options: ApprovalOptions, resolvePrincipal: Parameters<typeof createRoutes>[1]) {
+import { createRoutes, type ApprovalPluginOptions } from '@alneas/eaos-plugins/approval';
+export function connectRoutes(options: ApprovalPluginOptions, resolvePrincipal: Parameters<typeof createRoutes>[1]) {
  return createRoutes(options, resolvePrincipal);
 }
 ```
@@ -1523,7 +1626,7 @@ Imports: `@alneas/eaos-plugins/approval/runtime`.
 
 ```typescript
 interface PublicPluginBindings {
-    options: ApprovalOptions;
+    options: ApprovalPluginOptions;
     resolvePrincipal(context: Context): Promise<PluginPrincipal | null>;
 }
 ```
@@ -1532,7 +1635,7 @@ interface PublicPluginBindings {
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
-| `options` | `ApprovalOptions` | Yes | Live plugin service/storage/authorization configuration. |
+| `options` | `ApprovalPluginOptions` | Yes | Live approval storage/authorization configuration, optionally including reviewed-draft Host proposal/save ports. |
 | `resolvePrincipal` | `Promise<PluginPrincipal \| null>` | Yes | Resolve current verified Hono request identity, or null to deny access; rejection propagates. |
 
 ### Returns
@@ -1547,7 +1650,7 @@ ApprovalService for a complete host integration example.
 
 #### `options`
 
-Live plugin service/storage/authorization configuration.
+Live approval storage/authorization configuration, optionally including reviewed-draft Host proposal/save ports.
 
 
 #### `resolvePrincipal`
@@ -1613,6 +1716,131 @@ This references getPlatformRecordsContract().schema; the plugin does not own a s
 import { recordSchema } from '@alneas/eaos-plugins/approval'
 console.log(recordSchema.type, recordSchema.properties)
 ```
+
+<a id="api-ReviewedDraftHandlerOptions"></a>
+
+## [INTERFACE] `ReviewedDraftHandlerOptions`
+
+Host authorization, durable proposal retention and domain command adapters for reviewed drafts.
+
+Imports: `@alneas/eaos-plugins/approval`.
+
+### Signature
+
+```typescript
+interface ReviewedDraftHandlerOptions<T> {
+    approval: ApprovalService;
+    templateId: string;
+    resolveContract(principal: PluginPrincipal, submission: AiDraftSubmission): Promise<ExecutionContract>;
+    saveProposal(principal: PluginPrincipal, proposal: AiDraftSubmission['proposal'], binding: ApprovalBinding): Promise<void>;
+    execute(principal: PluginPrincipal, operation: string, input: Record<string, unknown>, approvalRequestId: string): Promise<T>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `approval` | `ApprovalService` | Yes | Existing tenant-scoped approval service with host binding verification configured. |
+| `templateId` | `string` | Yes | Host-selected approval template, resolved by ApprovalService at submission time. |
+| `resolveContract` | `Promise<ExecutionContract>` | Yes | Authorize the current principal and resolve the live operation contract on every invocation. |
+| `saveProposal` | `Promise<void>` | Yes | Persist the exact proposal and binding in the host store before bound approval submission. |
+| `execute` | `Promise<T>` | Yes | Reauthorize and perform the owning domain save with durable idempotency, CAS and transactions. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Type parameters
+
+- `T`: Result returned by the owning domain command.
+
+### See also
+
+[createReviewedDraftHandler](#api-createReviewedDraftHandler)
+
+### Public members
+
+#### `approval`
+
+Existing tenant-scoped approval service with host binding verification configured.
+
+
+#### `templateId`
+
+Host-selected approval template, resolved by ApprovalService at submission time.
+
+
+#### `resolveContract`
+
+Authorize the current principal and resolve the live operation contract on every invocation.
+
+Parameters:
+
+- `principal`: Trusted current tenant principal.
+- `submission`: Exact review envelope and domain command input.
+
+Returns: The current authorized execution contract; reject to deny access.
+
+Example:
+
+```typescript
+import type { ReviewedDraftHandlerOptions } from '@alneas/eaos-plugins/approval';
+export function resolve(options: ReviewedDraftHandlerOptions<unknown>, ...args: Parameters<typeof options.resolveContract>) {
+  return options.resolveContract(...args);
+}
+```
+
+
+#### `saveProposal`
+
+Persist the exact proposal and binding in the host store before bound approval submission.
+
+Parameters:
+
+- `principal`: Trusted requester and tenant boundary.
+- `proposal`: Validated review envelope encoding the exact domain input.
+- `binding`: Trusted scope and current input/contract identity to retain alongside the proposal.
+
+Returns: Resolves after durable host proposal retention; rejects on persistence failure.
+
+Example:
+
+```typescript
+import type { ReviewedDraftHandlerOptions } from '@alneas/eaos-plugins/approval';
+export function retain(options: ReviewedDraftHandlerOptions<unknown>, ...args: Parameters<typeof options.saveProposal>) {
+  return options.saveProposal(...args);
+}
+```
+
+
+#### `execute`
+
+Reauthorize and perform the owning domain save with durable idempotency, CAS and transactions.
+
+Parameters:
+
+- `principal`: Trusted current requester; recheck domain authorization at the actual write.
+- `operation`: Approved operation matching the live execution contract.
+- `input`: Exact reviewed domain input, requiring owning schema/domain validation.
+- `approvalRequestId`: Durable idempotency key for retries and concurrent execution attempts.
+
+Returns: The owning command result, including the previously persisted result on an idempotent retry.
+
+Example:
+
+```typescript
+import type { ReviewedDraftHandlerOptions } from '@alneas/eaos-plugins/approval';
+export function save<T>(options: ReviewedDraftHandlerOptions<T>, ...args: Parameters<typeof options.execute>) {
+  return options.execute(...args);
+}
+```
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-validateApprovalDecisionReceipt"></a>
 

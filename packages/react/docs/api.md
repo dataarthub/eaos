@@ -36,6 +36,40 @@ tags: ["api", "generated"]
 | `@alneas/eaos-react/workspace-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-react/docs/user-guides/workspace.md` | Packaged Markdown guide asset; resolve this exported path with the host loader |
 
+<a id="api-AiFieldMetadata"></a>
+
+## [INTERFACE] `AiFieldMetadata`
+
+Compatibility re-export; its implementation and documentation are owned by the owning package ``.
+
+Imports: `@alneas/eaos-react/record-workspace`.
+
+### Signature
+
+```typescript
+interface AiFieldMetadata {
+    confidence: 'high' | 'medium' | 'low';
+    sourceBox?: SourceBoundingBox;
+    reasoning?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | See the upstream owning declaration. |
+| `sourceBox` | `SourceBoundingBox` | No | See the upstream owning declaration. |
+| `reasoning` | `string` | No | See the upstream owning declaration. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-BrowserAuthConfig"></a>
 
 ## [INTERFACE] `BrowserAuthConfig`
@@ -1416,6 +1450,46 @@ export async function readWorkspace(tenantId: string, recordId: string, client: 
 ```
 
 
+<a id="api-DraftImpactSimulation"></a>
+
+## [INTERFACE] `DraftImpactSimulation`
+
+Compatibility re-export; its implementation and documentation are owned by the owning package ``.
+
+Imports: `@alneas/eaos-react/record-workspace`.
+
+### Signature
+
+```typescript
+interface DraftImpactSimulation {
+    title: string;
+    metrics: readonly {
+        label: string;
+        before?: string | number;
+        after: string | number;
+        change?: string | number;
+        alert?: boolean;
+    }[];
+    warning?: string;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | Yes | See the upstream owning declaration. |
+| `metrics` | `readonly {     label: string;     before?: string \| number;     after: string \| number;     change?: string \| number;     alert?: boolean; }[]` | Yes | See the upstream owning declaration. |
+| `warning` | `string` | No | See the upstream owning declaration. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-fetchVerifiedComputeAsset"></a>
 
 ## [FUNCTION] `fetchVerifiedComputeAsset`
@@ -2686,7 +2760,7 @@ Imports: `@alneas/eaos-react/record-workspace`.
 ### Signature
 
 ```typescript
-declare function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help }: RecordWorkspaceProps & {
+declare function RecordWorkspace({ definition, referenceClient, onRecordChange, onReady, recordOverride, help, aiDraft, onDismissAiDraft, onApplyAiDraft, reviewAiDraft }: RecordWorkspaceProps & {
     definition: RecordWorkspaceDefinition;
 }): react.JSX.Element;
 ```
@@ -2695,7 +2769,7 @@ declare function RecordWorkspace({ definition, referenceClient, onRecordChange, 
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
-| `{ definition, referenceClient, onRecordChange, onReady, recordOverride, help }` | `RecordWorkspaceProps & {     definition: RecordWorkspaceDefinition; }` | Yes | RecordWorkspaceProps plus the required RecordWorkspaceDefinition; host supplies admitted references, callbacks and optional help. |
+| `{ definition, referenceClient, onRecordChange, onReady, recordOverride, help, aiDraft, onDismissAiDraft, onApplyAiDraft, reviewAiDraft }` | `RecordWorkspaceProps & {     definition: RecordWorkspaceDefinition; }` | Yes | RecordWorkspaceProps plus the required RecordWorkspaceDefinition; host supplies admitted references, callbacks and optional help. |
 
 ### Returns
 
@@ -2724,6 +2798,52 @@ import type { WorkspaceClient } from '@alneas/eaos-react';
 export function Records({tenantId, sessionKey, client, definition}: {tenantId: string; sessionKey: string; client: WorkspaceClient<unknown>; definition: RecordWorkspaceDefinition}) { return <RecordWorkspaceProvider tenantId={tenantId} recordId={definition.id} sessionKey={sessionKey} client={client}><RecordWorkspace definition={definition}/></RecordWorkspaceProvider>; }
 ```
 
+
+<a id="api-RecordWorkspaceAiDraft"></a>
+
+## [INTERFACE] `RecordWorkspaceAiDraft`
+
+Compatibility re-export; its implementation and documentation are owned by the owning package ``.
+
+Imports: `@alneas/eaos-react/record-workspace`.
+
+### Signature
+
+```typescript
+interface CoreAiDraft {
+    mode: 'create' | 'edit' | string;
+    targetId?: string;
+    baseRevision?: number;
+    scope?: string;
+    riskLevel?: AIRiskLevel;
+    summary?: string;
+    fieldMetadata?: Readonly<Record<string, AiFieldMetadata>>;
+    simulation?: DraftImpactSimulation;
+    values: Readonly<Record<string, unknown>>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `mode` | `'create' \| 'edit' \| string` | Yes | See the upstream owning declaration. |
+| `targetId` | `string` | No | See the upstream owning declaration. |
+| `baseRevision` | `number` | No | See the upstream owning declaration. |
+| `scope` | `string` | No | See the upstream owning declaration. |
+| `riskLevel` | `AIRiskLevel` | No | See the upstream owning declaration. |
+| `summary` | `string` | No | See the upstream owning declaration. |
+| `fieldMetadata` | `Readonly<Record<string, AiFieldMetadata>>` | No | See the upstream owning declaration. |
+| `simulation` | `DraftImpactSimulation` | No | See the upstream owning declaration. |
+| `values` | `Readonly<Record<string, unknown>>` | Yes | See the upstream owning declaration. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-RecordWorkspaceCommand"></a>
 
@@ -2970,6 +3090,90 @@ Optional authorized foreign-key catalogs used by forms and display labels.
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
+<a id="api-RecordWorkspaceInlineSuggestion"></a>
+
+## [INTERFACE] `RecordWorkspaceInlineSuggestion`
+
+Inline AI suggestion for form/table field autocompletion and slash commands.
+
+Imports: `@alneas/eaos-react/record-workspace`.
+
+### Signature
+
+```typescript
+interface RecordWorkspaceInlineSuggestion {
+    id: string;
+    command?: string;
+    label: string;
+    description: string;
+    riskLevel: 1 | 2 | 3;
+    proposedPatch: Record<string, unknown>;
+    confidence: 'high' | 'medium' | 'low';
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Provider-owned suggestion identity. |
+| `command` | `string` | No | Optional slash command used to request this suggestion. |
+| `label` | `string` | Yes | Operator-facing suggestion label. |
+| `description` | `string` | Yes | Operator-facing explanation of the proposed change. |
+| `riskLevel` | `1 \| 2 \| 3` | Yes | Advisory AI tier; the Host resolves execution policy. |
+| `proposedPatch` | `Record<string, unknown>` | Yes | Candidate values that still require owning-schema validation. |
+| `confidence` | `'high' \| 'medium' \| 'low'` | Yes | Provider-reported confidence displayed for human review. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+[RecordWorkspaceProps](#api-RecordWorkspaceProps)
+
+### Public members
+
+#### `id`
+
+Provider-owned suggestion identity.
+
+
+#### `command`
+
+Optional slash command used to request this suggestion.
+
+
+#### `label`
+
+Operator-facing suggestion label.
+
+
+#### `description`
+
+Operator-facing explanation of the proposed change.
+
+
+#### `riskLevel`
+
+Advisory AI tier; the Host resolves execution policy.
+
+
+#### `proposedPatch`
+
+Candidate values that still require owning-schema validation.
+
+
+#### `confidence`
+
+Provider-reported confidence displayed for human review.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-RecordWorkspaceProps"></a>
 
 ## [INTERFACE] `RecordWorkspaceProps`
@@ -2982,6 +3186,10 @@ Imports: `@alneas/eaos-react/record-workspace`.
 
 ```typescript
 interface RecordWorkspaceProps {
+    aiDraft?: CoreAiDraft | null;
+    onDismissAiDraft?: () => void;
+    reviewAiDraft?: (submission: AiDraftSubmission) => Promise<AiDraftReviewResult<WorkspaceSnapshot>>;
+    onApplyAiDraft?: (draft: CoreAiDraft, result: ScopedUiRecord) => void | Promise<void>;
     help?: react.ReactNode;
     referenceClient?: (reference: RecordWorkspaceReference) => WorkspaceClient<unknown>;
     onRecordChange?: (record: ScopedUiRecord | null) => void;
@@ -2994,6 +3202,10 @@ interface RecordWorkspaceProps {
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
+| `aiDraft` | `CoreAiDraft \| null` | No | Optional uncommitted AI draft proposal for human-in-the-loop review. |
+| `onDismissAiDraft` | `() => void` | No | Notifies the host when the AI draft proposal is dismissed by the operator. |
+| `reviewAiDraft` | `(submission: AiDraftSubmission) => Promise<AiDraftReviewResult<WorkspaceSnapshot>>` | No | Host transport to the existing proposal/approval/save endpoint; required for AI draft submission. |
+| `onApplyAiDraft` | `(draft: CoreAiDraft, result: ScopedUiRecord) => void \| Promise<void>` | No | Optional post-save notification identifying the source draft and saved record. Durable proposal and approval evidence belongs to the authenticated Host review endpoint. |
 | `help` | `react.ReactNode` | No | Optional help content; undefined uses Core guide and null hides it. |
 | `referenceClient` | `(reference: RecordWorkspaceReference) => WorkspaceClient<unknown>` | No | Host resolver returning a separately authorized transport per reference catalog. |
 | `onRecordChange` | `(record: ScopedUiRecord \| null) => void` | No | Notifies the plugin when the selected record changes or clears. |
@@ -3009,6 +3221,27 @@ Type declaration; no runtime value.
 RecordWorkspace for a complete host integration example.
 
 ### Public members
+
+#### `aiDraft`
+
+Optional uncommitted AI draft proposal for human-in-the-loop review.
+
+
+#### `onDismissAiDraft`
+
+Notifies the host when the AI draft proposal is dismissed by the operator.
+
+
+#### `reviewAiDraft`
+
+Host transport to the existing proposal/approval/save endpoint; required for AI draft submission.
+
+
+#### `onApplyAiDraft`
+
+Optional post-save notification identifying the source draft and saved record.
+Durable proposal and approval evidence belongs to the authenticated Host review endpoint.
+
 
 #### `help`
 
@@ -3728,6 +3961,44 @@ export function operationContext(definition: SnapshotWorkspaceDefinition, operat
 ```
 
 
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-SourceBoundingBox"></a>
+
+## [INTERFACE] `SourceBoundingBox`
+
+Compatibility re-export; its implementation and documentation are owned by the owning package ``.
+
+Imports: `@alneas/eaos-react/record-workspace`.
+
+### Signature
+
+```typescript
+interface SourceBoundingBox {
+    page: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `page` | `number` | Yes | See the upstream owning declaration. |
+| `x` | `number` | Yes | See the upstream owning declaration. |
+| `y` | `number` | Yes | See the upstream owning declaration. |
+| `width` | `number` | Yes | See the upstream owning declaration. |
+| `height` | `number` | Yes | See the upstream owning declaration. |
+
+### Returns
+
+Type declaration; no runtime value.
 
 ### Example
 

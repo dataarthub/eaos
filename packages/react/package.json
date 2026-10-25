@@ -104,12 +104,14 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "react-dom": "^19.3.1",
-    "happy-dom": "21.0.3"
+    "happy-dom": "21.0.3",
+    "@alneas/eaos-core": "^0.1.0"
   },
   "peerDependencies": {
     "react": "^18.3.0 || ^19.0.0",
     "@alneas/appkit-react": "0.2.0",
-    "lucide-react": "^0.475.0 || ^1.57.0"
+    "lucide-react": "^0.475.0 || ^1.57.0",
+    "@alneas/eaos-core": "^0.1.0"
   },
   "peerDependenciesMeta": {
     "@alneas/appkit-react": {

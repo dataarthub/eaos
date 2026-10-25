@@ -64,13 +64,6 @@ test('AI-to-UI draft pattern: accepts draft proposal and preserves deterministic
  expect(parsed).not.toHaveProperty('unverifiedNoise')
 })
 
-test('AI-to-UI draft pattern: rejects stale draft when baseRevision mismatches current record', () => {
- const selectedRecord = { id: 'prop-1', revision: 2, name: '現行名' }
- const staleDraft = { mode: 'edit', targetId: 'prop-1', baseRevision: 1, values: { name: '古い下書き名' } }
- const isTargetMatch = selectedRecord.id === staleDraft.targetId && selectedRecord.revision === staleDraft.baseRevision
- expect(isTargetMatch).toBe(false)
-})
-
 test('Inline AI completion patch application: applies proposed patch safely without overriding protected fields', () => {
  const schema = { type: 'object', properties: { amount: { type: 'integer' }, taxAmount: { type: 'integer' }, description: { type: 'string' } } }
  const form = recordFormSchema(schema, [])

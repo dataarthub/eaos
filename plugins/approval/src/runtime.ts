@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { PluginPrincipal } from '@alneas/eaos-server/plugin-data'
-import { createPlugin, type ApprovalOptions } from './index'
+import { createPlugin, type ApprovalPluginOptions } from './index'
 import { lifecycle } from './lifecycle'
 /**
  * Live host service configuration and current authenticated principal resolver.
@@ -9,9 +9,9 @@ import { lifecycle } from './lifecycle'
  */
 export interface PublicPluginBindings {
   /**
- * Live plugin service/storage/authorization configuration.
+ * Live approval storage/authorization configuration, optionally including reviewed-draft Host proposal/save ports.
  */
-  options: ApprovalOptions
+  options: ApprovalPluginOptions
   /**
  * Resolve current verified Hono request identity, or null to deny access; rejection propagates.
  * @param context - Current Hono request context.

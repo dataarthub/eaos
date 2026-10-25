@@ -1,15 +1,19 @@
 import { canonicalJsonHash } from '../serialization/index'
 import type { ExecutionSideEffect } from '../agent/approved-execution'
-import type { PluginManifest, McpToolDefinition, GatekeeperPolicy } from './types'
+import type { PluginManifest, McpToolDefinition } from './types'
 import type { ApprovalLevel, ExtendedGatekeeperPolicy } from '../security/gatekeeper'
 import type { RiskLevel } from './types'
-import { mapAIRiskToGatekeeper } from '../ai/governance'
+import type { AIRiskLevel } from '../ai/governance'
+import { resolveGatekeeperPolicy } from '../security/policy'
 
 /**
  * Normalized tool schemas and execution policy captured with a deterministic content hash.
  * @see {@link createPluginContractSnapshot}
  */
 export interface ToolContractSnapshot {
+  /** Declared AI tier retained in approval identity even when explicit requirements are stricter. */
+  aiRiskLevel?: AIRiskLevel
+
   
   /** Exact registered tool identity; parsing/discovery does not authorize its execution. */
   name: string
@@ -90,45 +94,6 @@ export interface ContractCompatibilityReport {
   issues: ContractCompatibilityIssue[]
 }
 
-function resolvePolicy(policy: ExtendedGatekeeperPolicy | undefined): {
-  riskLevel: RiskLevel
-  approvalLevel: ApprovalLevel
-  requireHumanApproval: boolean
-} {
-  let riskLevel: RiskLevel = policy?.riskLevel ?? 'low'
-  let approvalLevel: ApprovalLevel = policy?.approvalLevel ?? 'L1_AUTO'
-  let requireHumanApproval = policy?.requireHumanApproval
-
-  if (policy?.aiRiskLevel) {
-    const mapped = mapAIRiskToGatekeeper(policy.aiRiskLevel)
-    riskLevel = policy.riskLevel ?? mapped.riskLevel
-    approvalLevel = policy.approvalLevel ?? mapped.approvalLevel
-    if (requireHumanApproval === undefined) {
-      requireHumanApproval = mapped.requireHumanApproval
-    }
-  } else if (!policy?.approvalLevel) {
-    if (riskLevel === 'critical') approvalLevel = 'L4_EXECUTIVE'
-    else if (riskLevel === 'high') approvalLevel = 'L3_MANAGER'
-    else if (riskLevel === 'medium') approvalLevel = 'L2_LEAD'
-    else approvalLevel = 'L1_AUTO'
-  }
-
-  if (requireHumanApproval === undefined) {
-    requireHumanApproval = approvalLevel !== 'L1_AUTO'
-  }
-
-  return { riskLevel, approvalLevel, requireHumanApproval }
-}
-
-function risk(policy: ExtendedGatekeeperPolicy | undefined): RiskLevel {
-  return resolvePolicy(policy).riskLevel
-}
-
-function approvalLevel(policy: ExtendedGatekeeperPolicy | undefined, level?: ApprovalLevel): ApprovalLevel {
-  if (level) return level
-  return resolvePolicy(policy).approvalLevel
-}
-
 function required(schema: Record<string, unknown>): string[] {
   return Array.isArray(schema.required) ? schema.required.filter((value): value is string => typeof value === 'string') : []
 }
@@ -196,7 +161,7 @@ export function compareOutputSchemaCompatibility(previous: Record<string, unknow
 
 function toolContract(tool: McpToolDefinition, policy: ExtendedGatekeeperPolicy | undefined): ToolContractSnapshot {
   const contract = tool.contract
-  const resolved = resolvePolicy(policy)
+  const resolved = resolveGatekeeperPolicy(policy)
   const normalized = {
     name: tool.name,
     version: contract?.version ?? '1.0.0',
@@ -204,9 +169,7 @@ function toolContract(tool: McpToolDefinition, policy: ExtendedGatekeeperPolicy 
     ...(contract?.outputSchema ? { outputSchema: structuredClone(contract.outputSchema) } : {}),
     permission: contract?.permission ?? tool.name,
     sideEffect: contract?.sideEffect ?? 'write' as const,
-    riskLevel: resolved.riskLevel,
-    approvalLevel: resolved.approvalLevel,
-    requireHumanApproval: resolved.requireHumanApproval,
+    ...resolved,
   }
   return { ...normalized, hash: canonicalJsonHash(normalized) }
 }
@@ -215,8 +178,8 @@ function toolContract(tool: McpToolDefinition, policy: ExtendedGatekeeperPolicy 
  * Normalize advertised tool schemas/policies into a deterministic plugin snapshot.
  * @param manifest - Plugin discovery manifest; tools default to empty and are sorted by name. Missing tool contracts use version 1.0.0, permission equal to tool name and sideEffect write.
  * @returns A new snapshot with cloned schemas, normalized policy fields and SHA-256 tool/plugin hashes.
- * @throws Cloning or strict canonical JSON hashing errors propagate.
- * @remarks Requires node:crypto. Missing risk defaults to low; approval level derives from risk and human-review default is risk != low. The snapshot does not authorize execution.
+ * @throws Cloning, invalid AI tier or strict canonical JSON hashing errors propagate.
+ * @remarks Requires node:crypto. Missing risk defaults to low; approval level derives from risk and human review defaults to approval level != L1_AUTO. AI tiers set minimum requirements. The snapshot does not authorize execution.
  * @example
  * ```typescript
  * import { createPluginContractSnapshot } from "@alneas/eaos-core/plugin-sdk/contract-compatibility";
@@ -252,7 +215,7 @@ export function comparePluginContractSnapshots(previous: PluginContractSnapshot,
     if (!nextTool) { issues.push({ toolName: oldTool.name, kind: 'removed', message: `Tool '${oldTool.name}' was removed` }); continue }
     for (const message of compareInputSchemaCompatibility(oldTool.inputSchema, nextTool.inputSchema)) issues.push({ toolName: oldTool.name, kind: 'input-breaking', message })
     for (const message of compareOutputSchemaCompatibility(oldTool.outputSchema, nextTool.outputSchema)) issues.push({ toolName: oldTool.name, kind: 'output-breaking', message })
-    if (oldTool.permission !== nextTool.permission || oldTool.sideEffect !== nextTool.sideEffect || oldTool.riskLevel !== nextTool.riskLevel || oldTool.approvalLevel !== nextTool.approvalLevel || oldTool.requireHumanApproval !== nextTool.requireHumanApproval) issues.push({ toolName: oldTool.name, kind: 'policy-change', message: `Execution policy for '${oldTool.name}' changed; existing approvals must not be reused` })
+    if (oldTool.aiRiskLevel !== nextTool.aiRiskLevel || oldTool.permission !== nextTool.permission || oldTool.sideEffect !== nextTool.sideEffect || oldTool.riskLevel !== nextTool.riskLevel || oldTool.approvalLevel !== nextTool.approvalLevel || oldTool.requireHumanApproval !== nextTool.requireHumanApproval) issues.push({ toolName: oldTool.name, kind: 'policy-change', message: `Execution policy for '${oldTool.name}' changed; existing approvals must not be reused` })
   }
   return { compatible: issues.length === 0, issues }
 }

@@ -38,8 +38,10 @@ describe('Hybrid Block Document (Unstructured Text + Immutable ERP Ledger Block)
               sourceKey: 'doc:doc-hybrid-001:blk-03',
               date: '2026-10-24',
               description: 'エントランスタイル変更追加工事',
-              state: 'DRAFT',
-              revision: 1,
+              status: 'DRAFT',
+              periodId: 'period-1',
+              createdBy: 'actor-1',
+              provenance: { createdBy: 'actor-1', riskLevel: 2, aiGenerated: true },
               lines: [
                 { accountId: 'acc-receivable', side: 'D', amount: 2200000 },
                 { accountId: 'acc-sales', side: 'C', amount: 2000000 },
@@ -81,8 +83,10 @@ describe('Hybrid Block Document (Unstructured Text + Immutable ERP Ledger Block)
               sourceKey: 'test',
               date: '2026-10-24',
               description: '不一致仕訳',
-              state: 'DRAFT',
-              revision: 1,
+              status: 'DRAFT',
+              periodId: 'period-1',
+              createdBy: 'actor-1',
+              provenance: { createdBy: 'actor-1', riskLevel: 2, aiGenerated: true },
               lines: [
                 { accountId: 'acc-debit', side: 'D', amount: 100000 },
                 { accountId: 'acc-credit', side: 'C', amount: 99999 }, // 1円不一致！
@@ -97,5 +101,61 @@ describe('Hybrid Block Document (Unstructured Text + Immutable ERP Ledger Block)
     expect(result.valid).toBe(false)
     expect(result.errors.length).toBe(1)
     expect(result.errors[0]).toContain('failed ledger balancing')
+  })
+})
+
+const minimalDocument = {
+  id: 'doc-1', tenantId: 'tenant-demo', title: 'Memo',
+  createdAt: '2026-10-24T00:00:00Z', updatedAt: '2026-10-24T00:00:00Z',
+  blocks: [{ id: 'block-1', type: 'markdown' as const, content: '# Memo' }],
+}
+
+describe('Hybrid document JSON boundary', () => {
+  it('rejects malformed root values and block containers without throwing', () => {
+    const invalidInputs = [null, undefined, [], {}, { ...minimalDocument, blocks: null },
+      { ...minimalDocument, blocks: {} }, { ...minimalDocument, blocks: [null] }]
+    for (const input of invalidInputs) {
+      const result = validateHybridDocument(input)
+      expect(result.valid).toBe(false)
+      expect(result.errors.length).toBeGreaterThan(0)
+      expect(result.verifiedBlocksCount).toBe(0)
+    }
+  })
+  it('rejects unknown discriminators and invalid block field types without coercion', () => {
+    const invalidBlocks = [
+      { id: 'block-1', type: 'unknown', content: 'Memo' },
+      { id: 'block-1', type: 'markdown', content: 123 },
+      { id: 'block-1', type: 'attachment', fileUrl: 123, mimeType: 'text/plain', fileName: 'memo.txt' },
+      { id: 'block-1', type: 'erp_record_table', entitySchema: 'journal', records: [null] },
+    ]
+    for (const block of invalidBlocks) {
+      const input = { ...minimalDocument, blocks: [block] }
+      const before = structuredClone(input)
+      expect(validateHybridDocument(input).valid).toBe(false)
+      expect(input).toEqual(before)
+    }
+  })
+  it('rejects duplicate block identities', () => {
+    const result = validateHybridDocument({ ...minimalDocument, blocks: [...minimalDocument.blocks, ...minimalDocument.blocks] })
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(error => error.includes('Duplicate block id'))).toBe(true)
+  })
+  it('rejects a balanced ledger entry belonging to another tenant', () => {
+    const result = validateHybridDocument({ ...minimalDocument, blocks: [{
+      id: 'ledger-1', type: 'erp_record_table', entitySchema: 'journal', records: [{
+        id: 'entry-1', tenantId: 'foreign-tenant', periodId: 'period-1', date: '2026-10-24',
+        description: 'Memo', sourceKey: 'memo-1', createdBy: 'actor-1', status: 'DRAFT',
+        provenance: { createdBy: 'actor-1', riskLevel: 2, aiGenerated: false },
+        lines: [{ accountId: 'account-debit', side: 'D', amount: 100 }, { accountId: 'account-credit', side: 'C', amount: 100 }],
+      }],
+    }] })
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(error => error.includes('tenant'))).toBe(true)
+  })
+  it('preserves valid document inputs without coercion or removing extension metadata', () => {
+    const input = { ...minimalDocument, metadata: { source: 'host' } }
+    const before = structuredClone(input)
+    expect(validateHybridDocument(input).valid).toBe(true)
+    expect(input).toEqual(before)
   })
 })

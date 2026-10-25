@@ -1,95 +1,52 @@
 import { describe, expect, it } from 'bun:test'
-import { createMockDoclingParser } from '../ai/document-parser'
-import { generateConstructionJournalDraft } from './construction-journal-pipeline'
-import { assertImmutableTransition, type ImmutableLedgerEntry } from './immutable-ledger'
-import { evaluateAIRiskPolicy } from '../ai/governance'
+import * as pipeline from './construction-journal-pipeline'
+import { generateJournalDraftFromDocument } from './journal-draft'
+import type { ParsedDocumentResult } from '../ai/document-parser'
 
-describe('Vertical Slice: PDF Docling -> Level 2 AI Draft -> Editable Table UI -> Immutable Ledger POST', () => {
-  it('executes full pipeline from document parsing to immutable ledger posting', async () => {
-    // 1. Docling parse simulation
-    const parser = createMockDoclingParser(() => ({
-      markdown: '# 請求書\n\n発行日: 2026-10-24\n案件: 青山ビル新築工事\n',
-      tables: [
-        {
-          title: '請求明細',
-          headers: ['品名・工種', '数量', '単位', '単価', '金額'],
-          rows: [
-            ['基礎鉄筋配筋工事', '1', '式', '500000', '500000'],
-            ['コンクリート打設工事', '1', '式', '800000', '800000'],
-          ],
-        },
-      ],
-    }))
+const parsedDoc: ParsedDocumentResult = {
+  name: 'source.pdf', markdown: 'Date: 2026-10-24',
+  tables: [{ headers: ['項目', '数量', '単価', '金額'], rows: [['Service A', '2', '100', '200'], ['Service B', '1', '300', '300']] }],
+}
 
-    const parsedDoc = await parser.parse({
-      filename: '請求書_基礎工事_20261024.pdf',
-      content: new Uint8Array([1, 2, 3]),
+describe('Generic journal draft pipeline', () => {
+  it('exposes no construction account resolver', () => {
+    expect('generateConstructionJournalDraft' in pipeline).toBe(false)
+  })
+  it('creates a balanced unposted draft using host account mapping', () => {
+    const result = generateJournalDraftFromDocument({
+      tenantId: 'tenant-demo', periodId: 'period-1', parsedDoc,
+      mapping: { debitAccountId: 'acc-debit', creditAccountId: 'acc-credit' }, createdBy: 'actor-1',
     })
-
-    // 2. Draft generation with accounting rules (WIP vs Cost)
-    const mapping = {
-      wipAccountId: 'acc-wip', // 未成工事支出金
-      completedCostAccountId: 'acc-completed-cost', // 完成工事原価
-      payableAccountId: 'acc-payable', // 工事未払金
-    }
-
-    // In-progress project generates WIP (未成工事支出金)
-    const inProgressResult = generateConstructionJournalDraft({
-      tenantId: 'tenant-demo',
-      periodId: 'period-2026-10',
-      parsedDoc,
-      mapping,
-      projectStatus: 'IN_PROGRESS',
-      createdBy: 'ai-docling-agent',
+    expect(result.draftEntry.status).toBe('DRAFT')
+    expect(result.draftEntry.createdBy).toBe('actor-1')
+    expect(result.draftEntry.lines).toEqual([
+      { accountId: 'acc-debit', side: 'D', amount: 500 }, { accountId: 'acc-credit', side: 'C', amount: 500 },
+    ])
+    expect(result.draftEntry.date).toBe('2026-10-24')
+    expect(result.uiDraft.values.lines).toEqual(result.draftEntry.lines)
+    expect(result.uiDraft.simulation?.metrics[0].label).toBe('借方合計')
+    expect(result.uiDraft.simulation?.metrics.map(metric => metric.after)).toEqual([500, 0])
+    expect(result.uiDraft.summary).not.toMatch(/[¥￥]/u)
+  })
+  it('delegates account selection to an injected resolver and context', () => {
+    const result = generateJournalDraftFromDocument({
+      tenantId: 'tenant-demo', periodId: 'period-1', parsedDoc, createdBy: 'actor-1',
+      context: { debit: 'acc-host-choice' },
+      mapping: context => ({ debitAccountId: context.debit, creditAccountId: 'acc-credit' }),
     })
-
-    expect(inProgressResult.draftEntry.status).toBe('DRAFT')
-    expect(inProgressResult.draftEntry.lines[0].accountId).toBe('acc-wip')
-    expect(inProgressResult.draftEntry.lines[0].amount).toBe(1300000)
-    expect(inProgressResult.draftEntry.lines[1].accountId).toBe('acc-payable')
-    expect(inProgressResult.draftEntry.lines[1].amount).toBe(1300000)
-    expect(inProgressResult.draftEntry.date).toBe('2026-10-24')
-
-    // 3. UI Draft compatibility check (AI-to-UI payload)
-    const { uiDraft } = inProgressResult
-    expect(uiDraft.mode).toBe('create_journal')
-    expect(uiDraft.riskLevel).toBe(2)
-    expect(uiDraft.summary).toContain('1,300,000')
-    expect(uiDraft.values.lines).toBeDefined()
-
-    // 4. Governance check: Level 2 direct automated DB commit MUST be blocked without human confirmation
-    const directAutoCommit = evaluateAIRiskPolicy(uiDraft.riskLevel!, {
-      isDirectMutation: true,
-      hasHumanConfirmation: false,
-    })
-    expect(directAutoCommit.allowed).toBe(false)
-    expect(directAutoCommit.humanConfirmationRequired).toBe(true)
-
-    // 5. Human-in-the-Loop: Operator verifies in UI (EditableTable) and modifies if needed
-    // Operator confirms, policy allows commit
-    const humanApprovedCommit = evaluateAIRiskPolicy(uiDraft.riskLevel!, {
-      isDirectMutation: true,
-      hasHumanConfirmation: true,
-    })
-    expect(humanApprovedCommit.allowed).toBe(true)
-
-    // 6. State Transition: DRAFT -> POSTED in Immutable Ledger
-    const committedEntry: ImmutableLedgerEntry = {
-      id: 'journal-uuid-999',
-      ...inProgressResult.draftEntry,
-      status: 'POSTED',
-      provenance: {
-        ...inProgressResult.draftEntry.provenance,
-        humanReviewedFields: ['lines', 'date', 'amount'],
-        reviewNotes: '現場監督承認済',
-      },
-    }
-
-    expect(() => assertImmutableTransition('DRAFT', 'POSTED')).not.toThrow()
-    expect(committedEntry.status).toBe('POSTED')
-    expect(committedEntry.provenance.humanReviewedFields).toContain('lines')
-
-    // 7. Verify Post-Commit Immutability: POSTED cannot be mutated or rolled back to DRAFT
-    expect(() => assertImmutableTransition(committedEntry.status, 'DRAFT')).toThrow('immutable')
+    expect(result.draftEntry.lines[0].accountId).toBe('acc-host-choice')
+  })
+  it('rejects a table with only a unit-price amount column', () => {
+    expect(() => generateJournalDraftFromDocument({
+      tenantId: 'tenant-demo', periodId: 'period-1', createdBy: 'actor-1',
+      parsedDoc: { ...parsedDoc, tables: [{ headers: ['項目', '数量', '単価金額'], rows: [['Service', '2', '100']] }] },
+      mapping: { debitAccountId: 'acc-debit', creditAccountId: 'acc-credit' },
+    })).toThrow('No valid billable line items')
+  })
+  it('rejects documents without positive whole minor-unit line amounts', () => {
+    expect(() => generateJournalDraftFromDocument({
+      tenantId: 'tenant-demo', periodId: 'period-1', createdBy: 'actor-1',
+      parsedDoc: { ...parsedDoc, tables: [] }, mapping: { debitAccountId: 'acc-debit', creditAccountId: 'acc-credit' },
+    })).toThrow('No valid billable line items')
   })
 })

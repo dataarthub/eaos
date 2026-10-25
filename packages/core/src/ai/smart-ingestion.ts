@@ -4,28 +4,52 @@ import type { SourceEvidenceCitation } from './evidence-traceability'
 
 /**
  * Raw unstructured input type supported by the Smart Ingestion Inbox.
+ * @see {@link processSmartIngestionWithAi}
  */
 export type IngestionSourceType = 'memo' | 'pdf' | 'audio_transcript' | 'image' | 'email'
 
 /**
  * An item dropped or fed into the Smart Ingestion Inbox.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionItem {
+  /**
+   * Host-assigned inbox item identity.
+   */
   id: string
+  /**
+   * Tenant identity supplied by the host; this field alone does not establish authorization.
+   */
   tenantId: string
+  /**
+   * Transport or media category of the original input.
+   */
   sourceType: IngestionSourceType
+  /**
+   * Human-readable title supplied with the source item.
+   */
   title: string
+  /**
+   * Unstructured source text to classify or extract.
+   */
   content: string
+  /**
+   * Host-provided creation timestamp for the source item.
+   */
   createdAt: string
+  /**
+   * Optional host metadata associated with the input.
+   */
   metadata?: Record<string, unknown>
 }
 
 /**
  * Classified intent and target workspace routing.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionClassification {
   /** Target workspace domain */
-  domain: 'accounting' | 'construction' | 'estate' | 'hospitality' | 'general'
+  domain: string
   /** Proposed operation name or workspace command */
   targetMode: string
   /** Confidence score of the domain classification */
@@ -38,51 +62,149 @@ export interface IngestionClassification {
 
 /**
  * Structured extraction payload produced by LLM models with semantic intent.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface LlmIngestionExtraction {
-  domain: 'accounting' | 'construction' | 'estate' | 'hospitality' | 'general'
+  /**
+   * Host-defined domain identifier used to select a registered handler.
+   */
+  domain: string
+  /**
+   * Host command or form mode proposed for review.
+   */
   targetMode: string
+  /**
+   * Human-readable extraction summary for the review interface.
+   */
   summary: string
+  /**
+   * Confidence category reported by the classifier or model adapter.
+   */
   confidence: 'high' | 'medium' | 'low'
+  /**
+   * Normalized candidate fields returned by the model; business validation remains host-owned.
+   */
   extractedFields: {
+    /**
+     * Human-readable title supplied with the source item.
+     */
     title?: string
+    /**
+     * Optional extracted transaction date.
+     */
     date?: string
+    /**
+     * Optional amount using the units agreed by the host and adapter.
+     */
     amount?: number
+    /**
+     * Optional person or organization name extracted from the input.
+     */
     partyName?: string
+    /**
+     * Optional extracted free-text notes.
+     */
     notes?: string
-    lineItems?: readonly { name: string; amount: number; quantity?: number; unit?: string }[]
+    /**
+     * Optional extracted line candidates; no posting or tax policy is applied.
+     */
+    lineItems?: readonly {
+      /**
+      * Display name of an extracted line item.
+      */
+      name: string;
+      /**
+      * Optional amount using the units agreed by the host and adapter.
+      */
+      amount: number;
+      /**
+      * Optional extracted quantity for the line item.
+      */
+      quantity?: number;
+      /**
+      * Optional unit label associated with the quantity.
+      */
+      unit?: string
+    }[]
   }
 }
 
 /**
  * Model adapter interface for semantic AI understanding.
  * Plugs into Vercel AI SDK (generateObject), LangChain or local models (MLX/Ollama).
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionModelAdapter {
+  /**
+   * Extract host-defined routing intent and candidate fields from an inbox item.
+   * @param input - Original source item and optional verified host execution scope.
+   * @returns Structured model extraction for subsequent host mapping and review.
+   * @example
+   * ```typescript
+   * import type { IngestionItem, IngestionModelAdapter } from '@alneas/eaos-core/ai/smart-ingestion';
+   * export async function extract(adapter: IngestionModelAdapter, item: IngestionItem) { return adapter.extractIntent({ item }); }
+   * ```
+   * @throws Model/provider failures reject the Promise.
+   */
   extractIntent(input: {
+    /**
+     * Original inbox item supplied to the model adapter.
+     */
     item: IngestionItem
+    /**
+     * Optional execution scope passed by the host.
+     */
     context?: Partial<AIExecutionContext>
   }): Promise<LlmIngestionExtraction>
 }
 
 /**
  * Warning / anomaly flag generated during smart ingestion.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionAnomalyAlert {
+  /**
+   * Alert category produced by duplicate or outlier analysis.
+   */
   type: 'duplicate_candidate' | 'outlier_amount' | 'unusual_vendor'
+  /**
+   * Display severity of the detected anomaly.
+   */
   severity: 'info' | 'warning' | 'critical'
+  /**
+   * Human-readable description of the potential anomaly.
+   */
   message: string
+  /**
+   * Optional statistical score reported by the outlier detector.
+   */
   score?: number
 }
 
 /**
  * Result of smart ingestion processing, containing routing metadata and the reviewable UI draft.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionProcessingResult {
+  /**
+   * Identity of the processed inbox item.
+   */
   itemId: string
+  /**
+   * Domain routing and risk metadata for the proposed draft.
+   */
   classification: IngestionClassification
+  /**
+   * Reviewable UI proposal containing candidate values; no persistence is performed.
+   */
   uiDraft: CoreAiDraft
+  /**
+   * Candidate values after optional host domain mapping.
+   */
   extractedValues: Record<string, unknown>
+  /**
+   * Whether the result used a supplied model or the fallback classifier.
+   */
   processedBy: 'llm_model' | 'heuristic_fallback'
   /** Proactive anomaly alerts (outliers, duplicate entries) */
   alerts?: IngestionAnomalyAlert[]
@@ -91,152 +213,54 @@ export interface IngestionProcessingResult {
 }
 
 /**
- * System prompt template used when querying the LLM for structured ERP extraction.
+ * Host-supplied synchronous text classifier used on the model-free ingestion path.
+ * @see {@link processSmartIngestionWithAi}
  */
-export const SMART_INGESTION_SYSTEM_PROMPT = `You are an AI ERP Assistant for enterprise domains:
-1. 'accounting': Invoices, payments, receipts, journal entries.
-2. 'construction': Site logs, subcontractor progress, defects, field inspections.
-3. 'estate': Tenant applications, leases, property repairs, smart lock codes.
-4. 'hospitality': Guest requests, reservations, dietary preferences, room cleaning.
-5. 'general': Unclassified memos.
-
-Analyze the casual or transcribed text. Infer implicit dates, monetary amounts (JPY minor/whole), parties, and line items.
-Always output valid structured data conforming to the schema. Do not invent unauthorized commitments.`
+export type IngestionClassifier = (text: string) => IngestionClassification
 
 /**
- * Fallback classification rules when LLM is unavailable or offline.
+ * Return a general memo classification without inferring a business domain.
+ * @param _text - Input text retained by the classifier signature; the default does not inspect its contents.
+ * @returns Low-confidence general memo routing with risk level 1.
+ * @example
+ * ```typescript
+ * import { classifyIngestionText } from '@alneas/eaos-core/ai/smart-ingestion';
+ * const classification = classifyIngestionText('Review this source memo'); // domain: general
+ * ```
  */
-export function classifyIngestionText(text: string): IngestionClassification {
-  if (/請求|領収|仕訳|支払|振込|インボイス|消込|税抜|税込|円|¥/u.test(text)) {
-    return {
-      domain: 'accounting',
-      targetMode: 'create_journal',
-      confidence: 'high',
-      riskLevel: 2,
-      rationale: '請求・金額・支払に関する記述を検知し、会計仕訳起票（Level 2）として分類しました。',
-    }
-  }
-
-  if (/工事|工種|足場|打設|クロス|配管|現場|是正|日報|出来高|竣工|着工/u.test(text)) {
-    return {
-      domain: 'construction',
-      targetMode: 'log_progress',
-      confidence: 'high',
-      riskLevel: 2,
-      rationale: '現場・工事・工程進捗に関する記述を検知し、工事日報・進捗更新（Level 2）として分類しました。',
-    }
-  }
-
-  if (/入居|退去|物件|住戸|家賃|賃貸|仲介|内見|スマートロック|暗証番号/u.test(text)) {
-    return {
-      domain: 'estate',
-      targetMode: 'create_application',
-      confidence: 'high',
-      riskLevel: 2,
-      rationale: '物件・入居者・賃貸管理に関する記述を検知し、不動産契約・申込ドラフト（Level 2）として分類しました。',
-    }
-  }
-
-  if (/チェックイン|チェックアウト|宿泊|部屋割り|アレルギー|客室|滞在|清掃|支配人/u.test(text)) {
-    return {
-      domain: 'hospitality',
-      targetMode: 'create_guest_request',
-      confidence: 'high',
-      riskLevel: 2,
-      rationale: '宿泊・チェックイン・客室リクエストを検知し、ホテル部門タスク（Level 2）として分類しました。',
-    }
-  }
-
+export function classifyIngestionText(_text: string): IngestionClassification {
   return {
     domain: 'general',
     targetMode: 'create',
     confidence: 'low',
     riskLevel: 1,
-    rationale: '特定業務キーワードが検出されなかったため、一般参照・ドラフトメモとして分類しました。',
-  }
-}
-
-/**
- * Creates an AI model adapter with natural language reasoning (LLM).
- * Can be backed by real AI SDK models or deterministic simulation for tests.
- */
-export function createMockLlmModelAdapter(
-  customHandler?: (text: string) => Partial<LlmIngestionExtraction>
-): IngestionModelAdapter {
-  return {
-    async extractIntent({ item }) {
-      if (customHandler) {
-        const custom = customHandler(item.content)
-        return {
-          domain: custom.domain ?? 'general',
-          targetMode: custom.targetMode ?? 'create',
-          summary: custom.summary ?? `LLM extracted intent from ${item.title}`,
-          confidence: custom.confidence ?? 'high',
-          extractedFields: custom.extractedFields ?? {},
-        }
-      }
-
-      // Default LLM simulated semantic parser
-      const text = item.content
-      if (/クロス|内装|ボード|ひび割れ|是正/u.test(text)) {
-        return {
-          domain: 'construction',
-          targetMode: 'log_progress',
-          summary: '現場音声メモから内装工事の完了報告およびボード是正タスクを抽出しました。',
-          confidence: 'high',
-          extractedFields: {
-            title: '3階内装クロス張替工事 進捗日報',
-            notes: 'クロス張替完了。ボード一部ひび割れあり、是正指示済。',
-          },
-        }
-      }
-
-      if (/足場|35万|請求/u.test(text)) {
-        return {
-          domain: 'accounting',
-          targetMode: 'create_journal',
-          summary: '請求受領メモから仮設足場工事の未払費用（¥350,000）の仕訳ドラフトを抽出しました。',
-          confidence: 'high',
-          extractedFields: {
-            title: '仮設足場工事 請求仕訳',
-            amount: 350000,
-            date: '2026-11-15',
-            lineItems: [{ name: '仮設足場費用', amount: 350000 }],
-          },
-        }
-      }
-
-      if (/そば|アレルギー|朝食/u.test(text)) {
-        return {
-          domain: 'hospitality',
-          targetMode: 'create_guest_request',
-          summary: '顧客アレルギー（そば）対応のレストラン手配タスクを抽出しました。',
-          confidence: 'high',
-          extractedFields: {
-            title: '朝食レストラン: そばアレルギー対応手配',
-            partyName: '田中様',
-            notes: 'そばアレルギーのため朝食メニュー要変更',
-          },
-        }
-      }
-
-      return {
-        domain: 'general',
-        targetMode: 'create',
-        summary: `AIメモ抽出: ${item.title}`,
-        confidence: 'low',
-        extractedFields: { title: item.title, notes: item.content },
-      }
-    },
+    rationale: 'Saved as a general memo for review.',
   }
 }
 
 /**
  * Pure contract for a domain-specific ingestion handler registered by business plugins.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionDomainPluginHandler {
+  /**
+   * Host-defined domain identifier used to select a registered handler.
+   */
   domain: string
-  /** Maps extracted fields into domain-specific record draft values without hardcoding in Core */
+  /**
+   * Maps extracted fields into domain-specific record draft values without hardcoding in Core
+   * @param extractedFields - Generic extracted fields or source memo fields on the fallback path.
+   * @param item - Original source item for host identity and context mapping.
+   * @returns Host-domain candidate values for a UI draft.
+   * @example
+   * ```typescript
+   * import type { IngestionDomainPluginHandler, IngestionItem } from '@alneas/eaos-core/ai/smart-ingestion';
+   * export function mapMemo(handler: IngestionDomainPluginHandler, item: IngestionItem) {
+   *   return handler.mapToDraftValues({ title: item.title, notes: item.content }, item);
+   * }
+   * ```
+   * @throws Host mapping or validation errors propagate.
+   */
   mapToDraftValues(
     extractedFields: LlmIngestionExtraction['extractedFields'],
     item: IngestionItem
@@ -245,21 +269,64 @@ export interface IngestionDomainPluginHandler {
 
 /**
  * Options for contextual anomaly detection during ingestion processing.
+ * @see {@link processSmartIngestionWithAi}
  */
 export interface IngestionProcessingOptions {
+  /**
+   * Optional host adapter responsible for semantic intent extraction.
+   */
   modelAdapter?: IngestionModelAdapter
+  /**
+   * Optional synchronous host classifier used when no model adapter is supplied.
+   */
+  classifier?: IngestionClassifier
   /** Optional domain plugin handlers to override default draft mapping */
   domainHandlers?: Record<string, IngestionDomainPluginHandler>
   /** Historical transaction amounts for the detected category/vendor to check for outliers */
-  historicalAmounts?: readonly { timestamp: number; value: number }[]
+  historicalAmounts?: readonly {
+    /**
+    * Timestamp of the historical numeric observation.
+    */
+    timestamp: number;
+    /**
+    * Historical numeric amount in the same units as the extracted amount.
+    */
+    value: number
+  }[]
   /** Recent existing entries to detect duplicates */
-  existingEntries?: readonly { title?: string; amount?: number; date?: string; vendor?: string }[]
+  existingEntries?: readonly {
+    /**
+    * Human-readable title supplied with the source item.
+    */
+    title?: string;
+    /**
+    * Optional amount using the units agreed by the host and adapter.
+    */
+    amount?: number;
+    /**
+    * Optional extracted transaction date.
+    */
+    date?: string;
+    /**
+    * Optional vendor identity retained in the host-provided history.
+    */
+    vendor?: string
+  }[]
   /** Optional source document citation for bounding box pinning */
   sourceCitation?: SourceEvidenceCitation
 }
 
 /**
  * Detects anomalies such as statistical outliers and duplicate entries during ingestion.
+ * @param extractedAmount - Optional extracted amount to compare with supplied history.
+ * @param title - Optional extracted title used to narrow duplicate candidates.
+ * @param options - Optional duplicate candidates and historical amounts for statistical analysis.
+ * @returns Duplicate and outlier warnings; an empty list does not prove business correctness.
+ * @example
+ * ```typescript
+ * import { detectIngestionAnomalies } from '@alneas/eaos-core/ai/smart-ingestion';
+ * const alerts = detectIngestionAnomalies(100, 'Memo', { existingEntries: [{ title: 'Memo', amount: 100 }] });
+ * ```
  */
 export function detectIngestionAnomalies(
   extractedAmount?: number,
@@ -319,8 +386,18 @@ export function detectIngestionAnomalies(
 }
 
 /**
- * Processes an unstructured ingestion item using an AI Model Adapter (LLM)
- * with automatic fallback to heuristic rules if no model adapter is supplied.
+ * Process an unstructured item with a host model adapter, or use a host classifier
+ * or general memo classification when no model adapter is supplied.
+ * @param item - Original tenant-scoped source item to turn into a reviewable candidate.
+ * @param optionsOrAdapter - Optional semantic adapter or host classification, mapping, evidence and anomaly options.
+ * @returns Routing metadata, candidate values and a UI draft without persisting a business record.
+ * @example
+ * ```typescript
+ * import { processSmartIngestionWithAi } from '@alneas/eaos-core/ai/smart-ingestion';
+ * const result = await processSmartIngestionWithAi({ id: 'memo-1', tenantId: 'tenant-demo', sourceType: 'memo', title: 'Review memo', content: 'Source text', createdAt: '2026-10-24T00:00:00Z' });
+ * console.log(result.uiDraft.values);
+ * ```
+ * @throws Host model, classifier and domain-mapping failures propagate to the caller.
  */
 export async function processSmartIngestionWithAi(
   item: IngestionItem,
@@ -401,11 +478,10 @@ export async function processSmartIngestionWithAi(
   }
 
   // 2. Fallback to heuristic rules
-  const classification = classifyIngestionText(item.content)
-  const extractedValues: Record<string, unknown> = {
-    title: item.title,
-    notes: item.content,
-  }
+  const classification = (options.classifier ?? classifyIngestionText)(item.content)
+  const fields = { title: item.title, notes: item.content }
+  const handler = options.domainHandlers?.[classification.domain]
+  const extractedValues = handler ? handler.mapToDraftValues(fields, item) : fields
 
   const uiDraft: CoreAiDraft = {
     mode: classification.targetMode,

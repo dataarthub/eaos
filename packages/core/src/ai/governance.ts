@@ -2,17 +2,34 @@ import type { AIChatMessage, AIChatPart } from '@alneas/appkit-core/ai'
 
 /**
  * Visual bounding box coordinates on the original source document (e.g. PDF).
+ * @see {@link CoreAiDraft}
  */
 export interface SourceBoundingBox {
+  /**
+   * Source page index using the coordinate convention of the parser or document viewer.
+   */
   page: number
+  /**
+   * Horizontal origin in the source coordinate system.
+   */
   x: number
+  /**
+   * Vertical origin in the source coordinate system.
+   */
   y: number
+  /**
+   * Region width in the source coordinate system.
+   */
   width: number
+  /**
+   * Region height in the source coordinate system.
+   */
   height: number
 }
 
 /**
  * Metadata for a field extracted by AI, including confidence and source bounding coordinates.
+ * @see {@link CoreAiDraft}
  */
 export interface AiFieldMetadata {
   /** Confidence score: high (green/confident), medium (yellow/review), low (red/attention) */
@@ -25,22 +42,48 @@ export interface AiFieldMetadata {
 
 /**
  * Impact simulation metrics calculated deterministically before committing the draft.
+ * @see {@link CoreAiDraft}
  */
 export interface DraftImpactSimulation {
+  /**
+   * Heading displayed above the host-computed impact preview.
+   */
   title: string
+  /**
+   * Ordered before-and-after measurements supplied for operator review.
+   */
   metrics: readonly {
+    /**
+     * Human-readable metric label.
+     */
     label: string
+    /**
+     * Optional value before applying the proposed change.
+     */
     before?: string | number
+    /**
+     * Projected value after the proposed change.
+     */
     after: string | number
+    /**
+     * Optional formatted difference between the before and after values.
+     */
     change?: string | number
+    /**
+     * Whether the viewer should emphasize this metric for review.
+     */
     alert?: boolean
   }[]
+  /**
+   * Optional warning explaining assumptions or limitations of the preview.
+   */
   warning?: string
 }
 
 /**
  * Pure contract for an AI-assisted draft proposal for forms (AI-to-UI draft pattern).
  * Owned by Core and bound to target record ID and base revision to prevent cross-record misapplication.
+ * @see {@link CoreAiDraft}
  */
 export interface CoreAiDraft {
   /** Target form mode: create, edit, or specific command operation name */
@@ -69,6 +112,7 @@ export interface CoreAiDraft {
  * - Level 1: Read-only query, analytics, navigation (Zero risk -> AI immediate execution).
  * - Level 2: Routine draft generation (Medium risk -> AI-to-UI draft + human confirmation).
  * - Level 3: Critical financial / master data mutations (High risk -> AI execution strictly prohibited, advisory/simulation only).
+ * @see {@link CoreAiDraft}
  */
 export type AIRiskLevel = 1 | 2 | 3
 
@@ -492,10 +536,26 @@ export type AITextOrToolPart = Extract<AIChatPart, {
 
 /**
  * Translates AIRiskLevel (1|2|3) to the platform Gatekeeper RiskLevel and ApprovalLevel.
+ * @param aiRisk - AI operational risk tier to translate.
+ * @returns Platform risk category, approval tier and human-approval requirement.
+ * @example
+ * ```typescript
+ * import { mapAIRiskToGatekeeper } from '@alneas/eaos-core/ai/governance';
+ * const policy = mapAIRiskToGatekeeper(2); // medium risk, L2_LEAD, human approval required.
+ * ```
  */
 export function mapAIRiskToGatekeeper(aiRisk: AIRiskLevel): {
+  /**
+   * Risk category selected for the proposed operation.
+   */
   riskLevel: 'low' | 'medium' | 'high' | 'critical'
+  /**
+   * Platform approval tier associated with the AI risk level.
+   */
   approvalLevel: 'L1_AUTO' | 'L2_LEAD' | 'L3_MANAGER' | 'L4_EXECUTIVE'
+  /**
+   * Whether the mapped tier requires explicit human approval.
+   */
   requireHumanApproval: boolean
 } {
   switch (aiRisk) {
@@ -514,11 +574,39 @@ export function mapAIRiskToGatekeeper(aiRisk: AIRiskLevel): {
  * @param riskLevel - Operational risk tier (1: Read-only, 2: Routine draft, 3: Critical mutation).
  * @param options - Execution context options.
  * @returns Evaluation decision indicating whether immediate automated execution is permitted.
+ * @example
+ * ```typescript
+ * import { evaluateAIRiskPolicy } from '@alneas/eaos-core/ai/governance';
+ * const decision = evaluateAIRiskPolicy(2, { isDirectMutation: true, hasHumanConfirmation: false });
+ * if (!decision.allowed) console.log(decision.reason);
+ * ```
  */
 export function evaluateAIRiskPolicy(
   riskLevel: AIRiskLevel,
-  options?: { isDirectMutation?: boolean; hasHumanConfirmation?: boolean }
-): { allowed: boolean; humanConfirmationRequired: boolean; reason?: string } {
+  options?: {
+    /**
+    * Whether the requested operation directly changes persisted state.
+    */
+    isDirectMutation?: boolean;
+    /**
+    * Whether the host has obtained human confirmation for this operation.
+    */
+    hasHumanConfirmation?: boolean
+  }
+): {
+  /**
+  * Whether this advisory risk check permits the requested execution path.
+  */
+  allowed: boolean;
+  /**
+  * Whether the host must require a human action before proceeding.
+  */
+  humanConfirmationRequired: boolean;
+  /**
+  * Optional explanation for a blocked execution path.
+  */
+  reason?: string
+} {
   if (riskLevel === 1) {
     return { allowed: true, humanConfirmationRequired: false }
   }
