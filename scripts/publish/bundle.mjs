@@ -56,17 +56,19 @@ export async function readBundle(directory,root){
  assertReleaseSelection(manifest,selection)
  return manifest
 }
-export async function handoff(candidate,destination,root){
- const selected=releaseContext({root}),b=JSON.parse(await readFile(join(candidate,'bundle.json'),'utf8'))
+export async function handoff(candidate,destination,root,{selection,recovery}={}){
+ const selected=selection??releaseContext({root}),b=JSON.parse(await readFile(join(candidate,'bundle.json'),'utf8'))
  assert.equal(b.state,'commit-bound');assert.equal(b.commit,selected.commit)
  assert(b.consumerVerified?.guard?.ok,'Missing guarded consumer verification')
  const a=b.archives.find(a=>a.name===selected.name);assert(a);assert.equal(a.version,selected.version)
  const manifest={schemaVersion:1,repository:'https://github.com/dataarthub/eaos',commit:b.commit,sourceHash:b.sourceHash,release:{id:selected.releaseId,tag:selected.tag},staging:{runId:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT)},targets:[a.name],artifacts:[{name:a.name,version:a.version,archive:a.archive,sha256:a.sha256,integrity:a.integrity,notes:a.notes.file,notesSha256:a.notes.sha256}]}
+ if(recovery)manifest.recovery=recovery
  assert(Number.isSafeInteger(manifest.staging.runId)&&manifest.staging.runId>0&&Number.isSafeInteger(manifest.staging.attempt)&&manifest.staging.attempt>0)
  await mkdir(destination,{recursive:true})
  for(const file of [a.archive,a.notes.file])await copyFile(join(candidate,file),join(destination,file))
  await writeFile(join(destination,'release.json'),JSON.stringify(manifest,null,2)+'\n')
- await readBundle(destination,root)
+ await verifyBundleIdentity(manifest,{directory:destination,expectedCommit:selected.commit,targets:[sourceTarget(root,selected.commit,selected.tag)]})
+ assertReleaseSelection(manifest,selected)
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  const root=resolve(import.meta.dirname,'../..')

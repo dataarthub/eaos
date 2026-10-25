@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {registry,requiredTags} from './bundle.mjs';
 import {assertCompletionContext} from './evidence.mjs';
 import {releaseTarget} from './context.mjs';
+import {assertRecoveryContext} from './recovery.mjs';
 function parseVersion(value){
  assert.equal(typeof value,'string','Invalid SemVer');
  const match=/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/.exec(value);
@@ -40,8 +41,9 @@ export function planTarget(artifact,state){
 export function assertWriteEnvironment(env,phase='complete'){
  assert.equal(env.GITHUB_ACTIONS,'true','Publication requires GitHub Actions');
  assert.equal(env.GITHUB_REPOSITORY,'dataarthub/eaos','Unexpected publishing repository');
- assert(['stage','complete'].includes(phase),'Invalid release phase');
- assert.equal(env.GITHUB_EVENT_NAME,phase==='stage'?'release':'workflow_dispatch','Release event stages; manual dispatch only completes');
+ assert(['stage','recover-stage','complete'].includes(phase),'Invalid release phase');
+ assert.equal(env.GITHUB_EVENT_NAME,phase==='stage'?'release':'workflow_dispatch','Release or catalogued pre-stage recovery required');
+ if(phase==='recover-stage')assertRecoveryContext(env);
  if(phase==='stage'){const target=releaseTarget((env.GITHUB_REF??'').replace(/^refs\/tags\//,''));assert.equal(env.GITHUB_REF,'refs/tags/'+target.tag);assert.equal(env.GITHUB_WORKFLOW_REF,'dataarthub/eaos/.github/workflows/publish.yml@refs/tags/'+target.tag);}else assertCompletionContext(env);
  assert(env.GITHUB_WORKFLOW_REF?.startsWith('dataarthub/eaos/.github/workflows/publish.yml@'),'Unexpected publishing workflow');
  assert.match(env.GITHUB_SHA??'',/^[a-f0-9]{40}$/,'Missing Actions commit');

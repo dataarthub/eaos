@@ -9,7 +9,7 @@ import {assertReleaseSelection} from './context.mjs'
 import {readVersion,verifyArtifact} from './registry.mjs'
 export function assertObserverEvent(event){
  const r=event?.workflow_run
- assert(r?.event==='release'&&r.conclusion==='success'&&r.path==='.github/workflows/publish.yml'&&r.head_repository?.full_name==='dataarthub/eaos','Untrusted observer event')
+ assert((r?.event==='release'||(r?.event==='workflow_dispatch'&&r.display_title?.startsWith('Recover npm pre-stage candidate ')))&&r.conclusion==='success'&&r.path==='.github/workflows/publish.yml'&&r.head_repository?.full_name==='dataarthub/eaos','Untrusted observer event')
  assert(Number.isSafeInteger(r.id)&&r.id>0);return r.id
 }
 export function assertObserverContext(env){
@@ -62,6 +62,7 @@ async function main(){
  await verifyBundleIdentity(manifest,{directory,expectedCommit:evidence.commit,targets:[sourceTarget(root,evidence.commit,evidence.release.tag)]})
  assertReleaseSelection(manifest,evidence)
  assert.deepEqual(manifest.staging,{runId:evidence.runId,attempt:evidence.attempt})
+ assert.deepEqual(manifest.recovery,evidence.recovery,'Recovery producer metadata differs')
  const state=await observeApproval(manifest,{readVersion,verifyArtifact,revalidate:async remaining=>{
   const end=performance.now()+remaining
   const request=(path,options)=>{const left=end-performance.now();assert(left>0,'Observation deadline');return githubRequest(path,{...options,timeoutMs:left})}
