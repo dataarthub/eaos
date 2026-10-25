@@ -10,7 +10,9 @@ const mapping = new Map(entries.map(item => [item.source, item.output]));
 for (const item of entries) {
  const source = readFileSync(resolve(root, item.source), 'utf8');
  if (source.startsWith('---')) throw Error('README must be plain Markdown: ' + item.source);
- const body = source.replace(/(!?\[[^\]]*\]\()([^\s)]+)(\))/g, (all, prefix, target, suffix) => {
+ // GitHub README language links are not portal translations; the portal owns its locale navigation.
+ const introduction = source.replace(/^\[English\]\([^\n)]+\) \| \[日本語\]\([^\n)]+\)\r?\n\r?\n/m, '');
+ const body = introduction.replace(/(!?\[[^\]]*\]\()([^\s)]+)(\))/g, (all, prefix, target, suffix) => {
   if (/^(?:https?:|mailto:|#)/i.test(target)) return all;
   const [file, fragment] = target.split('#');
   const canonical = posix.normalize(posix.join(posix.dirname(item.source), file));

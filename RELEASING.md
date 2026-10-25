@@ -197,6 +197,27 @@ Check current channels before writes and never move a newer channel backwards.
    observer's concurrency is separate from the serialized staging/completion
    lock, so waiting for approval does not block other package releases.
 
+### Dependency order for the prepared 0.2.0 set
+
+The prepared targets remain the same five 0.2.0 versions. Stage Core first. After
+human approval, verify its public bytes and required tags before staging React
+and Server. After those prerequisites are public and verified, stage CLI and the
+plugin collection. Each package has its own Release, original run and human npm
+approval; staging alone does not satisfy an npm dependency range. Do not weaken
+registry prerequisite checks to submit dependents early.
+
+The approval observer can request the existing completion path while this task
+continues. If its 30-minute window expires, use completion-only recovery with the
+original successful staging run. Never create a new stage to recover missing
+consumer tags or records.
+
+After registry bytes, beta/latest and the original-SHA Deployment are verified,
+attach a sanitized completion receipt to the same package Release. Include only
+the package/version, original source/run, verified integrity and consumer tags.
+Recheck the Release ID and tag/source before upload; compare existing asset bytes
+and preserve matching assets and reviewed notes. Keep raw logs, local paths and
+restricted coordination evidence out of public Release assets.
+
 ### Evidence and documentation delivery
 
 The maintained local gate always runs fresh; it does not reuse task-cache or remote

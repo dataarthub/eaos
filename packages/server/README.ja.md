@@ -1,27 +1,36 @@
-# eaos-server
+# Server の実行と永続化
 
-## 概要
+[English](https://github.com/dataarthub/eaos/blob/main/packages/server/README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/packages/server/README.ja.md)
 
-EAOSを組み込む開発者向けに、所有する公開機能と型付きの利用入口を提供します。
+[ドキュメントサイトの日本語ページ](https://tech-docs.alneas.com/ja/eaos-workspace/server/)でプロジェクト全体の日本語ドキュメントを案内しています。未翻訳・レビュー待ちのページは英語にフォールバックする場合があります。公開サイトは公開済みバージョンの案内であり、この README の 0.2.0 候補と一致しない場合は、対応する英語ガイドと変更履歴を確認してください。
 
-## 目的と利点
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js minimum 24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases) [![Hono](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/)
 
-共通の実装を再利用し、業務機能とホストの接続・認可を分離します。実装の正本は公開Monorepoにあり、本番の設定や運用証拠は含めません。コードの導入、スキーマ適用、組織への有効化は別操作です。
+## Elevator Pitch
 
-## 主な機能
+ホスト開発者は Server を使い、HTTP/MCP、ライフサイクル、永続データサービスを構成できます。
 
-- 公開パッケージの型付きAPI
-- 明示的なホスト接続と現在の認可
-- パッケージ単位の検証と配布
+## Why & Value
 
-## クイックスタート
+共通実装により、認可、CAS、監査、Outbox の振る舞いを揃えます。プロバイダーへの接続、現在の識別情報、デプロイ方針はホストが管理します。この MIT パッケージの実装と型宣言は公開モノレポで管理します。
 
-registryからの導入には公開済みの版が必要です。公開前はworkspaceが作成・検証したSHA固定tarballを使用してください。パッケージのsubpath自体をbun addの引数にはしません。
+## Key Highlights
 
-Node.js 24以上が必要です。Appkit Core 0.2.0の必須peerを一緒に導入します。実行ホストが認証・認可・接続を設定してください。
+- Hono と MCP の連携
+- レビューを経たライフサイクル計画
+- 永続的な CAS と監査
+- スコープを限定したデータベースとストレージ
+
+## Quickstart
+
+この checkout は 0.2.0 のリリース準備用です。0.1.0 は公開済みです。0.2.0 の公開まではチェックサムを固定した候補 tarball を導入し、以下のコマンドは公開後に使用してください。
+
+### 公開 API の import
+
+Node.js 24 以上と、必須 peer の Appkit Core 0.2.0 を使用してください。以下の正規化の例は純粋な処理で、データベース接続や認証情報は不要です。Server の実行には、別途ホストが管理する識別情報、認可、永続化の接続が必要です。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-server @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-server@0.2.0 @alneas/appkit-core@0.2.0
 ```
 
 ```typescript
@@ -30,10 +39,11 @@ import { canonical } from '@alneas/eaos-server/lifecycle-engine'
 console.log(canonical({ format: 1, operation: 'inspect' }))
 ```
 
-## 次の手順
-
-- [Architecture and boundaries](docs/guide.md)
-- [API reference](docs/api.md)
-- [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+## Next Steps
 
 - [変更履歴](https://github.com/dataarthub/eaos/blob/main/packages/server/CHANGELOG.md)
+- [アーキテクチャと境界](docs/guide.md)
+- [API リファレンス](docs/api.md)
+- [EAOS の構成](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+
+英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告には [GitHubの非公開報告機能](https://github.com/dataarthub/eaos/security/advisories/new)を利用できます。

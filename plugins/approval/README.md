@@ -1,5 +1,9 @@
 # @alneas/eaos-plugins/approval
 
+[English](https://github.com/dataarthub/eaos/blob/main/plugins/approval/README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/plugins/approval/README.ja.md)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js minimum 24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases) [![Hono](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/)
+
 ## Elevator Pitch
 
 Teams use the generic approval plugin to request and record explicit review decisions.
@@ -40,3 +44,5 @@ console.log(manifest.id, manifest.version)
 - [Host integration](docs/maintainer-guide.md)
 - [API reference](docs/api.md)
 - [Architecture](docs/guide.md)
+
+Questions and issue reports in English are welcome in [GitHub Issues](https://github.com/dataarthub/eaos/issues). Private vulnerability reports can use [GitHub private reporting](https://github.com/dataarthub/eaos/security/advisories/new).

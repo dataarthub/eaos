@@ -4,6 +4,16 @@ import {readFile,access} from 'node:fs/promises'
 import {packages} from './check-public.mjs'
 import {validateManifest} from './release-contract.mjs'
 const root=new URL('../',import.meta.url)
+test('publication targets explicitly include their paired Japanese READMEs',async()=>{
+ for(const pkg of await packages()) {
+  assert.ok(pkg.files.includes('README.ja.md'),pkg.name)
+  await access(new URL(pkg.directory+'/README.ja.md',root))
+  if(pkg.name==='@alneas/eaos-plugins') for(const id of ['approval','field-customization','admin']) {
+   assert.ok(pkg.files.includes(id+'/README.ja.md'),id)
+   await access(new URL('plugins/'+id+'/README.ja.md',root))
+  }
+ }
+})
 test('five publication targets share one standard plugin package with isolated exports',async()=>{
  const entries=await packages()
  assert.equal(entries.length,5)

@@ -8,12 +8,18 @@
 
 ### Changed
 
+- Align English/Japanese setup and support guidance with actual package requirements; link the existing GitHub private reporting channel without adding a support guarantee.
+
 - Declare EAOS Core ^0.2.0 explicitly and adopt Appkit React exactly 0.3.0 with Appkit Core 0.2.0.
 - Align hosts with React/React DOM 19.2.3 or later, Lucide React 1.61 or later and shared Query/query-core 5.104.5.
 
 ### Upgrade
 
 - Configure `reviewAiDraft` for AI draft saves and retain the documented Appkit stylesheet and providers. Update the host lockfile and follow Appkit's native drag migration for custom low-level drag composition.
+
+### Security
+
+- Update the development-only Happy DOM test dependency to 21.0.4 for GHSA-834v-8h66-3h79. Happy DOM is not a runtime dependency of the distributed React package.
 
 ## 0.1.0
 

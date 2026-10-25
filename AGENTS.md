@@ -50,6 +50,11 @@ Apply them to repository/package READMEs, guides and exported API JSDoc.
 Keep GitHub/npm READMEs plain Markdown with these first five H2 sections:
 Elevator Pitch; Why & Value; Key Highlights; Quickstart; Next Steps.
 Use 3-4 highlights and exact supported imports, with required setup and peers.
+Full overview READMEs also keep paired project-owned README.ja.md files,
+reciprocal language links, actual technology badges and English support links.
+Review translated requirements and code against the canonical English source;
+GitHub language selectors are excluded from generated English portal wrappers.
+CONTRIBUTING.md names the actual reporting channel and maintainer review ownership.
 Generate portal metadata wrappers from their owning README. Change generated
 API cards and guidance through their canonical sources, then regenerate and
 verify freshness; checks must not repair normal output.

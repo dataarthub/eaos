@@ -9,6 +9,8 @@
 
 ### Changed
 
+- Align English/Japanese setup and support guidance with actual package requirements; link the existing GitHub private reporting channel without adding a support guarantee.
+
 - Consume EAOS Core ^0.2.0 and reauthorize after asynchronous guards/accounting/telemetry, before returning output. Recheck retained tool history before each subsequent model request.
 - Require explicit model-to-adapter bindings when a model registry is configured. Reject protocol-reserved provider parameters rather than allowing them to override the selected model or messages.
 

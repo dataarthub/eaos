@@ -143,3 +143,21 @@ never authorizes a commit, push, tag, registry write or deployment.
 ## Generated workflow maintenance
 
 See [workflow supply and local quality](docs/workflow-supply.md) for `quality:commit`, `quality:push`, generated workflow checks and the actual selection/reuse limits.
+
+## Support and accountable review
+
+Questions and non-sensitive issue reports in English are welcome in
+[GitHub Issues](https://github.com/dataarthub/eaos/issues). Private vulnerability reports can use
+[GitHub private reporting](https://github.com/dataarthub/eaos/security/advisories/new).
+
+The repository administrator **dataarthub** is the accountable human reviewer for
+public APIs, authorization/tenant boundaries, data/migration contracts, provider
+adapters and CI/publication permissions. Record that maintainer's release or merge decision in the PR or maintainer
+task/release record. A second staffed reviewer or fixed review deadline is not
+required for this single-maintainer OSS project. Assistant/tool reports support that review but do
+not impersonate human approval. No separate reviewer or deployed branch-protection
+configuration is implied by this document.
+
+The package-only release checks do not establish a production host's restoration,
+provider reliability, backup retention or availability guarantees. Hosts maintain
+those operational contracts separately.
