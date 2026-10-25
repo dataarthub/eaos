@@ -197,6 +197,41 @@ Check current channels before writes and never move a newer channel backwards.
    observer's concurrency is separate from the serialized staging/completion
    lock, so waiting for approval does not block other package releases.
 
+### Recovery before any archive or npm submission
+
+The existing `publish.yml` dispatch also supports a reviewed, single-use
+`recover:<candidate-id>` entry from `scripts/publish/recovery-candidates.json`.
+This is separate from numeric post-approval completion. A candidate pins the
+original published Release ID, annotated tag object, source commit and failed
+original run. It requires attempt 1, zero original artifacts and a skipped stage
+job. Changed tags, prior producers, retries or any possible submission block it.
+Do not invent a candidate from a user-supplied SHA or retry a failed recovery.
+
+The unprivileged resolve job checks out original source separately from current
+main control code, authenticates authoritative original-source evidence, runs the
+full declared runtime checks and one exact archive consumer suite, then uploads
+an immutable selected-package handoff. The existing OIDC writer revalidates the
+candidate and stages those bytes once. GitHub event identity is never rewritten;
+records distinguish original package source from the main control commit.
+Human npm approval is still required. The observer and numeric completion resolve
+the successful recovery producer and its immutable artifact, retain the original
+Release/source, and verify public bytes and tags before recording Deployment.
+
+The Core 0.2.0 candidate `core-020-source-evidence` repairs original run
+`40243722994`, which failed before packing because source-quality reuse lacked
+its GitHub evidence token. Its tag and Release remain unchanged. After reviewed
+main integration and checks, the authorized command is:
+
+```bash
+gh workflow run publish.yml --ref main -f staged_run=recover:core-020-source-evidence
+```
+
+Retain the successful producer ID. After approval, completion uses that numeric
+ID, never the failed release run or another recovery dispatch. Keep the catalog
+entry immutable while its stage/completion evidence remains active. Retire a
+spent candidate through ordinary reviewed maintenance after completion; preserve
+its historical records. Recovery is not a direct-publish or re-staging fallback.
+
 ### Dependency order for the prepared 0.2.0 set
 
 The prepared targets remain the same five 0.2.0 versions. Stage Core first. After

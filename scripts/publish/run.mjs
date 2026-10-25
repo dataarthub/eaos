@@ -8,11 +8,16 @@ import {resolveStagingRun,assertCompletionContext} from './evidence.mjs'
 import {assertWriteEnvironment,npm,npmWriteArgs,executeStage,executeRelease,publicJson,failureState} from './engine.mjs'
 import {verifyArtifact} from './registry.mjs'
 import {recordDeployments} from './deployments.mjs'
+import {recoveryContext,assertRecoveryBundle} from './recovery.mjs'
 async function main(){
- const phase=process.argv[2];assert(['stage','complete'].includes(phase));assertWriteEnvironment(process.env,phase)
+ const phase=process.argv[2];assert(['stage','recover-stage','complete'].includes(phase));assertWriteEnvironment(process.env,phase)
  const root=resolve(import.meta.dirname,'../..'),directory=resolve('.verification/handoff')
- let manifest,evidence,target
- if(phase==='stage'){
+ let manifest,evidence,target,recovery
+ if(phase==='recover-stage'){
+  recovery=await recoveryContext();manifest=JSON.parse(await readFile(join(directory,'release.json'),'utf8'))
+  target=sourceTarget(root,recovery.commit,recovery.tag)
+  await verifyBundleIdentity(manifest,{directory,expectedCommit:recovery.commit,targets:[target]});assertRecoveryBundle(manifest,recovery)
+ }else if(phase==='stage'){
   const selection=releaseContext({root});manifest=await readBundle(directory,root)
   assertReleaseSelection(manifest,selection);target=sourceTarget(root,selection.commit,selection.tag)
   assert.deepEqual(manifest.staging,{runId:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT)})
@@ -22,6 +27,7 @@ async function main(){
   manifest=JSON.parse(await readFile(join(directory,'release.json'),'utf8'));target=sourceTarget(root,evidence.commit,evidence.release.tag)
   await verifyBundleIdentity(manifest,{directory,expectedCommit:evidence.commit,targets:[target]})
   assertReleaseSelection(manifest,evidence);assert.deepEqual(manifest.staging,{runId:evidence.runId,attempt:evidence.attempt})
+  assert.deepEqual(manifest.recovery,evidence.recovery,'Recovery producer metadata differs')
  }
  assert.equal(npm(['--version']).trim(),'11.21.0','Use reviewed OIDC npm CLI');assert.equal(process.versions.node.split('.')[0],'24')
  const options={readState:name=>publicJson(encodeURIComponent(name)),verifyArtifact,checkPrerequisite:async()=>{
@@ -33,11 +39,12 @@ async function main(){
  },write:async(action,artifact,tag)=>{
   assertWriteEnvironment(process.env,phase)
   if(evidence)assert.deepEqual(await resolveStagingRun(process.env.STAGED_RUN),evidence,'Original evidence changed before write')
+  if(recovery){assert.deepEqual(await recoveryContext(),recovery,'Recovery changed before write');assertRecoveryBundle(manifest,recovery)}
   npm(npmWriteArgs(action,artifact,tag,directory,process.env.RELEASE_REPOSITORY_PRIVATE))
   console.log(`${action}: ${artifact.name}@${artifact.version} (${tag})`)
  }}
- if(phase==='stage')await executeStage(manifest,options)
+ if(phase==='stage'||phase==='recover-stage')await executeStage(manifest,options)
  else{await executeRelease(manifest,options);await recordDeployments(manifest)}
- console.log(phase==='stage'?'Staging submitted; human npm approval required.':'Public bytes, consumer channels and original-SHA Deployment verified.')
+ console.log(phase!=='complete'?'Staging submitted; human npm approval required.':'Public bytes, consumer channels and original-SHA Deployment verified.')
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)main().catch(e=>{console.error('Release state: '+failureState(e)+'. Stop writes and inspect evidence/public registry before retrying.');process.exitCode=1})

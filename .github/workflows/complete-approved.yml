@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   observe:
-    if: "github.repository == 'dataarthub/eaos' && github.event.workflow_run.event == 'release' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository"
+    if: "github.repository == 'dataarthub/eaos' && (github.event.workflow_run.event == 'release' || (github.event.workflow_run.event == 'workflow_dispatch' && startsWith(github.event.workflow_run.display_title, 'Recover npm pre-stage candidate recover:'))) && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository"
     runs-on: "ubuntu-latest"
     timeout-minutes: 35
     permissions:

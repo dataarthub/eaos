@@ -1,0 +1,10 @@
+{
+  "core-020-source-evidence": {
+    "releaseId": 423719164,
+    "tag": "eaos-core-v0.2.0",
+    "tagObject": "78ade253a0b8101b62935676d29b2dc0fe40ef18",
+    "commit": "361ba5cb7b08f302eeb5d9a063a8a91f1de221ae",
+    "originalRun": 40243722994,
+    "reason": "Original verification failed before archive creation because the source-quality reuse step lacked its GitHub evidence token; stage was skipped."
+  }
+}

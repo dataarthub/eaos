@@ -3,7 +3,7 @@
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Publish npm packages"
-run-name: "${{ github.event_name == 'workflow_dispatch' && format('Complete npm staging run {0}', inputs.staged_run) || format('Stage npm Release {0}', github.event.release.tag_name) }}"
+run-name: "${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.staged_run, 'recover:') && format('Recover npm pre-stage candidate {0}', inputs.staged_run) || format('Complete npm staging run {0}', inputs.staged_run)) || format('Stage npm Release {0}', github.event.release.tag_name) }}"
 on:
   release:
     types:
@@ -69,6 +69,7 @@ jobs:
         run: "bun run check"
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
+          GITHUB_TOKEN: "${{ github.token }}"
         name: "Project: Run declared project check"
       -
         run: "bun run secrets:check -- --history"
@@ -144,14 +145,14 @@ jobs:
   resolve:
     if: "github.event_name == 'workflow_dispatch' && github.repository == 'dataarthub/eaos' && github.ref == 'refs/heads/main'"
     runs-on: "ubuntu-latest"
-    timeout-minutes: 5
+    timeout-minutes: 45
     permissions:
       contents: "read"
       actions: "read"
     outputs:
-      run: "${{ steps.original.outputs.run }}"
-      artifact: "${{ steps.original.outputs.artifact }}"
-      commit: "${{ steps.original.outputs.commit }}"
+      run: "${{ steps.original.outputs.run || steps.recovery.outputs.run }}"
+      artifact: "${{ steps.original.outputs.artifact || steps.upload.outputs.artifact-id }}"
+      commit: "${{ steps.original.outputs.commit || steps.recovery.outputs.commit }}"
     steps:
       -
         name: "Project: Require trusted default branch"
@@ -161,6 +162,7 @@ jobs:
         with:
           ref: "${{ github.sha }}"
           persist-credentials: false
+          fetch-depth: 0
         name: "Shared: actions/checkout@v6"
       -
         uses: "actions/setup-node@v6"
@@ -175,6 +177,70 @@ jobs:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
         run: "mkdir -p .verification && node scripts/publish/evidence.mjs"
+        if: "${{ !startsWith(inputs.staged_run, 'recover:') }}"
+      -
+        name: "Project: Validate catalogued never-staged original candidate"
+        id: "recovery"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          STAGED_RUN: "${{ inputs.staged_run }}"
+        run: "node scripts/publish/recovery.mjs resolve"
+        if: "startsWith(inputs.staged_run, 'recover:')"
+      -
+        uses: "actions/checkout@v6"
+        with:
+          ref: "${{ steps.recovery.outputs.commit }}"
+          path: ".verification/source"
+          fetch-depth: 0
+          persist-credentials: false
+        if: "startsWith(inputs.staged_run, 'recover:')"
+        name: "Shared: actions/checkout@v6"
+      -
+        uses: "oven-sh/setup-bun@v2"
+        with:
+          bun-version: "1.4.3"
+        if: "startsWith(inputs.staged_run, 'recover:')"
+        name: "Shared: oven-sh/setup-bun@v2"
+      -
+        run: "npm install --global npm@11.21.0 --ignore-scripts --registry=https://registry.npmjs.org"
+        if: "startsWith(inputs.staged_run, 'recover:')"
+        name: "Project: Run declared project check"
+      -
+        name: "Project: Prepare original declared Kamal test consumer"
+        run: |
+          gem install --user-install kamal --version 2.12.0 --no-document
+          ruby -e 'require "kamal"; require "kamal/cli"; abort "Unexpected Kamal version" unless Gem.loaded_specs.fetch("kamal").version.to_s == "2.12.0"'
+        if: "startsWith(inputs.staged_run, 'recover:')"
+      -
+        name: "Project: Require original authoritative source evidence"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          STAGED_RUN: "${{ inputs.staged_run }}"
+          PUBLISH_SOURCE_SHA: "${{ steps.recovery.outputs.commit }}"
+        run: "node scripts/workflow-supply/public/quality.mjs require-source"
+        if: "startsWith(inputs.staged_run, 'recover:')"
+      -
+        name: "Project: Fresh full verification and exact archives from clean original source"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          STAGED_RUN: "${{ inputs.staged_run }}"
+          NODE_OPTIONS: "--max-old-space-size=8192"
+        run: "node scripts/publish/recovery.mjs verify"
+        if: "startsWith(inputs.staged_run, 'recover:')"
+      -
+        uses: "actions/upload-artifact@v7"
+        id: "upload"
+        with:
+          name: "verified-npm-release-${{ github.run_id }}-${{ github.run_attempt }}"
+          path: |
+            .verification/handoff/release.json
+            .verification/handoff/*.tgz
+            .verification/handoff/*.notes.md
+          if-no-files-found: "error"
+          include-hidden-files: true
+          retention-days: 14
+        if: "startsWith(inputs.staged_run, 'recover:')"
+        name: "Shared: actions/upload-artifact@v7"
   complete:
     needs: "resolve"
     runs-on: "ubuntu-latest"
@@ -206,7 +272,13 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
-        run: "mkdir -p .verification && node scripts/publish/evidence.mjs"
+        run: |
+          if [[ "$STAGED_RUN" == recover:* ]]; then
+            node scripts/publish/recovery.mjs resolve
+          else
+            mkdir -p .verification
+            node scripts/publish/evidence.mjs
+          fi
       -
         uses: "actions/download-artifact@v8"
         with:
@@ -222,11 +294,16 @@ jobs:
           GITHUB_TOKEN: "${{ github.token }}"
         run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
-        name: "Project: Verify approved public bytes, repair channels and record original-SHA success"
+        name: "Project: Stage catalogued recovery or complete approved original bytes"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
-        run: "node scripts/publish/run.mjs complete"
+        run: |
+          if [[ "$STAGED_RUN" == recover:* ]]; then
+            node scripts/publish/run.mjs recover-stage
+          else
+            node scripts/publish/run.mjs complete
+          fi
     env:
       PUBLISH_SOURCE_SHA: "${{ needs.resolve.outputs.commit }}"
       STAGED_RUN: "${{ inputs.staged_run }}"

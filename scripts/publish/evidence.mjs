@@ -4,6 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { releaseTarget } from './context.mjs';
+import {resolveRecovery,recoveryId} from './recovery.mjs';
 export const repository = 'dataarthub/eaos';
 const workflow = '.github/workflows/publish.yml';
 export async function githubRequest(path, options = {}) {
@@ -22,24 +23,31 @@ export async function resolveStagingRun(value, { request = githubRequest, now = 
   const run = await request(`/actions/runs/${runId}`);
   const owner = await request('/actions/workflows/publish.yml');
   assert.equal(run.id, runId); assert.equal(run.workflow_id, owner.id);
-  assert.equal(run.path, workflow); assert.equal(run.event, 'release');
+  assert.equal(run.path, workflow);
   assert.equal(run.status, 'completed'); assert.equal(run.conclusion, 'success', 'Original staging attempt must succeed');
   assert.equal(run.head_repository?.full_name, repository);
-  const target=releaseTarget(run.head_branch);
+  let recovery;
+  if(run.event==='workflow_dispatch'){
+    const prefix='Recover npm pre-stage candidate ';assert(run.display_title?.startsWith(prefix),'Completion dispatch cannot be a staging producer');
+    const value=run.display_title.slice(prefix.length);recoveryId(value);
+    recovery=await resolveRecovery(value,{request,runId,controlCommit:run.head_sha});
+  }else assert.equal(run.event,'release');
+  const commit=recovery?.commit??run.head_sha;
+  const target=releaseTarget(recovery?.tag??run.head_branch);
   const release=await request('/releases/tags/'+encodeURIComponent(target.tag));
   assert(release.tag_name===target.tag&&release.draft===false&&release.prerelease===false,'Original Release unavailable or no longer published');
   assert(Number.isSafeInteger(release.id)&&release.id>0,'Invalid original Release identity');
   let ref=await request('/git/ref/tags/'+encodeURIComponent(target.tag));
   for(let depth=0;ref.object?.type==='tag'&&depth<5;depth++)ref=await request('/git/tags/'+ref.object.sha);
-  assert(ref.object?.type==='commit'&&ref.object.sha===run.head_sha,'Original release tag moved');
-  const comparison=await request('/compare/'+run.head_sha+'...main');
+  assert(ref.object?.type==='commit'&&ref.object.sha===commit,'Original release tag moved');
+  const comparison=await request('/compare/'+commit+'...main');
   assert(['identical','ahead'].includes(comparison.status),'Original release source is outside main');
   assert.match(run.head_sha, /^[a-f0-9]{40}$/);
   assert(Number.isFinite(Date.parse(run.created_at)), 'Missing original run creation time');
   assert.equal(run.run_attempt, 1, 'A rerun cannot replace the original staging attempt');
   const jobs = await request(`/actions/runs/${runId}/attempts/${run.run_attempt}/jobs?per_page=100`);
   assert(jobs.total_count <= 100, 'Ambiguous job evidence');
-  for (const name of ['verify', 'stage']) {
+  for (const name of recovery?['resolve','complete']:['verify','stage']) {
     const selected = jobs.jobs.filter(job => job.name === name);
     assert.equal(selected.length, 1, 'Missing or duplicate required job');
     assert.equal(selected[0].status, 'completed'); assert.equal(selected[0].conclusion, 'success', 'Required staging job did not succeed');
@@ -53,7 +61,7 @@ export async function resolveStagingRun(value, { request = githubRequest, now = 
   assert(Number.isSafeInteger(artifact.id) && artifact.id > 0);
   assert.equal(artifact.workflow_run?.id, runId); assert.equal(artifact.workflow_run?.head_sha, run.head_sha);
   assert.match(artifact.digest, /^sha256:[a-f0-9]{64}$/);
-  return { release:{id:release.id,tag:target.tag}, repository, runId, createdAt:run.created_at, attempt: run.run_attempt, commit: run.head_sha, artifactId: artifact.id, artifactDigest: artifact.digest, expiresAt: artifact.expires_at };
+  return { release:{id:release.id,tag:target.tag}, repository, runId, createdAt:run.created_at, attempt: run.run_attempt, commit, artifactId: artifact.id, artifactDigest: artifact.digest, expiresAt: artifact.expires_at,...(recovery?{recovery:{candidate:recovery.id,originalRun:recovery.originalRun,controlCommit:recovery.controlCommit}}:{}) };
 }
 export function assertCompletionContext(env) {
   assert.equal(env.GITHUB_ACTIONS, 'true'); assert.equal(env.GITHUB_REPOSITORY, repository);
