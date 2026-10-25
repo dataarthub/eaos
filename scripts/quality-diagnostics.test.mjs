@@ -12,3 +12,8 @@ test('summaries remove terminal controls, deduplicate and bound failure output',
  assert.equal(names.length,10)
  assert.ok(names.every(name=>name.length<=300))
 })
+
+test('runner failures expose fixed categories without assertion values',()=>{
+ assert.deepEqual(failedCheckNames('AssertionError [ERR_ASSERTION]: Every selected test file must execute tests\n+ sensitive-path\n- missing-path'),['Source runner: Every selected test file must execute tests'])
+ assert.deepEqual(failedCheckNames('Error: sensitive-provider-value'),[])
+})

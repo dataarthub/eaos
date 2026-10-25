@@ -21,7 +21,7 @@ for(const name of checks) {
   console.log(`Verifying ${name}`)
   const commands=name==='test'&&selection?(await import('./workflow-supply/public/impact.mjs')).workspaceTestCommands(selection):[['bun','run',name]]
   let stdout='',stderr='',status=0
-  for(const [command,...args]of commands){const child=spawnSync(command,args,{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,env:{...process.env,NODE_OPTIONS:process.env.NODE_OPTIONS||'--max-old-space-size=8192'}});stdout+=child.stdout??'';stderr+=child.stderr??'';if(child.error||child.status!==0){status=child.status??1;break}}
+  for(const [command,...args]of commands){const child=spawnSync(command,args,{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,env:{...process.env,NODE_OPTIONS:process.env.NODE_OPTIONS||'--max-old-space-size=8192'}});stdout+=child.stdout??'';stderr+=child.stderr??'';if(child.error||child.status!==0){console.error(`Failed command: ${[command,...args].join(' ')}; status=${child.status}; signal=${child.signal??'none'}; code=${child.error?.code??'none'}`);status=child.status??1;break}}
   const run={stdout,stderr,status}
   const log=join(root,'.verification/logs',name.replaceAll(':','-')+'.log')
   await writeFile(log,(run.stdout??'')+(run.stderr??''))
