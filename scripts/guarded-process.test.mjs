@@ -122,3 +122,23 @@ test('quality heap defaults survive the real containment preload and preserve ex
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
+
+test('source proof ignores only its invocation receipt ID and restores it after async checks',async()=>{
+ const {withSourceProofEnvironment}=await import('./quality-tools.mjs');
+ const {executionIdentity}=await import('./workflow-supply/public/quality.mjs');
+ const root=(await import('node:path')).resolve(import.meta.dirname,'..');
+ const env={GITHUB_ACTIONS:'true',GITHUB_EVENT_NAME:'release',GITHUB_REPOSITORY:'dataarthub/eaos',GITHUB_REF:'refs/tags/eaos-react-v0.2.0',GITHUB_SHA:'a'.repeat(40),ImageOS:'ubuntu24',ImageVersion:'fixture',NODE_OPTIONS:'--max-old-space-size=8192'};
+ const identify=()=>executionIdentity(root,env,{bunVersion:'1.4.3'});
+ const expected=identify();env.EAOS_VERIFICATION_RUN='receipt-identity';
+ assert.notDeepEqual(identify(),expected,'Reproduce the guarded-child fingerprint mismatch');
+ const proof=await withSourceProofEnvironment(async()=>identify(),env);
+ assert.deepEqual(proof,expected);assert.equal(env.EAOS_VERIFICATION_RUN,'receipt-identity');
+ for(const [key,value] of [['EAOS_FEATURE_FLAG','enabled'],['NODE_OPTIONS','--max-old-space-size=4096'],['ImageVersion','different']]){
+  const previous=env[key];env[key]=value;
+  assert.notDeepEqual(await withSourceProofEnvironment(async()=>identify(),env),expected,key+' remains a meaningful execution input');
+  if(previous===undefined)delete env[key];else env[key]=previous;
+ }
+ await assert.rejects(withSourceProofEnvironment(async()=>{throw Error('proof rejected');},env));
+ assert.equal(env.EAOS_VERIFICATION_RUN,'receipt-identity');
+ assert.equal(env.GITHUB_EVENT_NAME,'release');assert.equal(env.GITHUB_SHA,'a'.repeat(40));assert.equal(env.GITHUB_REF,'refs/tags/eaos-react-v0.2.0');
+});

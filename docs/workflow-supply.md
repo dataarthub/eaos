@@ -186,3 +186,8 @@ Documentation and publication selection build the five packages before API
 freshness checks, because the canonical generator reads emitted declarations.
 These scoped checks do not assume build output exists on a fresh runner; full
 source verification retains its own build and test sequence.
+
+Within guarded release verification, source-proof comparison temporarily excludes
+only the per-invocation receipt UUID, then restores it for actual checks and
+receipts. Runtime flags, host/image identity and GitHub event/repository/ref/source
+identity remain subject to the existing authenticated comparison.

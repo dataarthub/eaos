@@ -251,6 +251,14 @@ and all mutating requests, including dispatch, are never retried automatically.
 A changed or ambiguous predecessor blocks recovery even when the registry still
 has no public version. Successful completion retains the original package source.
 
+React and Server 0.2.0 also have fixed pre-stage candidates
+`react-020-source-proof` and `server-020-source-proof`. Their original Release
+runs `40251711416` and `40251719922` failed before archive creation because a
+per-invocation receipt UUID changed the guarded source-proof fingerprint.
+Their original tag objects, Release IDs and source commit remain pinned in the
+catalog. Recover only those never-submitted candidates through the same full
+original-source verification path; do not rerun the original Release workflows.
+
 ### Dependency order for the prepared 0.2.0 set
 
 The prepared targets remain the same five 0.2.0 versions. Stage Core first. After
