@@ -181,3 +181,8 @@ restricted repository. Actual registry adoption waits for verified public versio
 Private targets and receipts do not enter these public release artifacts. Production
 restore/provider acceptance and deployed branch-protection configuration remain
 outside this package-only release verification.
+
+Documentation and publication selection build the five packages before API
+freshness checks, because the canonical generator reads emitted declarations.
+These scoped checks do not assume build output exists on a fresh runner; full
+source verification retains its own build and test sequence.
