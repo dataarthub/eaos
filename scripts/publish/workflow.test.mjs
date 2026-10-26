@@ -37,3 +37,14 @@ test('catalogued pre-stage recovery verifies clean original source without givin
  assert.match(w['run-name'],/Recover npm pre-stage candidate/);
  const observer=read('complete-approved.yml');assert.match(observer.jobs.observe.if,/Recover npm pre-stage candidate recover:/);
 });
+
+test('selected docs and publication scopes build declarations before API freshness checks',()=>{
+ const tasks=JSON.parse(readFileSync(new URL('../workflow-project/roles.json',import.meta.url))).quality.tasks;
+ for(const scope of ['docs','publication']){
+  const selected=tasks.filter(t=>t.scopes.includes(scope));
+  const build=selected.findIndex(t=>t.command.join(' ')==='bun run build');
+  const docs=selected.findIndex(t=>t.command.join(' ')==='bun run docs:check');
+  assert(build>=0&&docs>build,'A fresh runner needs declarations before '+scope+' API generation');
+  assert.deepEqual(selected[build].outputs,['packages/core/dist','packages/server/dist','packages/react/dist','packages/cli/dist','plugins/dist']);
+ }
+});

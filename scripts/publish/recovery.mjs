@@ -13,6 +13,17 @@ export function recoveryId(value,catalog=recoveryCatalog){
  const match=/^recover:([a-z0-9-]+)$/.exec(value??'');
  assert(match&&match[0]===value&&Object.hasOwn(catalog,match[1]),'Unknown pre-stage recovery candidate');return match[1];
 }
+export function validatePreviousProducer(c,f,workflowId){
+ const p=c.previousProducer;assert(p&&Number.isSafeInteger(p.runId));
+ const r=f.run;assert.equal(r.id,p.runId);assert.equal(r.workflow_id,workflowId);assert.equal(r.path,workflow);assert.equal(r.event,'workflow_dispatch');assert.equal(r.head_branch,'main');assert.equal(r.head_sha,p.controlCommit);assert.equal(r.head_repository?.full_name,repository);assert.equal(r.run_attempt,1);assert.equal(r.status,'completed');assert.equal(r.conclusion,'failure');assert.equal(r.display_title,recoveryTitle(p.candidate));
+ assert(f.jobs.total_count<=100&&f.jobs.total_count===f.jobs.jobs.length);
+ for(const [name,result] of [['resolve','failure'],['complete','skipped']]){const jobs=f.jobs.jobs.filter(j=>j.name===name);assert.equal(jobs.length,1);assert.equal(jobs[0].status,'completed');assert.equal(jobs[0].conclusion,result,'Predecessor writer must never have run');}
+ assert.equal(f.artifacts.total_count,0);assert.deepEqual(f.artifacts.artifacts,[]);
+ const prior=f.catalog[p.candidate];assert(prior);
+ for(const key of ['releaseId','tag','tagObject','commit','originalRun'])assert.equal(prior[key],c[key],'Predecessor original identity changed');
+ assert(!prior.previousProducer,'Nested recovery histories require separate review');
+ return p.runId;
+}
 export function validateRecoveryFacts(f){
  const c=f.candidate;assert(c&&Number.isSafeInteger(c.releaseId)&&Number.isSafeInteger(c.originalRun));releaseTarget(c.tag);
  for(const value of [c.commit,c.tagObject,f.controlCommit])assert.match(value,/^[a-f0-9]{40}$/);
@@ -29,7 +40,9 @@ export function validateRecoveryFacts(f){
  for(const comparison of [f.comparison,f.controlComparison])assert(['ahead','identical'].includes(comparison.status),'Source/control must remain on main');
  assert.equal(f.producer.display_title,recoveryTitle(f.id));
  assert(f.history.total_count<=100&&Array.isArray(f.history.workflow_runs),'Ambiguous recovery history');
- const others=f.history.workflow_runs.filter(r=>r.display_title===recoveryTitle(f.id)&&r.id!==f.runId);
+ const previous=f.candidate.previousProducer?validatePreviousProducer(c,f.previous,f.workflow.id):null;
+ const titles=Object.entries(f.catalogAtProducer).filter(([,entry])=>entry.originalRun===c.originalRun).map(([id])=>recoveryTitle(id));
+ const others=f.history.workflow_runs.filter(r=>titles.includes(r.display_title)&&r.id!==f.runId&&r.id!==previous);
  assert.equal(others.length,0,'Candidate is single-use; inspect any previous producer instead of retrying');
  assert.deepEqual(f.catalogAtProducer[f.id],c,'Producer catalog differs from reviewed candidate');
  return {...c,id:f.id,runId:f.runId,controlCommit:f.controlCommit,attempt:1,createdAt:f.producer.created_at};
@@ -45,7 +58,14 @@ export async function resolveRecovery(value,{request,runId,controlCommit,catalog
  const content=await request('/contents/scripts/publish/recovery-candidates.json?ref='+controlCommit);
  assert.equal(content.encoding,'base64');assert.equal(content.type,'file');
  const catalogAtProducer=JSON.parse(Buffer.from(content.content,'base64').toString('utf8'));
- return validateRecoveryFacts({candidate:c,id,controlCommit,runId,workflow:workflowInfo,original,producer,jobs,artifacts,release,ref,tag,comparison,controlComparison,history,catalogAtProducer});
+ let previous;
+ if(c.previousProducer){
+  const p=c.previousProducer,run=await request('/actions/runs/'+p.runId);
+  const jobs=await request(`/actions/runs/${p.runId}/attempts/1/jobs?per_page=100`),artifacts=await request(`/actions/runs/${p.runId}/artifacts?per_page=100`);
+  const content=await request('/contents/scripts/publish/recovery-candidates.json?ref='+p.controlCommit);assert.equal(content.encoding,'base64');assert.equal(content.type,'file');
+  previous={run,jobs,artifacts,catalog:JSON.parse(Buffer.from(content.content,'base64').toString('utf8'))};
+ }
+ return validateRecoveryFacts({candidate:c,id,controlCommit,runId,workflow:workflowInfo,original,producer,jobs,artifacts,release,ref,tag,comparison,controlComparison,history,catalogAtProducer,previous});
 }
 export function assertRecoveryContext(env){
  assert.equal(env.GITHUB_ACTIONS,'true');assert.equal(env.GITHUB_REPOSITORY,repository);assert.equal(env.GITHUB_EVENT_NAME,'workflow_dispatch');assert.equal(env.GITHUB_REF,'refs/heads/main');assert.equal(env.GITHUB_WORKFLOW_REF,`${repository}/${workflow}@refs/heads/main`);assert.equal(env.GITHUB_RUN_ATTEMPT,'1');recoveryId(env.STAGED_RUN);assert.match(env.GITHUB_SHA??'',/^[a-f0-9]{40}$/);

@@ -74,3 +74,20 @@ test('pre-stage writer requires main OIDC and a fixed recovery candidate, never 
  for(const change of [{GITHUB_EVENT_NAME:'release'},{GITHUB_RUN_ATTEMPT:'2'},{ACTIONS_ID_TOKEN_REQUEST_TOKEN:''},{NPM_TOKEN:'fixture-static'},{STAGED_RUN:'recover:unknown'},{GITHUB_REF:'refs/tags/eaos-core-v0.2.0'}])assert.throws(()=>assertWriteEnvironment({...env,...change},'recover-stage'));
  assert.throws(()=>assertWriteEnvironment(env,'stage'));
 });
+
+test('a catalogued predecessor must have failed before artifact transfer and its writer',async()=>{
+ const {validatePreviousProducer}=await import('./recovery.mjs');
+ const c={...candidate,previousProducer:{candidate:'prior',runId:456,controlCommit:'c'.repeat(40)}};
+ const f={run:{id:456,workflow_id:7,path:'.github/workflows/publish.yml',event:'workflow_dispatch',head_branch:'main',head_sha:'c'.repeat(40),head_repository:owner,run_attempt:1,status:'completed',conclusion:'failure',display_title:recoveryTitle('prior')},jobs:{total_count:2,jobs:[{name:'resolve',status:'completed',conclusion:'failure'},{name:'complete',status:'completed',conclusion:'skipped'}]},artifacts:{total_count:0,artifacts:[]},catalog:{prior:candidate}};
+ assert.doesNotThrow(()=>validatePreviousProducer(c,f,7));
+ for(const mutate of [f=>{f.run.run_attempt=2},f=>{f.run.head_sha='d'.repeat(40)},f=>{f.run.conclusion='success'},f=>{f.jobs.jobs[1].conclusion='failure'},f=>{f.jobs.jobs[1].conclusion='success'},f=>{f.artifacts.total_count=1},f=>{f.artifacts.artifacts=[{id:1}]},f=>{f.catalog.prior={...candidate,commit:'e'.repeat(40)}}]){const x=structuredClone(f);mutate(x);assert.throws(()=>validatePreviousProducer(c,x,7));}
+});
+
+test('only the explicitly audited zero-artifact predecessor may precede a new candidate',()=>{
+ const f=recoveryFixture(),previous={candidate:'prior',runId:455,controlCommit:'c'.repeat(40)};
+ const c={...candidate,previousProducer:previous};f.candidate=c;f.catalogAtProducer={fixture:c,prior:candidate};
+ f.previous={run:{id:455,workflow_id:7,path:'.github/workflows/publish.yml',event:'workflow_dispatch',head_branch:'main',head_sha:previous.controlCommit,head_repository:owner,run_attempt:1,status:'completed',conclusion:'failure',display_title:recoveryTitle('prior')},jobs:{total_count:2,jobs:[{name:'resolve',status:'completed',conclusion:'failure'},{name:'complete',status:'completed',conclusion:'skipped'}]},artifacts:{total_count:0,artifacts:[]},catalog:{prior:candidate}};
+ f.history.workflow_runs.push({id:455,display_title:recoveryTitle('prior')});f.history.total_count=2;
+ assert.equal(validateRecoveryFacts(f).previousProducer.runId,455);
+ f.history.workflow_runs.push({id:457,display_title:recoveryTitle('prior')});f.history.total_count=3;assert.throws(()=>validateRecoveryFacts(f));
+});

@@ -490,6 +490,26 @@
         ]
       },
       {
+        "id": "documentation-declarations",
+        "command": [
+          "bun",
+          "run",
+          "build"
+        ],
+        "outputs": [
+          "packages/core/dist",
+          "packages/server/dist",
+          "packages/react/dist",
+          "packages/cli/dist",
+          "plugins/dist"
+        ],
+        "primaryOnly": true,
+        "scopes": [
+          "docs",
+          "publication"
+        ]
+      },
+      {
         "id": "documentation",
         "command": [
           "bun",
