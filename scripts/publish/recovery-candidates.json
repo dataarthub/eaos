@@ -35,5 +35,21 @@
     "commit": "bf23272cf94f91e37d035d659f7c602376cf98a0",
     "originalRun": 40251719922,
     "reason": "Normal release verification included its per-invocation receipt UUID in the source-proof environment identity; verification failed before packing and stage was skipped."
+  },
+  "cli-020-source-proof": {
+    "releaseId": 423747066,
+    "tag": "eaos-cli-v0.2.0",
+    "tagObject": "b57afee97f83f1577e846e2c69e03758ddd6d9cb",
+    "commit": "bf23272cf94f91e37d035d659f7c602376cf98a0",
+    "originalRun": 40255591751,
+    "reason": "The immutable prepared tag retains the invocation-UUID source-proof bug; original verification failed before packing and stage was skipped. Current-main recovery preserves the original package source."
+  },
+  "plugins-020-source-proof": {
+    "releaseId": 423747078,
+    "tag": "eaos-plugins-v0.2.0",
+    "tagObject": "8f4e422d611125a6cc3ba3a9dfcb19ea2c12fcc1",
+    "commit": "bf23272cf94f91e37d035d659f7c602376cf98a0",
+    "originalRun": 40255602186,
+    "reason": "The immutable prepared tag retains the invocation-UUID source-proof bug; original verification failed before packing and stage was skipped. Current-main recovery preserves the original package source."
   }
 }

@@ -259,6 +259,15 @@ Their original tag objects, Release IDs and source commit remain pinned in the
 catalog. Recover only those never-submitted candidates through the same full
 original-source verification path; do not rerun the original Release workflows.
 
+CLI and the plugin collection retain the same immutable prepared source and have
+fixed `cli-020-source-proof` and `plugins-020-source-proof` candidates. Their
+original runs `40255591751` and `40255602186` failed the old invocation-UUID
+comparison before packing; both have zero artifacts and skipped stage jobs.
+Their package Releases were started only after Core, React and Server public
+bytes, required tags and completion records were verified. Current main supplies
+the reviewed control code while recovery verifies and stages the original tagged
+package source. These candidates do not authorize rerunning the original attempts.
+
 ### Dependency order for the prepared 0.2.0 set
 
 The prepared targets remain the same five 0.2.0 versions. Stage Core first. After
