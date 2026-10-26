@@ -14,3 +14,17 @@ export const localGitleaks = path.resolve(import.meta.dirname, '../.verification
 export function sourceVerificationEnvironment(env = process.env) {
   return { ...env, NODE_OPTIONS: env.NODE_OPTIONS || '--max-old-space-size=8192' };
 }
+
+// The receipt UUID identifies this invocation; it is not an input to the tested source.
+// Keep actual runtime flags and GitHub identity intact, and restore the UUID for receipts.
+export async function withSourceProofEnvironment(verify, env = process.env) {
+  const present = Object.hasOwn(env, 'EAOS_VERIFICATION_RUN');
+  const runId = env.EAOS_VERIFICATION_RUN;
+  delete env.EAOS_VERIFICATION_RUN;
+  try {
+    return await verify();
+  } finally {
+    if (present) env.EAOS_VERIFICATION_RUN = runId;
+    else delete env.EAOS_VERIFICATION_RUN;
+  }
+}

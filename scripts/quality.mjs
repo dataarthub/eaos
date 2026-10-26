@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { packages } from './check-public.mjs'
 import {failedCheckNames} from './quality-diagnostics.mjs'
 import { sourceHash,candidateCommit } from './source-state.mjs'
+import {withSourceProofEnvironment} from './quality-tools.mjs'
 if(!process.env.EAOS_VERIFICATION_RUN)throw Error('Use bun run check for guarded verification')
 const root=resolve(import.meta.dirname,'..')
 const before=await sourceHash(root)
@@ -13,7 +14,7 @@ await mkdir(join(root,'.verification/logs'),{recursive:true})
 const bun=spawnSync('bun',['--version'],{encoding:'utf8'})
 if(bun.stdout.trim()!=='1.4.3')throw Error('Use the declared Bun 1.4.3 toolchain')
 const sourceProof=process.env.GITHUB_ACTIONS==='true'&&process.env.GITHUB_EVENT_NAME==='release'
-  ?await (await import('./workflow-supply/public/quality.mjs')).releaseProof(root):null
+  ?await withSourceProofEnvironment(async()=>(await import('./workflow-supply/public/quality.mjs')).releaseProof(root)):null
 const reusedChecks=sourceProof?['lint','test:tooling','test','docs:check']:[]
 for(const name of checks) {
   if(reusedChecks.includes(name)){console.log(`Reusing official Source quality ${name}: run ${sourceProof.run.id}, attempt ${sourceProof.run.run_attempt}`);continue}

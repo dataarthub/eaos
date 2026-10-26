@@ -19,5 +19,21 @@
       "runId": 40245914939,
       "controlCommit": "883f16f39211ba26ef3e8a62490eb1ccbfb4cb34"
     }
+  },
+  "react-020-source-proof": {
+    "releaseId": 423747054,
+    "tag": "eaos-react-v0.2.0",
+    "tagObject": "e250d3a9e12799767eae8294d5227219232d477d",
+    "commit": "bf23272cf94f91e37d035d659f7c602376cf98a0",
+    "originalRun": 40251711416,
+    "reason": "Normal release verification included its per-invocation receipt UUID in the source-proof environment identity; verification failed before packing and stage was skipped."
+  },
+  "server-020-source-proof": {
+    "releaseId": 423747060,
+    "tag": "eaos-server-v0.2.0",
+    "tagObject": "214eb39c05b8bd35a45b2c98483c52353083bd24",
+    "commit": "bf23272cf94f91e37d035d659f7c602376cf98a0",
+    "originalRun": 40251719922,
+    "reason": "Normal release verification included its per-invocation receipt UUID in the source-proof environment identity; verification failed before packing and stage was skipped."
   }
 }
