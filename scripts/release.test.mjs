@@ -6,7 +6,7 @@ const core = { name: '@alneas/eaos-core', version: '0.4.4', license: 'MIT', type
 const files = ['package.json','README.md','LICENSE','CHANGELOG.md','dist/index.js','dist/index.d.ts'].map(path => ({ path, content: '' }))
 test('rejects restricted dependencies, unpublished links and unsupported Appkit versions in every dependency field', () => {
   for (const field of ['dependencies','peerDependencies','optionalDependencies','devDependencies']) {
-    for (const [name, value] of [['@dataarthub/app-core','1.4.1'],['other','file:../private'],['@alneas/appkit-core','^0.2.0']]) {
+    for (const [name, value] of [['@dataarthub/app-core','1.4.1'],['other','file:../private'],['@alneas/appkit-core','^0.1.0']]) {
       assert.ok(validateManifest({ ...core, [field]: { [name]: value } }).length, `${field}:${name}`)
     }
   }
@@ -65,9 +65,11 @@ test('commit-bound verification refuses an amended commit or absent/mismatched c
   assert.throws(()=>verifyCandidateIdentity({...bundle,consumerVerified:{sourceHash:'source',archives:[]}},{sourceHash:'source',cleanCommit:'source-commit'}),/consumer/)
 })
 
-test('Appkit pins follow each package version and reject unsupported exact pins', () => {
-  for (const [name, version, rejected] of [['@alneas/appkit-core', '0.2.0', '0.2.1'], ['@alneas/appkit-react', '0.3.0', '0.2.0']]) {
+test('Appkit ranges follow each independently versioned compatible package line', () => {
+  for (const [name, version, rejected] of [['@alneas/appkit-core', '0.2.0', '0.1.0'], ['@alneas/appkit-react', '0.3.0', '0.2.0']]) {
+    assert.deepEqual(validateManifest({ ...core, peerDependencies: { [name]: '^'+version } }), [])
     assert.deepEqual(validateManifest({ ...core, peerDependencies: { [name]: version } }), [])
+    assert.ok(validateManifest({ ...core, peerDependencies: { [name]: '*' } }).length)
     assert.ok(validateManifest({ ...core, peerDependencies: { [name]: rejected } }).length)
   }
 })

@@ -20,7 +20,7 @@ Plugin and application authors use EAOS to compose authorized features across se
 
 ## Why & Value
 
-Four MIT foundation packages separate pure contracts, Server implementations, React clients and CLI tooling. One optional `@alneas/eaos-plugins` package provides independently selected approval, field customization and administration features, for five npm packages in total. Business plugins and production bindings keep their own ownership; public code never imports private implementations.
+Four MIT foundation packages separate pure contracts, Server implementations, React clients and CLI tooling. One optional `@alneas/eaos-plugins` package provides independently selected approval, field customization and administration features, for five npm packages in total. EAOS remains a package system; a deployable Host project supplies adoption and real connections. Business plugins and production bindings keep their own ownership; public code never imports private implementations.
 
 ## Key Highlights
 

@@ -1,4 +1,4 @@
-import { appkitVersions } from './appkit-versions.mjs'
+import { appkitVersions, supportedAppkitRange } from './appkit-versions.mjs'
 import semver from 'semver'
 import { requiredTags } from './release-contract.mjs'
 
@@ -139,7 +139,7 @@ export async function registryPreflight({packages, archives, mode = 'bootstrap',
         target.dependencies.push(dependency)
         try {
           if (!packageName.test(name) || !semver.validRange(range)) throw failure('invalid-dependency-range')
-          if (Object.hasOwn(appkitVersions, name) && range !== appkitVersions[name]) throw failure('appkit-exact-pin-required')
+          if (!supportedAppkitRange(name, range)) throw failure('appkit-compatible-range-required')
           const candidate = candidates.get(name)
           if (name.startsWith('@alneas/eaos-') && (!candidate || !semver.satisfies(candidate.version, range))) throw failure('internal-candidate-incompatible')
           let data

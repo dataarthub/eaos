@@ -17,8 +17,8 @@ without a parent workspace or private repository.
 - Public packages must never import private implementations, business schemas,
   customer configuration or operator evidence. Keep generic implementations
   canonical here; compatibility wrappers belong to their consuming repository.
-- npm workspaces are permitted inside this monorepo. Across repositories, use
-  built, checksum-pinned npm tarballs. Do not link sibling source or copy
+- npm workspaces are permitted inside this monorepo. Across repositories, consume published registry packages with compatible caret ranges
+  and exact lockfile resolutions. Candidate archives are only for disposable verification fixtures. Do not link sibling source or copy
   Appkit Core 0.2.0 / React 0.3.0 implementations; those remain external dependencies.
 - Preserve tenant/resource authorization, CAS, durable audit and migration
   identities. Keep business-specific presets outside generic plugins.
@@ -133,3 +133,5 @@ merely to adopt shared references.
 These are the checks declared in this repository's package.json. Cross-repository
 API generation and portal aggregation belong to the maintainer workspace;
 confirm its applicable checks when changing those inputs.
+
+Dependency manifests follow the shared compatible-range policy: runtime and peer dependencies default to caret ranges with published minimums; lockfiles retain exact resolutions and integrity. Unreleased cross-repository APIs must be tested only in disposable candidate fixtures and released in dependency order before production adoption.

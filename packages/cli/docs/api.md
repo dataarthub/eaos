@@ -56,6 +56,64 @@ tags: ["api", "generated"]
 | `@alneas/eaos-cli/presets/oci-adb/template` | Typed public export |
 | `@alneas/eaos-cli/platform/deployment-assets` | Typed public export |
 
+<a id="api-acquireFrontendArtifact"></a>
+
+## [FUNCTION] `acquireFrontendArtifact`
+
+Acquire a verified immutable frontend contribution and update its selected catalog.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function acquireFrontendArtifact(root: string, inventoryPath: string, options?: {
+    config?: string;
+}): Promise<{
+    acquired: string;
+    digest: string;
+    verified: true;
+    activated: false;
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application project root. |
+| `inventoryPath` | `string` | Yes | Explicit built artifact inventory path, absolute or relative to root. |
+| `options` | `{     config?: string; }` | No | Optional catalog path; defaults to frontend.packages.json within root. |
+
+### Returns
+
+`Promise<{     acquired: string;     digest: string;     verified: true;     activated: false; }>`
+
+Package identity and inventory digest; acquisition never activates features.
+
+### Remarks
+
+Does not execute contribution code, deploy or change tenant admission. Failed selection leaves the previous catalog intact; unselected immutable artifacts may be retained.
+
+### Errors and rejections
+
+For unsafe paths, changed checksums, missing exports, malformed catalogs, conflicting selection or concurrent operations.
+
+### Public members
+
+#### `options.config`
+
+Project-relative selected catalog; defaults to frontend.packages.json.
+
+
+
+### Example
+
+```typescript
+import { acquireFrontendArtifact } from '@alneas/eaos-cli/platform'
+export const acquire = (root: string, inventory: string) => acquireFrontendArtifact(root, inventory)
+```
+
 <a id="api-AdbConnectionProfile"></a>
 
 ## [INTERFACE] `AdbConnectionProfile`
@@ -267,6 +325,48 @@ declare const baselineImages: {
 ### Example
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-buildHostRuntime"></a>
+
+## [FUNCTION] `buildHostRuntime`
+
+Build a Host runtime locally with literal arguments and a pinned release label.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function buildHostRuntime(projectRoot: string, options: HostRuntimeBuildOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `projectRoot` | `string` | Yes | Trusted adopting project root. |
+| `options` | `HostRuntimeBuildOptions` | Yes | Entries, output, release, replacements and explicit resource callbacks. |
+
+### Returns
+
+`Promise<void>`
+
+Completion after successful compilation and all resource callbacks.
+
+### Remarks
+
+Runs the installed Bun CLI through an argument array without a shell. Opens no deployment, provisioning or migration process; failed output must not be published.
+
+### Errors and rejections
+
+Invalid release/path/define declarations, build failure or resource staging failure.
+
+### Example
+
+```typescript
+import {buildHostRuntime} from '@alneas/eaos-cli/platform'
+export const build=(root:string)=>buildHostRuntime(root,{entry:'src/server.ts',outdir:'dist',release:'candidate-1'})
+```
 
 <a id="api-callSiteControl"></a>
 
@@ -2162,6 +2262,121 @@ import { expandPreset } from '@alneas/eaos-cli/platform'
 const expanded = expandPreset({ preset: 'oci-adb', platform: { appName: 'example', baseDomain: 'example.com' } })
 ```
 
+<a id="api-FeatureRegistrationOptions"></a>
+
+## [INTERFACE] `FeatureRegistrationOptions`
+
+Explicit application adoption and separate generated modules.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface FeatureRegistrationOptions {
+    descriptors: readonly OfficialFeatureDescriptor[];
+    selectedIds: readonly string[];
+    outputs: {
+        manifests: string;
+        lifecycle: string;
+        web: string;
+        bindings?: string;
+    };
+    check?: boolean;
+    reservedRoutes?: readonly string[];
+    workspacePorts?: Readonly<Record<string, {
+        entry: string;
+        exportName: string;
+    }>>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `descriptors` | `readonly OfficialFeatureDescriptor[]` | Yes | Trusted owner descriptors; duplicate identities are rejected. |
+| `selectedIds` | `readonly string[]` | Yes | Exact reviewed build selection, including required dependencies. |
+| `outputs` | `{     manifests: string;     lifecycle: string;     web: string;     bindings?: string; }` | Yes | Distinct project-relative generated module destinations. |
+| `check` | `boolean` | No | Validate exact current output without repairing it. |
+| `reservedRoutes` | `readonly string[]` | No | Application-owned routes unavailable to connected feature pages. |
+| `workspacePorts` | `Readonly<Record<string, {     entry: string;     exportName: string; }>>` | No | Optional Host-owned port modules, imported only for selected connected owners. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+generateFeatureRegistrations
+
+### Public members
+
+#### `descriptors`
+
+Trusted owner descriptors; duplicate identities are rejected.
+
+
+#### `selectedIds`
+
+Exact reviewed build selection, including required dependencies.
+
+
+#### `outputs`
+
+Distinct project-relative generated module destinations.
+
+
+#### `outputs.manifests`
+
+Server-only manifest import module.
+
+
+#### `outputs.lifecycle`
+
+Server-only lifecycle import module.
+
+
+#### `outputs.web`
+
+Browser-safe client metadata module.
+
+
+#### `outputs.bindings`
+
+Optional connected browser factory module.
+
+
+#### `check`
+
+Validate exact current output without repairing it.
+
+
+#### `reservedRoutes`
+
+Application-owned routes unavailable to connected feature pages.
+
+
+#### `workspacePorts`
+
+Optional Host-owned port modules, imported only for selected connected owners.
+
+
+#### `workspacePorts.entry`
+
+Browser module path relative to the generated bindings module, starting with ./ .
+
+
+#### `workspacePorts.exportName`
+
+Named export supplying that owner's required ports.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
 <a id="api-findPluginDir"></a>
 
 ## [FUNCTION] `findPluginDir`
@@ -2295,6 +2510,48 @@ declare const generatedStart = "<!-- eaos:generated:start -->";
 ### Example
 
 See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-generateFeatureRegistrations"></a>
+
+## [FUNCTION] `generateFeatureRegistrations`
+
+Generate separate manifest, lifecycle and browser metadata for explicit adoption.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function generateFeatureRegistrations(root: string, options: FeatureRegistrationOptions): Promise<void>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application project root. |
+| `options` | `FeatureRegistrationOptions` | Yes | Data-only descriptors, exact adoption IDs and project-relative outputs. |
+
+### Returns
+
+`Promise<void>`
+
+Completion after all generated modules are replaced, or after read-only freshness verification.
+
+### Remarks
+
+Imports only selected feature entries. Browser output contains client metadata without server imports. Generation never loads a plugin, deploys or activates a tenant.
+
+### Errors and rejections
+
+On unknown/duplicate selections, unsafe declarations, missing dependencies/lifecycle, stale output or filesystem failures.
+
+### Example
+
+```typescript
+import { generateFeatureRegistrations, type FeatureRegistrationOptions } from '@alneas/eaos-cli/platform'
+export const prepare = (root: string, options: FeatureRegistrationOptions) => generateFeatureRegistrations(root, options)
+```
 
 <a id="api-generateMcpTools"></a>
 
@@ -2557,6 +2814,96 @@ declare const googleVerifiedEmailMapper = "local claims = std.extVar('claims');\
 ### See also
 
 [renderPlatform](#api-renderPlatform) for the canonical usage example and runtime requirements.
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-HostRuntimeBuildOptions"></a>
+
+## [INTERFACE] `HostRuntimeBuildOptions`
+
+Explicit local build inputs; deployment and resource discovery remain Host-owned.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface HostRuntimeBuildOptions {
+    entry: string | readonly string[];
+    outdir: string;
+    release: string;
+    define?: Readonly<Record<string, string>>;
+    external?: readonly string[];
+    resources?: readonly ((context: {
+        root: string;
+        outdir: string;
+    }) => Promise<void>)[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `entry` | `string \| readonly string[]` | Yes | Project-relative entry or entries, passed to the installed Bun build tool. |
+| `outdir` | `string` | Yes | Project-relative output directory. |
+| `release` | `string` | Yes | Immutable release label; latest and unsafe labels are rejected. |
+| `define` | `Readonly<Record<string, string>>` | No | Explicit build-time expressions keyed by identifier paths. |
+| `external` | `readonly string[]` | No | Dependencies deliberately retained as runtime imports by the Host. |
+| `resources` | `readonly ((context: {     root: string;     outdir: string; }) => Promise<void>)[]` | No | Explicit resource staging callbacks; a failure rejects the build result. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+buildHostRuntime
+
+### Public members
+
+#### `entry`
+
+Project-relative entry or entries, passed to the installed Bun build tool.
+
+
+#### `outdir`
+
+Project-relative output directory.
+
+
+#### `release`
+
+Immutable release label; latest and unsafe labels are rejected.
+
+
+#### `define`
+
+Explicit build-time expressions keyed by identifier paths.
+
+
+#### `external`
+
+Dependencies deliberately retained as runtime imports by the Host.
+
+
+#### `resources`
+
+Explicit resource staging callbacks; a failure rejects the build result.
+
+
+#### `resources[].context.root`
+
+Trusted project root.
+
+
+#### `resources[].context.outdir`
+
+Validated absolute build output directory.
+
+
 
 ### Example
 
@@ -5037,6 +5384,178 @@ False by default; true preserves supplied base64 bytes without encoding them aga
 #### `secret`
 
 Shallow native secret arguments applied last; overridden secretContent retains its supplied shape and is always wrapped as a Pulumi secret.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
+
+<a id="api-OfficialFeatureDescriptor"></a>
+
+## [INTERFACE] `OfficialFeatureDescriptor`
+
+Data-only package declarations; no functions, source paths or host credentials.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface OfficialFeatureDescriptor {
+    id: string;
+    version: string;
+    manifest: string;
+    server?: string;
+    lifecycle?: {
+        entry: string;
+        exportName: string;
+    };
+    dependencies?: readonly string[];
+    clients: Array<{
+        target: string;
+        entry: string;
+        exportName: string;
+        path: string;
+        providerEntry?: string;
+        providerExport?: string;
+        workspace?: false | {
+            entry: string;
+            exportName: string;
+            label: string;
+            reference?: {
+                listOperation: string;
+            };
+        };
+    }>;
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | Stable owner-declared feature identity. |
+| `version` | `string` | Yes | Exact installed owner version, without a range. |
+| `manifest` | `string` | Yes | Supported package subpath exporting manifest metadata. |
+| `server` | `string` | No | Optional supported runtime entry, never imported by generated browser metadata. |
+| `lifecycle` | `{     entry: string;     exportName: string; }` | No | Supported lifecycle export required for an adopted feature. |
+| `dependencies` | `readonly string[]` | No | Other feature IDs that must be explicitly adopted together. |
+| `clients` | `Array<{     target: string;     entry: string;     exportName: string;     path: string;     providerEntry?: string;     providerExport?: string;     workspace?: false \| {         entry: string;         exportName: string;         label: string;         reference?: {             listOperation: string;         };     }; }>` | Yes | Owner-declared client entrypoints without host credentials or implementations. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+generateFeatureRegistrations
+
+### Public members
+
+#### `id`
+
+Stable owner-declared feature identity.
+
+
+#### `version`
+
+Exact installed owner version, without a range.
+
+
+#### `manifest`
+
+Supported package subpath exporting manifest metadata.
+
+
+#### `server`
+
+Optional supported runtime entry, never imported by generated browser metadata.
+
+
+#### `lifecycle`
+
+Supported lifecycle export required for an adopted feature.
+
+
+#### `lifecycle.entry`
+
+Package subpath exporting the lifecycle definition.
+
+
+#### `lifecycle.exportName`
+
+JavaScript export name for that definition.
+
+
+#### `dependencies`
+
+Other feature IDs that must be explicitly adopted together.
+
+
+#### `clients`
+
+Owner-declared client entrypoints without host credentials or implementations.
+
+
+#### `clients[].target`
+
+Client family; browser output selects web.
+
+
+#### `clients[].entry`
+
+Supported client package subpath; a server entry is rejected.
+
+
+#### `clients[].exportName`
+
+Component export name, including default where applicable.
+
+
+#### `clients[].path`
+
+Declared application route.
+
+
+#### `clients[].providerEntry`
+
+Optional package subpath providing its client context.
+
+
+#### `clients[].providerExport`
+
+Export name of the client context provider.
+
+
+#### `clients[].workspace`
+
+Owner factory contract; false explicitly marks a raw-only route.
+
+
+#### `clients[].workspace.entry`
+
+Published browser-only factory entry.
+
+
+#### `clients[].workspace.exportName`
+
+Factory export name.
+
+
+#### `clients[].workspace.label`
+
+Exact owner navigation fallback.
+
+
+#### `clients[].workspace.reference`
+
+Optional canonical reference list declaration.
+
+
+#### `clients[].workspace.reference.listOperation`
+
+Owner-declared list operation.
 
 
 
@@ -8477,6 +8996,44 @@ import { selectAdbConnectionProfile } from '@alneas/eaos-cli/presets/oci-adb/inf
 export function connection(groups: Parameters<typeof selectAdbConnectionProfile>[0]) { return selectAdbConnectionProfile(groups) }
 ```
 
+<a id="api-selectClientBindings"></a>
+
+## [FUNCTION] `selectClientBindings`
+
+Select static pluginId registrations and their reachable host client adapters.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function selectClientBindings(source: string, selectedIds: readonly string[]): string;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `source` | `string` | Yes | Trusted TS/TSX host adapter module; registrations use literal pluginId fields. |
+| `selectedIds` | `readonly string[]` | Yes | Exact build adoption IDs. |
+
+### Returns
+
+`string`
+
+TypeScript source with unselected registration rows and unreachable imports/declarations removed.
+
+### Remarks
+
+Does not execute the source. Dynamic peer choices may still reference additional features; hosts must validate remaining official import identities against their adoption set.
+
+### Example
+
+```typescript
+import { selectClientBindings } from '@alneas/eaos-cli/platform'
+const source = selectClientBindings("export const pages=[{pluginId:'one'}]", ['one'])
+```
+
 <a id="api-selectImage"></a>
 
 ## [FUNCTION] `selectImage`
@@ -9037,6 +9594,114 @@ Rejects missing dialect SQL, external-database operations, virtual/empty schemas
 import { squashSqliteContract } from '@alneas/eaos-cli/baseline'
 export function compileSqlite(contract: Parameters<typeof squashSqliteContract>[0]) { return squashSqliteContract(contract) }
 ```
+
+<a id="api-stageFrontendArtifacts"></a>
+
+## [FUNCTION] `stageFrontendArtifacts`
+
+Generate verified privateNavigation/privatePages imports from selected artifacts.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+declare function stageFrontendArtifacts(root: string, options: StageFrontendOptions): Promise<{
+    pluginIds: string[];
+    routes: string[];
+}>;
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `root` | `string` | Yes | Trusted application root. |
+| `options` | `StageFrontendOptions` | Yes | Catalog, output module and host-owned reserved route selection. |
+
+### Returns
+
+`Promise<{     pluginIds: string[];     routes: string[]; }>`
+
+Selected plugin IDs and exact contributed routes in catalog order.
+
+### Remarks
+
+Validates every contribution before atomically replacing output. Never executes contributed modules, activates features or grants API permission.
+
+### Errors and rejections
+
+For invalid selection, exports, checksums, paths or concurrent operations.
+
+### Example
+
+```typescript
+import { stageFrontendArtifacts } from '@alneas/eaos-cli/platform'
+export const stage = (root: string) => stageFrontendArtifacts(root, { output: 'web/private.js', reservedRoutes: ['/'] })
+```
+
+<a id="api-StageFrontendOptions"></a>
+
+## [INTERFACE] `StageFrontendOptions`
+
+Host-selected frontend catalog and generated namespace module destination.
+
+Imports: `@alneas/eaos-cli/platform`.
+
+### Signature
+
+```typescript
+interface StageFrontendOptions {
+    config?: string;
+    packageConfig?: string;
+    output: string;
+    reservedRoutes: readonly string[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `config` | `string` | No | Existing project-relative catalog; defaults to frontend.packages.json. |
+| `packageConfig` | `string` | No | Optional application package registrations; preserves their explicit tenant scope. |
+| `output` | `string` | Yes | Project-relative generated module, outside acquired immutable artifact storage. |
+| `reservedRoutes` | `readonly string[]` | Yes | Exact host-owned routes unavailable to contributed pages. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+stageFrontendArtifacts
+
+### Public members
+
+#### `config`
+
+Existing project-relative catalog; defaults to frontend.packages.json.
+
+
+#### `packageConfig`
+
+Optional application package registrations; preserves their explicit tenant scope.
+
+
+#### `output`
+
+Project-relative generated module, outside acquired immutable artifact storage.
+
+
+#### `reservedRoutes`
+
+Exact host-owned routes unavailable to contributed pages.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-stagePlatformPackages"></a>
 

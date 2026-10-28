@@ -1,4 +1,6 @@
 import { Hono, type Context, type MiddlewareHandler } from 'hono'
+export { createHostManifestCatalog, createHostModulePolicy, createPluginAuthorizationMiddleware, resolveClientPlugins } from './admission'
+export type { HostPrincipal, HostManifestCatalogOptions, HostModulePolicyOptions, PluginAuthorizationOptions, ClientPluginOptions } from './admission'
 import type { PluginManifest } from '@alneas/eaos-core'
 import type { PlatformContribution } from '@alneas/eaos-server/platform'
 /**

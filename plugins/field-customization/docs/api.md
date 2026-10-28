@@ -25,6 +25,7 @@ tags: ["api", "generated"]
 | `@alneas/eaos-plugins/field-customization/service` | Typed public export |
 | `@alneas/eaos-plugins/field-customization/manifest` | Typed public export |
 | `@alneas/eaos-plugins/field-customization/runtime` | Typed public export |
+| `@alneas/eaos-plugins/field-customization/workspace-binding` | Typed public export |
 | `@alneas/eaos-plugins/field-customization/user-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-plugins/field-customization/deployment.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 
@@ -223,6 +224,45 @@ export function connectRoutes(options: FieldCustomizationOptions, resolvePrincip
 }
 ```
 
+
+<a id="api-createWorkspacePages"></a>
+
+## [FUNCTION] `createWorkspacePages`
+
+Connect the field editor to an explicit allowed resource catalog.
+
+Imports: `@alneas/eaos-plugins/field-customization/workspace-binding`.
+
+### Signature
+
+```typescript
+declare function createWorkspacePages(environment: WorkspaceBindingEnvironment, options: FieldCustomizationWorkspaceOptions): readonly ConnectedWorkspacePage[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Canonical verified identity and scoped browser transport. |
+| `options` | `FieldCustomizationWorkspaceOptions` | Yes | Nonempty adopter-owned resource catalog; duplicate IDs are rejected. |
+
+### Returns
+
+`readonly ConnectedWorkspacePage[]`
+
+A connected field editor route with revision-preserving PUT requests.
+
+### Errors and rejections
+
+Missing/invalid resource catalogs fail at composition.
+
+### Example
+
+```tsx
+import {createWorkspacePages} from '@alneas/eaos-plugins/field-customization/workspace-binding'
+import type {WorkspaceBindingEnvironment} from '@alneas/eaos-react/workspace-binding'
+export const connect=(environment:WorkspaceBindingEnvironment)=>createWorkspacePages(environment,{resources:[{id:'reports',label:'Reports'}]})
+```
 
 <a id="api-default"></a>
 
@@ -757,6 +797,61 @@ import { FieldCustomizationService, type FieldCustomizationOptions } from '@alne
 export function connectFields(options: FieldCustomizationOptions) { return new FieldCustomizationService(options); }
 ```
 
+
+<a id="api-FieldCustomizationWorkspaceOptions"></a>
+
+## [INTERFACE] `FieldCustomizationWorkspaceOptions`
+
+Explicit adopter resource catalog; the public feature owns no business defaults.
+
+Imports: `@alneas/eaos-plugins/field-customization/workspace-binding`.
+
+### Signature
+
+```typescript
+interface FieldCustomizationWorkspaceOptions {
+    resources: readonly {
+        id: string;
+        label: string;
+    }[];
+}
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `resources` | `readonly {     id: string;     label: string; }[]` | Yes | Nonempty allowed resource IDs and user-facing labels. |
+
+### Returns
+
+Type declaration; no runtime value.
+
+### See also
+
+createWorkspacePages
+
+### Public members
+
+#### `resources`
+
+Nonempty allowed resource IDs and user-facing labels.
+
+
+#### `resources[].id`
+
+Server-authorized resource identity.
+
+
+#### `resources[].label`
+
+Visible resource label.
+
+
+
+### Example
+
+See the owning declaration and linked feature guide for usage; no standalone example is documented in source.
 
 <a id="api-FieldDefinition"></a>
 

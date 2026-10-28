@@ -98,7 +98,8 @@ test('all direct runtime, optional and peer requirements resolve publicly; dev r
   assert.equal(report.targets[0].dependencies.length, 4)
   delete data.react
   assert.equal((await run(data, {}, [pkg])).ok, false)
-  assert.equal((await run(data, {}, [{...pkg, dependencies:{'@alneas/appkit-core':'^0.2.0'}}])).ok, false)
+  data.react=metadata('react',['19.0.0'])
+  assert.equal((await run(data, {}, [{...pkg, dependencies:{'@alneas/appkit-core':'^0.2.0'}}])).ok, true)
 })
 test('unavailable dependency ranges and malformed metadata fail closed', async () => {
   const pkg = {...core, dependencies:{hono:'^4.0.0'}}

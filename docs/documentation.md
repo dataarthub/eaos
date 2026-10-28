@@ -16,12 +16,13 @@ Read the [ALNEAS documentation policy](https://tech-docs.alneas.com/policies/doc
 
 ## Step-by-Step Implementation
 
-1. Edit the owning package's English source under `docs/` or its README. Classify each page as tutorial, how-to, reference or explanation. Landing pages use Elevator Pitch → Why & Value → Key Highlights → Quickstart → Next Steps.
-2. Add title, description, sidebar order, archetype, project and tags frontmatter. Examples include complete imports and use only synthetic values. Keep local paths and real host/tenant settings out of public content.
-3. Keep this project's canonical public guides in English. Japanese portal translations are owned by github-docs under `src/data/translations/pages/eaos-workspace/` and rendered into its `src/content/docs/ja/eaos-workspace/` routes. Do not register portal translations as upstream `sourceJa` entries. Preserve code snippets and identifiers; missing portal translations fall back to English. Existing Japanese runtime-help assets remain separate from portal translation ownership.
-4. Regenerate API cards from built declarations and source export names. Do not edit generated reference cards. TypeScript/JSDoc and the package export map own these contracts.
-5. In each developer feature guide, add a **Public import** section with a package installation command, exact exported subpath and a self-contained example. State the selected runtime, peers, stylesheet and provider requirements. Keep implementation instructions in developer guides; link to them from end-user operation guides. Check named exports against built declarations as well as the package export map.
-6. Add only reviewed public pages to `docs.manifest.json`. Use relative source links; ingestion maps them to registered page routes. New files and private folders are excluded by default.
+1. Update paired English/Japanese READMEs together, including reciprocal language links, verified technology badges, Japanese portal coverage and an English support path. English is canonical; README translations stay project-owned and separate from portal translations.
+2. Edit the owning package's English source under `docs/` or its README. Classify each page as tutorial, how-to, reference or explanation. Landing pages use Elevator Pitch → Why & Value → Key Highlights → Quickstart → Next Steps.
+3. Add title, description, sidebar order, archetype, project and tags frontmatter. Examples include complete imports and use only synthetic values. Keep local paths and real host/tenant settings out of public content.
+4. Keep this project's canonical public guides in English. Japanese portal translations are owned by github-docs under `src/data/translations/pages/eaos-workspace/` and rendered into its `src/content/docs/ja/eaos-workspace/` routes. Do not register portal translations as upstream `sourceJa` entries. Preserve code snippets and identifiers; missing portal translations fall back to English. Existing Japanese runtime-help assets remain separate from portal translation ownership.
+5. Regenerate API cards from built declarations and source export names. Do not edit generated reference cards. TypeScript/JSDoc and the package export map own these contracts.
+6. In each developer feature guide, add a **Public import** section with a package installation command, exact exported subpath and a self-contained example. State the selected runtime, peers, stylesheet and provider requirements. Keep implementation instructions in developer guides; link to them from end-user operation guides. Check named exports against built declarations as well as the package export map.
+7. Add only reviewed public pages to `docs.manifest.json`. Use relative source links; ingestion maps them to registered page routes. New files and private folders are excluded by default.
 
 From this public repository, run `bun run docs:readmes:prepare`, `bun run docs:api` and `bun run docs:check`. These commands need no private checkout.
 

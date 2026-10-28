@@ -304,6 +304,10 @@
     "./execution/tool-agent": {
       "types": "./dist/execution/tool-agent.d.ts",
       "import": "./dist/execution/tool-agent.js"
+    },
+    "./host": {
+      "types": "./dist/host/index.d.ts",
+      "import": "./dist/host/index.js"
     }
   },
   "files": [
@@ -342,7 +346,7 @@
     "@langchain/langgraph": "^1.5.0"
   },
   "peerDependencies": {
-    "@alneas/appkit-core": "0.2.0"
+    "@alneas/appkit-core": "^0.2.0"
   },
   "repository": {
     "type": "git",
