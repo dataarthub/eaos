@@ -23,7 +23,7 @@
     },
     "packages/cli": {
       "name": "@alneas/eaos-cli",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "bin": {
         "eaos": "./dist/index.js",
       },
@@ -58,7 +58,7 @@
     },
     "packages/core": {
       "name": "@alneas/eaos-core",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "dependencies": {
         "semver": "^7.8.5",
       },
@@ -74,7 +74,7 @@
     },
     "packages/react": {
       "name": "@alneas/eaos-react",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "devDependencies": {
         "@alneas/eaos-core": "^0.2.0",
         "@types/node": "^22.20.5",
@@ -99,7 +99,7 @@
     },
     "packages/server": {
       "name": "@alneas/eaos-server",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "@alneas/eaos-core": "^0.2.0",
         "@langchain/langgraph": "^1.5.0",
@@ -121,7 +121,7 @@
     },
     "plugins": {
       "name": "@alneas/eaos-plugins",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "@alneas/eaos-core": "^0.2.0",
         "@alneas/eaos-server": "^0.2.0",

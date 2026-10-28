@@ -1,5 +1,34 @@
 # @alneas/eaos-cli
 
+## 0.3.0
+
+### Minor Changes
+
+- 11f1579: Add host-injected manifest/module admission, live request authorization and safe client availability helpers through Server's extensions entry. Applications keep their membership lookups, environment policies and resource authorization.
+
+  Add verified frontend artifact acquisition/staging and selected feature registration generation through CLI's platform entry. These operations validate immutable artifacts and explicit adoption without deployment or tenant activation. CLI declaration builds now run in sequential entry batches to bound retained compiler memory.
+
+### Patch Changes
+
+- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
+- 11f1579: Compose selected connected workspace factories with required port types and exact owner/route validation. Generate selected browser bindings alongside server metadata in one transaction, rejecting edited files and preserving read-only freshness checks.
+- 11f1579: Build Host runtimes with explicit local entrypoints, immutable release labels, literal process arguments and resource callbacks. Preserve flat runtime entry filenames for generated images and reject duplicate output names.
+- 11f1579: Preserve URL search syntax across workspace scope changes and multipart upload bodies in scoped transport. Enforce optional registered tenant restrictions in feature boundaries. Stage verified browser entries and explicit routes directly from application package registrations while retaining their tenant scope.
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+  - @alneas/eaos-core@0.2.1
+  - @alneas/eaos-server@0.3.0
+  - @alneas/eaos-react@0.3.0
+
 ## 0.2.0
 
 ### Changed
