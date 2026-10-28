@@ -6,16 +6,20 @@
 
 - 11f1579: Add browser-only record/command workspace composition helpers and an explicit query resource chooser. Hosts and feature owners retain operation catalogs, labels and resource scopes. Snapshot adapters validate tenant/record/revision envelopes and keep domain DTO validation with their owners. Resolve the record form schema type through the supported Appkit form props instead of a nonexistent schema subpath.
 - 11f1579: Add a Host-configured workspace JSON API and connected workspace binding contract. Requests enforce safe endpoint/path construction, cancellation and deadlines; connected pages reject stale results after identity or feature-grant changes. Existing workspace and plugin runtime APIs remain supported.
-- 11f1579: Add `/workspace-application` with standard login, header/sidebar composition, current-session tenant refresh, shared navigation projection and a feature boundary. Hosts supply their existing public Appkit 0.2 providers, tenant loader, router, effective pages and branding. Optimistic users and mismatched or failed tenant contexts cannot reveal protected content. Existing shell APIs remain supported.
+- 11f1579: Add `/workspace-application` with standard login, header/sidebar composition, current-session tenant refresh, shared navigation projection and a feature boundary. Hosts supply their existing public Appkit Core 0.2.0 / React 0.3.0 providers, tenant loader, router, effective pages and branding. Optimistic users and mismatched or failed tenant contexts cannot reveal protected content. Existing shell APIs remain supported.
 
 ### Patch Changes
 
-- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
+- 11f1579: Use compatible caret ranges for distributed dependencies and peers. Require Core ^0.2.1 and preserve the independent Appkit React ^0.3.0 peer with exact lockfile resolutions.
 - 11f1579: Compose selected connected workspace factories with required port types and exact owner/route validation. Generate selected browser bindings alongside server metadata in one transaction, rejecting edited files and preserving read-only freshness checks.
 - 11f1579: Use a portable BrowserFetch call signature for workspace and verified compute asset adapters, allowing ordinary browser fetch functions when Bun adds static helpers to the global fetch type. Runtime credential, cancellation and checksum behavior remains unchanged.
 - 11f1579: Preserve URL search syntax across workspace scope changes and multipart upload bodies in scoped transport. Enforce optional registered tenant restrictions in feature boundaries. Stage verified browser entries and explicit routes directly from application package registrations while retaining their tenant scope.
 - Updated dependencies [11f1579]
   - @alneas/eaos-core@0.2.1
+
+### Upgrade
+
+- Install Core 0.2.1 and the documented Appkit Core 0.2.0 / React 0.3.0 peers. Adopt the new workspace application entry explicitly and retain Host-owned identity, routes and resource scopes. Existing shell and raw workspace entrypoints remain supported.
 
 ## 0.2.0
 

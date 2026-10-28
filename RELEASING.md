@@ -18,11 +18,34 @@ The public source repository is https://github.com/dataarthub/eaos; all five
 packages target public npmjs. Local preparation never writes to a registry.
 Use the toolchain and checks in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Current release preparation
+
+The unpublished candidate is Core **0.2.1** and Server, React, CLI and Plugins
+**0.3.0**. Their independent versions follow the changed owned payload and API
+impact. Appkit Core 0.2.0 and React 0.3.0 remain independent prerequisites. Pending
+Server documentation is consolidated into the existing 0.3.0 entry; it does not
+create an additional 0.3.1 release.
+
+Prepare and verify all five archives, publish Core first, then React and Server,
+then CLI and Plugins after their required registry prerequisites are readable.
+Existing packages use the subsequent Actions/OIDC staging path below, with human
+npm approval. The generated manual-first-publication handoff is a bootstrap
+artifact and is not the publication path for this existing package set.
+
+Package-specific tags are `eaos-core-v0.2.1`, `eaos-react-v0.3.0`,
+`eaos-server-v0.3.0`, `eaos-cli-v0.3.0` and `eaos-plugins-v0.3.0`.
+Preparation creates none of these tags, no GitHub Release and no registry write.
+Before authorized publication, make the final source commit available on main
+and pass the required CI and exact archive checks for that source. Read-only
+preflight distinguishes pending candidate-internal prerequisites from unavailable
+external dependencies; a successful bootstrap report is not permission to stage
+all dependents before their prerequisites are public.
+
 ## Step-by-Step Implementation
 
 1. Select an explicit last-release baseline per package and inspect accumulated
-   Changesets plus runtime dependency impact. The aggregate `v0.1.0` release is the published baseline.
-   Review later changes independently for each owner; the three former plugin
+   Changesets plus runtime dependency impact. The current published baseline is each owner's `eaos-<owner>-v0.2.0` tag; the aggregate `v0.1.0` is historical.
+   Review accumulated changes independently for each owner; the three former plugin
    package names are not release targets.
 2. Run `bun run release:plan` to inspect versions, dependency order and required
    distribution tags. This plan lists the five-package candidate set; it does
@@ -268,9 +291,9 @@ bytes, required tags and completion records were verified. Current main supplies
 the reviewed control code while recovery verifies and stages the original tagged
 package source. These candidates do not authorize rerunning the original attempts.
 
-### Dependency order for the prepared 0.2.0 set
+### Historical 0.2.0 delivery order
 
-The prepared targets remain the same five 0.2.0 versions. Stage Core first. After
+The historical prepared set used the same five 0.2.0 versions. Its order was Core first. After
 human approval, verify its public bytes and required tags before staging React
 and Server. After those prerequisites are public and verified, stage CLI and the
 plugin collection. Each package has its own Release, original run and human npm

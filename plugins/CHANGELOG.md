@@ -8,21 +8,15 @@
 
 ### Patch Changes
 
-- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
-- Updated dependencies [11f1579]
+- 11f1579: Use compatible caret ranges for the Core ^0.2.1, Server ^0.3.0 and React ^0.3.0 contracts and the independent Appkit peers. Lockfiles retain exact resolved versions and integrity.
 - Updated dependencies [11f1579]
   - @alneas/eaos-core@0.2.1
   - @alneas/eaos-server@0.3.0
   - @alneas/eaos-react@0.3.0
+
+### Upgrade
+
+- Adopt matching Core 0.2.1, Server 0.3.0 and React 0.3.0 contracts for the corresponding runtime/UI entries. Hosts supply live authorization and explicit workspace ports. Existing raw workspace entrypoints remain supported; package installation does not activate features or apply migrations.
 
 ## 0.2.0
 
