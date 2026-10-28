@@ -21,8 +21,10 @@ test('five publication targets share one standard plugin package with isolated e
  assert.ok(pkg)
  assert.deepEqual(validateManifest(pkg),[],'Collection releases keep the public manifest contract; feature versions are independent')
  assert.equal(pkg.exports['.'],undefined)
+ assert.ok(pkg.files.includes('README.ja.md'),'Keep the collection Japanese README explicit in the reviewed payload')
  for(const id of ['approval','field-customization','admin']) {
   await assert.rejects(access(new URL('plugins/'+id+'/package.json',root)))
+  assert.ok(pkg.files.includes(id+'/README.ja.md'),'Keep translated feature README payloads explicit')
   assert.ok(pkg.files.includes(id+'/LICENSE'),'Keep npm-included feature licenses explicit in the reviewed payload')
   assert.equal(pkg.exports['./'+id+'/runtime'].import,'./dist/'+id+'/src/runtime.js')
   assert.equal(pkg.exports['./'+id+'/deployment.json'],'./dist/'+id+'/deployment.json')

@@ -24,6 +24,8 @@ flowchart TD
   React --> Host
   CLI[CLI: authoring, plans and templates] --> Host
   Host --> Plugins[Explicitly selected plugins]
+  CLI --> Catalog[Selected registrations and verified artifacts]
+  Catalog --> Host
 ```
 
 | Requirement | Public import | Host responsibility |

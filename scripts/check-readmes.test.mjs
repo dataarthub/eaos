@@ -171,3 +171,16 @@ test('collection feature READMEs inherit the nearest distribution manifest and p
   assert(checkProject(root, { schemaVersion: 1, readmes: ['plugins/approval/README.md'] }).some(error => error.includes('Unregistered package README: plugins/README.md')));
  } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test('portal wrappers omit GitHub-only language navigation while preserving canonical prose',async()=>{
+ const {portalReadmeSource}=await import('./readme-portal-source.mjs');
+ assert.equal(portalReadmeSource('# Package\n\n[English](README.md) | [日本語](README.ja.md)\n\nEnglish guide.\n'),'# Package\n\nEnglish guide.\n');
+ assert.equal(portalReadmeSource('[English](README.md) | [日本語](https://github.com/example/sdk/blob/main/plugins/README.ja.md)\n\nEnglish guide.\n'),'English guide.\n');
+ assert.equal(portalReadmeSource('Japanese runtime label: `日本語`.\n'),'Japanese runtime label: `日本語`.\n');
+});
+
+
+test('portal language navigation also strips canonical HTTPS English links',async()=>{
+ const {portalReadmeSource}=await import('./readme-portal-source.mjs')
+ assert.equal(portalReadmeSource('[English](https://github.com/example/sdk/blob/main/packages/cli/README.md) | [日本語](https://github.com/example/sdk/blob/main/packages/cli/README.ja.md)\n\nGuide.\n'),'Guide.\n')
+})

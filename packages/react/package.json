@@ -74,6 +74,22 @@
     "./plugin-runtime": {
       "types": "./dist/plugin-runtime.d.ts",
       "import": "./dist/plugin-runtime.js"
+    },
+    "./workspace-application": {
+      "types": "./dist/workspace-application.d.ts",
+      "import": "./dist/workspace-application.js"
+    },
+    "./workspace-binding": {
+      "types": "./dist/workspace-binding.d.ts",
+      "import": "./dist/workspace-binding.js"
+    },
+    "./workspace-binding/record": {
+      "types": "./dist/workspace-binding/record.d.ts",
+      "import": "./dist/workspace-binding/record.js"
+    },
+    "./workspace-binding/command": {
+      "types": "./dist/workspace-binding/command.d.ts",
+      "import": "./dist/workspace-binding/command.js"
     }
   },
   "files": [
@@ -110,7 +126,7 @@
   },
   "peerDependencies": {
     "react": "^18.3.0 || ^19.0.0",
-    "@alneas/appkit-react": "0.3.0",
+    "@alneas/appkit-react": "^0.3.0",
     "lucide-react": "^0.475.0 || ^1.57.0",
     "@alneas/eaos-core": "^0.2.0"
   },

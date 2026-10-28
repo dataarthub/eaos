@@ -1,4 +1,5 @@
-import { createContext, createElement, useContext, useEffect, useMemo, type ReactNode } from 'react'
+import { createContext, createElement, useContext, useMemo, type ReactNode } from 'react'
+import {useRequestLifetime} from './request-lifetime'
 /**
  * Live host request and compute capabilities bound to one authenticated session.
  *
@@ -82,8 +83,7 @@ export function PluginRuntimeProvider({ runtime, children }: {
 }
 function useRuntimeOperation(pluginId: string, kind: 'request' | 'compute') {
   const runtime = useContext(Runtime)
-  const session = useMemo(() => ({ controller: new AbortController(), active: true }), [runtime, runtime?.tenantId, runtime?.sessionKey, pluginId])
-  useEffect(() => { if (session.controller.signal.aborted) session.controller = new AbortController(); session.active = true; return () => { session.active = false; session.controller.abort() } }, [session])
+  const session = useRequestLifetime(runtime,JSON.stringify([runtime?.tenantId,runtime?.sessionKey,pluginId]))
   return useMemo(() => async <T = unknown>(operation: string, input?: unknown): Promise<T> => {
     if (!runtime?.tenantId || !runtime.sessionKey || !session.active) throw Error('Authenticated plugin runtime required')
     if (!/^[a-z][a-z0-9-]{0,127}$/.test(pluginId)) throw Error('Invalid plugin ID')

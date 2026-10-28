@@ -312,3 +312,6 @@ export function createPluginAssetRouter(options: {
   })
   return router
 }
+
+export * from './service'
+export * from './admin-routes'

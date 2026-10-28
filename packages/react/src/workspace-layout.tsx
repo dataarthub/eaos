@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Home, Users, UserRound, Building2, FileText, MessageSquare, CircleHelp } from 'lucide-react'
+import { Home, Users, UserRound, Building2, FileText, MessageSquare, CircleHelp, PanelLeft } from 'lucide-react'
 import { Header, type HeaderProps } from '@alneas/appkit-react/tools/header'
 import { SmartSidebar, useSidebar, type SmartSidebarGroup } from '@alneas/appkit-react/tools/sidebar'
 import { Avatar, AvatarFallback, Button, Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@alneas/appkit-react/tools/core'
@@ -172,15 +172,15 @@ export function WorkspaceSidebar({tenantName,activePath,onNavigate,onLogout,user
   footer?:ReactNode
 }) {
   const {state,toggleSidebar,setOpenMobile}=useSidebar()
-  return <SmartSidebar groups={workspaceNavigation(options).map(group=>({...group,items:group.items.map(item=>({...item,icon:item.icon ?? <FileText size={18} />}))}))} activePath={activePath}
-    collapsed={state==='collapsed'} onToggleCollapse={toggleSidebar}
+  return <><style>{'.eaos-workspace-sidebar h4,.eaos-workspace-sidebar nav .text-primary{color:var(--foreground)}'}</style><SmartSidebar className="eaos-workspace-sidebar" groups={workspaceNavigation(options).map(group=>({...group,items:group.items.map(item=>({...item,icon:item.icon ?? <FileText size={18} />}))}))} activePath={activePath}
+    collapsed={state==='collapsed'}
     onNavigate={path=>{setOpenMobile(false);onNavigate(path)}}
-    header={collapsed=>collapsed?null:<span>{tenantName || 'Workspace'}</span>}
+    header={collapsed=><div className="flex w-full items-center justify-between">{!collapsed&&<span>{tenantName || 'Workspace'}</span>}<Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label={collapsed?'サイドバーを展開':'サイドバーを折りたたむ'} onClick={toggleSidebar}><PanelLeft size={16}/></Button></div>}
     sidebarFooter={collapsed=>footer ?? <div className="min-w-0 w-full space-y-2">
-      {user&&<Button variant="ghost" aria-label={`ログインユーザー: ${user.name}`} className="w-full justify-start gap-3 px-0" onClick={()=>{setOpenMobile(false);onNavigate(options.routes?.account??'/settings/profile')}}>
+      {user&&<Button variant="ghost" aria-label={`ログインユーザー: ${user.name}`} className="w-full justify-start gap-3 px-0" style={{height:'auto',minHeight:'2.25rem',paddingBlock:'0.5rem'}} onClick={()=>{setOpenMobile(false);onNavigate(options.routes?.account??'/settings/profile')}}>
         <Avatar className="h-8 w-8 shrink-0"><AvatarFallback>{user.initials||user.name.slice(0,2).toUpperCase()}</AvatarFallback></Avatar>
         {!collapsed&&<span className="min-w-0 text-left"><span className="block truncate text-sm font-medium">{user.name}</span><span className="block truncate text-xs text-muted-foreground">{user.email}</span></span>}
       </Button>}
       {onLogout&&<Button variant="outline" className="w-full" aria-label="ログアウト" onClick={onLogout}>{collapsed?'↪':'ログアウト'}</Button>}
-    </div>} />
+    </div>} /></>
 }

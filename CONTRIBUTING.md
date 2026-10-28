@@ -161,3 +161,5 @@ configuration is implied by this document.
 The package-only release checks do not establish a production host's restoration,
 provider reliability, backup retention or availability guarantees. Hosts maintain
 those operational contracts separately.
+
+Dependency manifests follow the shared compatible-range policy: runtime and peer dependencies default to caret ranges with published minimums; lockfiles retain exact resolutions and integrity. Unreleased cross-repository APIs must be tested only in disposable candidate fixtures and released in dependency order before production adoption.

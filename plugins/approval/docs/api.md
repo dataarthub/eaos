@@ -25,6 +25,7 @@ tags: ["api", "generated"]
 | `@alneas/eaos-plugins/approval/service` | Typed public export |
 | `@alneas/eaos-plugins/approval/manifest` | Typed public export |
 | `@alneas/eaos-plugins/approval/runtime` | Typed public export |
+| `@alneas/eaos-plugins/approval/workspace-binding` | Typed public export |
 | `@alneas/eaos-plugins/approval/user-guide.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 | `@alneas/eaos-plugins/approval/deployment.json` | Packaged JSON contract/data asset; resolve this exported path with the host loader |
 
@@ -1438,6 +1439,44 @@ export function connectRoutes(options: ApprovalPluginOptions, resolvePrincipal: 
 }
 ```
 
+
+<a id="api-createWorkspacePages"></a>
+
+## [FUNCTION] `createWorkspacePages`
+
+Connect the approval workspace to verified Host browser capabilities.
+
+Imports: `@alneas/eaos-plugins/approval/workspace-binding`.
+
+### Signature
+
+```typescript
+declare function createWorkspacePages(environment: WorkspaceBindingEnvironment): readonly ConnectedWorkspacePage[];
+```
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `environment` | `WorkspaceBindingEnvironment` | Yes | Canonical identity hook, explicit adoption and API transport. |
+
+### Returns
+
+`readonly ConnectedWorkspacePage[]`
+
+The approval route with its Provider and REST command mapping.
+
+### Remarks
+
+Backend membership, resource authorization and revision checks remain mandatory.
+
+### Example
+
+```tsx
+import {createWorkspacePages} from '@alneas/eaos-plugins/approval/workspace-binding'
+import type {WorkspaceBindingEnvironment} from '@alneas/eaos-react/workspace-binding'
+export const connect=(environment:WorkspaceBindingEnvironment)=>createWorkspacePages(environment)
+```
 
 <a id="api-default"></a>
 
