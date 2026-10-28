@@ -2,7 +2,7 @@
 
 [English](https://github.com/dataarthub/eaos/blob/main/packages/server/README.md) | [日本語](https://github.com/dataarthub/eaos/blob/main/packages/server/README.ja.md)
 
-[ドキュメントサイトの日本語ページ](https://tech-docs.alneas.com/ja/eaos-workspace/server/)でプロジェクト全体の日本語ドキュメントを案内しています。未翻訳・レビュー待ちのページは英語にフォールバックする場合があります。公開サイトは公開済みバージョンの案内であり、この README の 0.2.0 候補と一致しない場合は、対応する英語ガイドと変更履歴を確認してください。
+[ドキュメントサイトの日本語ページ](https://tech-docs.alneas.com/ja/eaos-workspace/server/)でプロジェクト全体の日本語ドキュメントを案内しています。未翻訳・レビュー待ちのページは英語にフォールバックする場合があります。公開サイトは公開済みバージョンの案内であり、この README の 0.3.0 候補と一致しない場合は、対応する英語ガイドと変更履歴を確認してください。
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/docs/) [![Node.js minimum 24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases) [![Hono](https://img.shields.io/badge/Hono-E36002?style=flat&logo=hono&logoColor=white)](https://hono.dev/docs/)
 
@@ -23,7 +23,7 @@
 
 ## Quickstart
 
-この checkout は 0.2.0 のリリース準備用です。0.1.0 は公開済みです。0.2.0 の公開まではチェックサムを固定した候補 tarball を導入し、以下のコマンドは公開後に使用してください。
+公開済みの基準版は 0.2.0 で、この checkout は 0.3.0 の準備用です。以下のコマンドは公開済みの基準版を導入します。新しい Host 台帳・契約 API は、0.3.0 の公開まで対応するチェックサム検証済み候補を使用してください。
 
 ### 公開 API の import
 
@@ -45,5 +45,6 @@ console.log(canonical({ format: 1, operation: 'inspect' }))
 - [アーキテクチャと境界](docs/guide.md)
 - [API リファレンス](docs/api.md)
 - [EAOS の構成](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+- [台帳・監査付き契約更新の接続（開発候補）](https://github.com/dataarthub/eaos/blob/main/packages/server/docs/development/host-account-services.md)
 
 英語での質問・不具合報告を [GitHub Issues](https://github.com/dataarthub/eaos/issues) で受け付けています。非公開の脆弱性報告には [GitHubの非公開報告機能](https://github.com/dataarthub/eaos/security/advisories/new)を利用できます。

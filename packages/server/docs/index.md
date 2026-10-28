@@ -31,7 +31,7 @@ Shared implementations keep authorization, CAS, audit and Outbox consistent. The
 
 ## Quickstart
 
-This checkout prepares version 0.2.0; version 0.1.0 is already published. Until 0.2.0 is published, install the checksum-pinned candidate tarball. The command below applies after that release.
+The published baseline is 0.2.0; this checkout prepares 0.3.0. The command below uses the published baseline. New Host directory/contract APIs require the matching checksum-verified candidate until 0.3.0 is published.
 
 ### Public import
 
@@ -53,5 +53,6 @@ console.log(canonical({ format: 1, operation: 'inspect' }))
 - [Architecture and boundaries](guide.md)
 - [API reference](api.md)
 - [EAOS composition](https://tech-docs.alneas.com/eaos-workspace/architecture/)
+- [Directory and audited contract services (development candidate)](https://github.com/dataarthub/eaos/blob/main/packages/server/docs/development/host-account-services.md)
 
 Questions and issue reports in English are welcome in [GitHub Issues](https://github.com/dataarthub/eaos/issues). Private vulnerability reports can use [GitHub private reporting](https://github.com/dataarthub/eaos/security/advisories/new).
