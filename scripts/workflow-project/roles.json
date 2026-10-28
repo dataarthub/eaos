@@ -57,6 +57,11 @@
             "if": "steps.public-selection.outputs.scope == 'full'"
           },
           {
+            "name": "Verify AI draft editing, approval and save in four browser cases",
+            "run": "bun run test:ai-drafts:browser",
+            "if": "steps.public-selection.outputs.scope == 'full'"
+          },
+          {
             "name": "Prepare and test exact archives",
             "run": "node scripts/release.mjs prepare > .verification/candidate-path.txt\nbun run test:consumer -- \"$(cat .verification/candidate-path.txt)\"\nbun run release:verify -- \"$(cat .verification/candidate-path.txt)\"\n",
             "if": "steps.public-selection.outputs.scope == 'full'"
@@ -155,6 +160,10 @@
           },
           {
             "run": "bunx playwright install --with-deps chromium"
+          },
+          {
+            "name": "Verify AI draft editing, approval and save in four browser cases",
+            "run": "bun run test:ai-drafts:browser"
           },
           {
             "name": "Prepare and test exact commit-bound release archives",

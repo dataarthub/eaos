@@ -81,6 +81,33 @@ README/LICENSE/CHANGELOG, explicit files and private-source exclusion. Consumer
 checks never use sibling source aliases, private tarballs or a checkout fallback.
 Working-tree bundles are development evidence, not publishable releases.
 
+### Browser and dependency compatibility evidence
+
+Full source CI and Release verification run `bun run test:ai-drafts:browser`.
+Its four desktop/mobile and light/dark cases retain accessibility checks,
+approval-before-save, edited input, idempotent retry and viewport assertions under
+the existing 3 GiB / three-minute guard. Records identify source inputs and any
+explicit isolated artifact consumer; development candidate evidence does not
+certify registry availability or durable database behavior.
+
+`test:consumer` installs published declared minimums and the newest published
+compatible direct dependencies into separate isolated consumers. Both combined
+profiles run the full existing browser matrix. Additional bounded owner lanes
+cover React 18/19, both lucide major branches, and optional Pulumi/OCI imports and
+types. They do not execute cloud resources, previews or updates. Records preserve
+requested versions, actual installed versions, lockfile resolutions/integrities,
+candidate archive checksums and the specific coverage of each lane. Dependency
+owners retain responsibility for their own transitive minimums; omitted optional
+features and unexecuted lanes are not claimed as tested.
+
+The current published Appkit React 0.3.0 DataTable inserts deprecated drag-handle
+ARIA state and fails the AI draft accessibility gate. A canonical Appkit fix is
+required before this EAOS candidate can ship. A separately verified development
+archive can establish early compatibility, but a fixed Appkit release must be
+published, its minimum adopted and registry-only checks rerun before publication.
+Do not filter accessibility findings, disable dragging, patch consumer DOM or
+adopt an unpublished production dependency to bypass this prerequisite.
+
 ### Publication and external setup
 
 The candidate quality workflow prepares artifacts without publishing. Subsequent

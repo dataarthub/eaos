@@ -78,6 +78,9 @@ jobs:
         run: "bunx playwright install --with-deps chromium"
         name: "Project: Run declared project check"
       -
+        name: "Project: Verify AI draft editing, approval and save in four browser cases"
+        run: "bun run test:ai-drafts:browser"
+      -
         name: "Project: Prepare and test exact commit-bound release archives"
         run: |
           node scripts/release.mjs prepare --final > .verification/candidate-path.txt
