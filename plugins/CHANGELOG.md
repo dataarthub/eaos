@@ -1,5 +1,29 @@
 # @alneas/eaos-plugins
 
+## 0.3.0
+
+### Minor Changes
+
+- 11f1579: Add connected workspace factories for approval, field customization and the audit journal through additive `/workspace-binding` entries. Hosts provide verified browser capabilities and an explicit field resource catalog. Approval and field responses use the canonical document schemas through the Appkit Core 0.2 peer. Raw workspace entries remain supported.
+
+### Patch Changes
+
+- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+- Updated dependencies [11f1579]
+  - @alneas/eaos-core@0.2.1
+  - @alneas/eaos-server@0.3.0
+  - @alneas/eaos-react@0.3.0
+
 ## 0.2.0
 
 ### Added

@@ -1,5 +1,11 @@
 # @alneas/eaos-core
 
+## 0.2.1
+
+### Patch Changes
+
+- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
+
 ## 0.2.0
 
 ### Added

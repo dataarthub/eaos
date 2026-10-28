@@ -1,7 +1,7 @@
 {
   "apiVersion": 1,
   "owner": "@alneas/eaos-plugins/approval",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "lifecycleBundle": [
     "approval"
   ],
