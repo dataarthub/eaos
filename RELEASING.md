@@ -219,20 +219,20 @@ Check current channels before writes and never move a newer channel backwards.
    `eaos-plugins-vX.Y.Z`. The initial aggregate `v0.1.0` is historical and never
    triggers package staging. Main/tag pushes do not stage; manual dispatch only
    completes an existing successful staging run.
-4. `publish.yml` runs the mandatory quality and exact-archive consumer gates on
-   Node 24 / Bun 1.4.3, then transfers only the selected archive, source-derived
+4. `publish.yml` authenticates the mandatory Source quality and exact-archive
+   consumer results on Node 24 / Bun 1.4.3, then transfers only the selected archive, source-derived
    notes and sanitized `release.json` as an immutable artifact retained 14 days.
    Its credentialed writer uses pinned npm 11.21.0 to stage those exact bytes on
    the inspection-only `staged` tag. It never rebuilds. Existing published
    versions require byte equality and are never republished.
 5. Review the npm Staged Packages entry and approve with human 2FA.
-   `complete-approved.yml` observes matching public bytes for up to 30 minutes
-   and dispatches `publish.yml` completion once. Completion revalidates the
+   Approval does not occupy a runner or dispatch another workflow; the former
+   `complete-approved.yml` observer is retired. Explicit completion revalidates the
    original successful staging run, attempt, tag, commit and artifact; verifies
    public bytes and prerequisite ranges; sets required consumer tags without
    rolling newer channels back; then records npm Deployment success against the
    original source SHA. Observer success alone is not completed publication.
-6. If approval finishes after the observation window, resume completion on `main`:
+6. After approval, resume completion on `main`:
 
    ```bash
    gh workflow run publish.yml --ref main -f staged_run=ORIGINAL_SUCCESSFUL_STAGE_RUN_ID
@@ -384,3 +384,12 @@ from package publication and preserve successful records during recovery.
   versioned release entry. Do not silently bump versions in the publisher.
 - Missing remote trust, Git baseline or registry prerequisites: local preparation
   can finish, but publication remains blocked until those external gates are met.
+
+
+## CI evidence reuse
+
+Source quality records per-runtime immutable receipts for main and same-repository Ready PRs. Main may inherit source-suite results only after matching actual Git trees, original base/head, unchanged verifier controls, successful required jobs and the latest run/attempt. Unknown or changed evidence runs the affected source checks conservatively. Main still materializes outputs and tests its archive bundle.
+
+Each package Release downloads that exact Source bundle with its immutable digest, expiry, source, archive and guarded consumer checks. It does not repack the five owners or repeat source suites. An image-only change repeats build/runtime and exact archive/browser consumers; other incompatible or missing evidence blocks reuse. Current registry prerequisites, tag/source, permission, Release and byte checks remain fresh before writes. Historical catalogued pre-stage recovery remains a separate fixed-candidate full-verification path.
+
+Staging ends while human npm approval is pending. After approval, use the existing completion-only `publish.yml` input with the original staging run ID. The retired observer creates no approval-wait or notice job.

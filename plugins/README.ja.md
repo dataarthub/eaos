@@ -26,7 +26,7 @@ EAOS のホスト開発者は、この MIT コレクションから機能モジ�
 この checkout は `0.2.0` のリリース準備用です。`0.1.0` は公開済みです。0.2.0 の公開まではチェックサムを検証した候補 tarball を導入してください。以下のコマンドは 0.2.0 の公開後に使用します。Node.js 24 以上、Appkit Core ちょうど 0.2.0、および対応する EAOS Core/Server ^0.2.0 と Hono ^4.13.13 peer を使用します。パッケージの導入は1回で、機能別 subpath は import の対象であり個別のパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-plugins@0.2.0 @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-plugins@0.2.0 @alneas/appkit-core@^0.2.2
 ```
 
 承認 runtime を実際のホストアダプターに接続してください。このラッパーには、検証済みの具体的な tenant ID と型付きの接続を渡します。ストアや認証済み principal を自動的に作成することはありません。
@@ -47,7 +47,7 @@ export function bindApprovalHost(
 
 承認の接続には、永続的でスコープを限定したストア、テンプレートリゾルバー、現在の認可、検証済み principal のリゾルバーが必要です。extension の作成は必須アダプターとテナントカタログを検査しますが、マイグレーションの適用やテナントの有効化は行いません。`preset.plugins` で `@alneas/eaos-plugins/approval` などの論理的な所有者を選び、そのキーで信頼できるローダーに接続を渡してください。`catalog.json` は利用可能なモジュールを記述するだけです。
 
-`/approval/react`、`/field-customization/react`、`/admin/react` を使う場合は、対応する `@alneas/eaos-react`、`@alneas/appkit-react@0.3.0`、React/React DOM ^19.2.3、Lucide React も導入してください。アプリケーションの境界で `@alneas/appkit-react/styles` を import します。認証済みの API・セッションの接続、機能の workspace provider、選択したビューが必要とする Appkit の form/schema provider を用意してください。詳細は各ホスト統合ガイドを確認してください。
+`/approval/react`、`/field-customization/react`、`/admin/react` を使う場合は、対応する `@alneas/eaos-react`、`@alneas/appkit-react@^0.3.1`、React/React DOM ^19.2.3、Lucide React も導入してください。アプリケーションの境界で `@alneas/appkit-react/styles` を import します。認証済みの API・セッションの接続、機能の workspace provider、選択したビューが必要とする Appkit の form/schema provider を用意してください。詳細は各ホスト統合ガイドを確認してください。
 
 ## Next Steps
 

@@ -99,3 +99,17 @@ test('credential rotation is excluded from deterministic task hashes',async()=>f
  const before=process.env.GITHUB_TOKEN;let calls=0;const task={id:'credential-cache',command:['node','fixture']},options={identity:{},run:()=>{calls++;}};
  try{process.env.GITHUB_TOKEN='synthetic-one';assert.equal((await runTask(root,task,options)).outcome,'executed');process.env.GITHUB_TOKEN='synthetic-two';assert.equal((await runTask(root,task,options)).outcome,'reused');assert.equal(calls,1);}finally{if(before===undefined)delete process.env.GITHUB_TOKEN;else process.env.GITHUB_TOKEN=before;}
 }));
+
+
+test('record context binds Ready PR actual merge parents, tree and event with safe negatives',async()=>fixture(async root=>{
+ const {recordContext}=await import('./quality.mjs');
+ const commit=text=>{writeFileSync(join(root,'source.js'),text);execFileSync('git',['add','.'],{cwd:root});execFileSync('git',['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','-c','core.hooksPath=/dev/null','commit','-qm',text],{cwd:root});return execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();};
+ const base=commit('base');execFileSync('git',['checkout','-qb','head'],{cwd:root});const head=commit('head');execFileSync('git',['checkout','-qb','merge',base],{cwd:root});execFileSync('git',['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','merge','--no-ff','-qm','merge',head],{cwd:root});
+ const file=join(root,'event.json'),event={number:12,pull_request:{draft:false,base:{ref:'main',sha:base,repo:{full_name:'example/public'}},head:{sha:head,repo:{full_name:'example/public'}}}},env={GITHUB_EVENT_NAME:'pull_request',GITHUB_EVENT_PATH:file,GITHUB_REF:'refs/pull/12/merge',GITHUB_WORKFLOW_SHA:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim()};writeFileSync(file,JSON.stringify(event));
+ const valid=recordContext(root,env,'example/public');assert.deepEqual(valid.pr,{number:12,base,head,ready:true});assert.match(valid.tree,/^[a-f0-9]{40}$/);assert.equal(valid.workflowSha,env.GITHUB_WORKFLOW_SHA);assert.throws(()=>recordContext(root,{...env,GITHUB_WORKFLOW_SHA:base},'example/public'));
+ for(const mutate of [e=>e.pull_request.draft=true,e=>e.pull_request.base.ref='other',e=>e.pull_request.base.repo.full_name='fork/public',e=>e.pull_request.head.repo.full_name='fork/public',e=>e.pull_request.base.sha=head,e=>e.number=13]){const invalid=structuredClone(event);mutate(invalid);writeFileSync(file,JSON.stringify(invalid));assert.throws(()=>recordContext(root,env,'example/public'));}
+ assert.throws(()=>recordContext(root,{GITHUB_EVENT_NAME:'merge_group'},'example/public'));
+}));
+test('source image policy CLI option defaults exact and rejects unknown relaxation',async()=>{
+ const {sourceImagePolicy}=await import('./quality.mjs');assert.equal(sourceImagePolicy('require-source',{}),'exact');assert.equal(sourceImagePolicy('require-source',{PUBLIC_SOURCE_IMAGE_POLICY:'authenticate'}),'authenticate');assert.equal(sourceImagePolicy('authenticate-source',{}),'authenticate');assert.throws(()=>sourceImagePolicy('require-source',{PUBLIC_SOURCE_IMAGE_POLICY:'ignore'}));
+});

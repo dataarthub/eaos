@@ -163,3 +163,6 @@ provider reliability, backup retention or availability guarantees. Hosts maintai
 those operational contracts separately.
 
 Dependency manifests follow the shared compatible-range policy: runtime and peer dependencies default to caret ranges with published minimums; lockfiles retain exact resolutions and integrity. Unreleased cross-repository APIs must be tested only in disposable candidate fixtures and released in dependency order before production adoption.
+
+
+Local push verification performs fresh history/change-record and read-only workflow checks. The active pre-push driver retains clean-checkout and exact pushed-ref guards, including tags; source suites, browser consumers and archive production run in their owning CI stages. A push check never triggers product builds or repeats the full CI suite. CI-only tooling or maintainer procedure changes use affected verifier tests and generated-guidance freshness checks. Request a shared development archive only when runtime, artifact build inputs or distributed product guidance require that artifact; existing stronger gate outcomes remain mandatory and may be satisfied by authenticated compatible evidence.

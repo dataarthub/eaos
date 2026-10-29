@@ -106,7 +106,7 @@ A future shortening such as `/lifecycle` should first be proposed as a canonical
 
 ### Publication gates
 
-1. Use public `@alneas/appkit-core` 0.2.0 and `@alneas/appkit-react` 0.3.0 with Node.js 24 or later. Resolve every used symbol against the actual npmjs artifact and verify real archive consumers; a package rename alone is insufficient. Follow [the contributor checks](../CONTRIBUTING.md) and [release preparation](../RELEASING.md).
+1. Use public `@alneas/appkit-core` ^0.2.2 and `@alneas/appkit-react` ^0.3.1 with Node.js 24 or later. Resolve every used symbol against the actual npmjs artifact and verify real archive consumers; a package rename alone is insufficient. Follow [the contributor checks](../CONTRIBUTING.md) and [release preparation](../RELEASING.md).
 2. Inventory every export as canonical, compatibility, host-extension or asset. Decide the supported surface before removing any entry, and keep Changesets and consumer coverage with API changes.
 3. Make browser, server and CLI entry graphs independent. Do not rely on optional peers to make an unconditional backend import browser-safe. Keep React/context dependencies as compatible peers to prevent duplicate contexts. Add CommonJS only if its declarations and runtime are actually built and verified; current foundation manifests advertise ESM imports.
 4. Review `files`, license/notices, repository metadata and package README presentation. Keep portal metadata in a generated landing page when preparing plain npm/GitHub READMEs. API cards, machine indexes and feature-guide examples must agree with the final exports.

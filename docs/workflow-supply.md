@@ -12,7 +12,7 @@ tags: [development, ci, verification]
 
 ## Prerequisites
 
-Use the Node runtimes and pinned Bun declared in `.github/workflow-adapter.json`, the committed lockfile and the project's existing secret-scanner setup. No private checkout or private package credentials are needed. The installed supply is a reviewed local bundle, including uncommitted upstream changes; it has not been published by this adoption.
+Use the Node runtimes and pinned Bun declared in `.github/workflow-adapter.json`, the committed lockfile and the project's existing secret-scanner setup. No private checkout or private package credentials are needed. The installed supply is a reviewed local bundle, from the recorded supplier commit; it has not been published by this adoption.
 
 ## Step-by-Step Implementation
 
@@ -191,3 +191,25 @@ Within guarded release verification, source-proof comparison temporarily exclude
 only the per-invocation receipt UUID, then restores it for actual checks and
 receipts. Runtime flags, host/image identity and GitHub event/repository/ref/source
 identity remain subject to the existing authenticated comparison.
+
+
+### Current reuse contract
+
+Ready PR receipts include the tested merge tree and original base/head. Main reuses source suites only after verifying actual Git objects, unchanged verifier controls, required jobs, immutable digest/expiry and latest invocation/attempt. Main creates its one source-bound archive bundle; package Releases transfer those tested bytes without repacking or repeating unrelated suites. Image changes rerun dependent runtime and exact archive/browser consumers. Invalid evidence never authorizes omission.
+
+The npm approval observer is retired. Human approval is followed by explicit completion of the original staging run; there is no approval polling runner. Fixed catalogued historical recovery remains a separate full-verification path.
+
+
+Local push verification performs fresh history/change-record and read-only workflow checks. The active pre-push driver retains clean-checkout and exact pushed-ref guards, including tags; source suites, browser consumers and archive production run in their owning CI stages. A push check never triggers product builds or repeats the full CI suite. CI-only tooling or maintainer procedure changes use affected verifier tests and generated-guidance freshness checks. Request a shared development archive only when runtime, artifact build inputs or distributed product guidance require that artifact; existing stronger gate outcomes remain mandatory and may be satisfied by authenticated compatible evidence.
+
+## Canonical supplier adoption (2026-10-29)
+
+The installed supply is generated directly from the canonical
+`github-docs/public/templates/private-actions` source, including its Public npm
+extension where applicable. The reviewed supplier commit is `398c070899cc1f75fb87134893c680b6eb293c1f`.
+This adoption is locally reviewed and committed; it does not establish upstream
+publication or a remote CI result. `.github/workflow-supply.json` owns the exact
+managed file inventory and bundle digest. Use that canonical source for explicit
+supply updates; do not restore project-specific vendor forks or hand-edit the
+installed bundle/generated workflows. Project-owned source/archive/selector
+adapters remain in this repository.

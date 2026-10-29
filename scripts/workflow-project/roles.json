@@ -69,7 +69,7 @@
           {
             "uses": "actions/upload-artifact@v7",
             "with": {
-              "name": "verified-public-candidate",
+              "name": "verified-public-candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}",
               "path": ".verification/release-*/",
               "retention-days": 14,
               "include-hidden-files": true,
@@ -141,7 +141,8 @@
           {
             "name": "Require exact-commit authoritative Source quality",
             "env": {
-              "GITHUB_TOKEN": "${{ github.token }}"
+              "GITHUB_TOKEN": "${{ github.token }}",
+              "PUBLIC_SOURCE_IMAGE_POLICY": "authenticate"
             },
             "run": "node scripts/workflow-supply/public/quality.mjs require-source"
           },
@@ -149,25 +150,14 @@
             "run": "bun run secrets:setup"
           },
           {
-            "run": "bun run check",
-            "env": {
-              "NODE_OPTIONS": "--max-old-space-size=8192",
-              "GITHUB_TOKEN": "${{ github.token }}"
-            }
-          },
-          {
             "run": "bun run secrets:check -- --history"
           },
           {
-            "run": "bunx playwright install --with-deps chromium"
-          },
-          {
-            "name": "Verify AI draft editing, approval and save in four browser cases",
-            "run": "bun run test:ai-drafts:browser"
-          },
-          {
-            "name": "Prepare and test exact commit-bound release archives",
-            "run": "node scripts/release.mjs prepare --final > .verification/candidate-path.txt\nbun run test:consumer -- \"$(cat .verification/candidate-path.txt)\"\nbun run release:verify -- \"$(cat .verification/candidate-path.txt)\"\nnode scripts/publish/bundle.mjs \"$(cat .verification/candidate-path.txt)\" .verification/handoff\n"
+            "name": "Reuse exact Source archives without rebuilding",
+            "run": "node scripts/publish/source-candidate.mjs",
+            "env": {
+              "GITHUB_TOKEN": "${{ github.token }}"
+            }
           },
           {
             "uses": "actions/upload-artifact@v7",
@@ -227,7 +217,8 @@
           {
             "name": "Revalidate exact original Source quality evidence",
             "env": {
-              "GITHUB_TOKEN": "${{ github.token }}"
+              "GITHUB_TOKEN": "${{ github.token }}",
+              "PUBLIC_SOURCE_IMAGE_POLICY": "authenticate"
             },
             "run": "node scripts/workflow-supply/public/quality.mjs require-source"
           },
@@ -320,7 +311,8 @@
             "env": {
               "GITHUB_TOKEN": "${{ github.token }}",
               "STAGED_RUN": "${{ inputs.staged_run }}",
-              "PUBLISH_SOURCE_SHA": "${{ steps.recovery.outputs.commit }}"
+              "PUBLISH_SOURCE_SHA": "${{ steps.recovery.outputs.commit }}",
+              "PUBLIC_SOURCE_IMAGE_POLICY": "authenticate"
             },
             "run": "node scripts/workflow-supply/public/quality.mjs require-source",
             "if": "startsWith(inputs.staged_run, 'recover:')"
@@ -398,7 +390,8 @@
           {
             "name": "Revalidate exact original Source quality evidence",
             "env": {
-              "GITHUB_TOKEN": "${{ github.token }}"
+              "GITHUB_TOKEN": "${{ github.token }}",
+              "PUBLIC_SOURCE_IMAGE_POLICY": "authenticate"
             },
             "run": "node scripts/workflow-supply/public/quality.mjs require-source"
           },
@@ -415,61 +408,6 @@
           "PUBLISH_SOURCE_SHA": "${{ needs.resolve.outputs.commit }}",
           "STAGED_RUN": "${{ inputs.staged_run }}"
         }
-      }
-    }
-  },
-  "complete": {
-    "jobs": {
-      "observe": {
-        "if": "github.repository == 'dataarthub/eaos' && (github.event.workflow_run.event == 'release' || (github.event.workflow_run.event == 'workflow_dispatch' && startsWith(github.event.workflow_run.display_title, 'Recover npm pre-stage candidate recover:'))) && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository",
-        "runs-on": "ubuntu-latest",
-        "timeout-minutes": 35,
-        "permissions": {
-          "contents": "read",
-          "actions": "write"
-        },
-        "steps": [
-          {
-            "uses": "actions/checkout@v6",
-            "with": {
-              "ref": "main",
-              "fetch-depth": 0,
-              "persist-credentials": false
-            }
-          },
-          {
-            "uses": "actions/setup-node@v6",
-            "with": {
-              "node-version": 24,
-              "package-manager-cache": false
-            }
-          },
-          {
-            "name": "Resolve original successful staging attempt and immutable artifact",
-            "id": "source",
-            "env": {
-              "GITHUB_TOKEN": "${{ github.token }}"
-            },
-            "run": "mkdir -p .verification && node scripts/publish/observe.mjs resolve"
-          },
-          {
-            "uses": "actions/download-artifact@v8",
-            "with": {
-              "artifact-ids": "${{ steps.source.outputs.artifact }}",
-              "run-id": "${{ steps.source.outputs.run }}",
-              "github-token": "${{ github.token }}",
-              "path": ".verification/handoff",
-              "digest-mismatch": "error"
-            }
-          },
-          {
-            "name": "Observe npm approval and request completion once",
-            "env": {
-              "GITHUB_TOKEN": "${{ github.token }}"
-            },
-            "run": "node scripts/publish/observe.mjs"
-          }
-        ]
       }
     }
   },

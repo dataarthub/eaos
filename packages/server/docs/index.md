@@ -38,7 +38,7 @@ The published baseline is 0.2.0; this checkout prepares 0.3.0. The command below
 Use Node.js 24 or later and the required Appkit Core 0.2.0 peer. The canonicalization example is pure and needs no database connection or credentials. Server execution later requires host-owned identity, authorization and persistence bindings. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-server@0.2.0 @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-server@0.2.0 @alneas/appkit-core@^0.2.2
 ```
 
 ```typescript

@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 11f1579: Use compatible caret ranges for distributed dependencies while preserving the Appkit Core 0.2.0 minimum and exact lockfile resolutions. Core remains independent of Server and business plugins.
+- 11f1579: Use compatible caret ranges for distributed dependencies while adopting the published Appkit Core ^0.2.2 minimum and exact lockfile resolutions. Core remains independent of Server and business plugins.
 
 ### Upgrade
 

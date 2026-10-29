@@ -22,11 +22,11 @@ export function checkProject(root,{configurationOnly=false}={}){
  require(!/--write|git\s+(?:add|stash|reset)/.test(scripts['quality:commit']??''),'quality.entrypoints','Commit gate must be read-only');
  const sourceText=JSON.stringify(p.source.jobs.verify.steps);
  require(/bun run (?:quality:ci|verify:push)/.test(sourceText),'quality.entrypoints','CI does not reach the maintained local gate');
- require(/workflow-supply\/public\/quality.mjs/.test(scripts['quality:push']??'')||/scripts\/workflow-adapter.mjs source/.test(scripts['quality:push']??''),'quality.selection','Push gate does not use the maintained selector adapter');
+ require(/workflow-supply\/public\/quality.mjs/.test(scripts['quality:ci']??'')||/scripts\/workflow-adapter.mjs source/.test(scripts['quality:ci']??''),'quality.selection','CI gate does not use the maintained selector adapter');
  const behavior=p.conformance?.behaviorCommands;
  require(Array.isArray(behavior)&&behavior.length>0,'quality.failure','Project behavior probes are not connected');
  for(const command of behavior??[])require(Array.isArray(command)&&command[0]==='bun'&&command[1]==='run'&&Object.hasOwn(scripts,command[2]),'quality.failure','Missing maintained behavior probe');
- for(const phase of ['verify','stage','complete']){require(p.publish.jobs[phase].steps.some(s=>s.run==='node scripts/workflow-supply/public/quality.mjs require-source'),'release.source','Exact source evidence missing from '+phase);require(p.publish.jobs[phase].permissions?.actions==='read','release.source','Source artifact read permission missing from '+phase);}
+ for(const message of checkReleaseEvidence(p,a))require(false,'release.source',message);
  const guide=join(root,'docs/workflow-supply.md');require(existsSync(guide),'ownership.visibility','Owning CI guide missing');if(existsSync(guide)){const text=readFileSync(guide,'utf8');for(const heading of ['Shared workflow contract','Project-specific verification'])require(text.includes(heading),'ownership.visibility','Missing '+heading);}
  const critical=configurationOnly?{checks:[],violations:[],unverified:[{reason:"Dependency-free preflight only; complete critical inspection runs through the maintained selector after dependency restore"}]}:inspectCritical(root),policyCatalog=validateCatalog(readCatalog());for(const finding of critical.violations)failures.push(finding);
  return {policy:{catalog:policyCatalog,criticalChecks:critical.checks,unverified:critical.unverified,fullPolicy:'unverified; use conformance:audit for all clause mappings'},schemaVersion:1,repository:a.repository,configuration:failures.length?'failed':'verified',failures,behavior:'not-run',github:'unverified'};
@@ -54,3 +54,24 @@ export async function verifyProject(root,{run=spawnSync,changedPaths,base}={}){
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){try{const mode=process.argv[2],i=process.argv.indexOf('--project-root'),root=resolve(i<0?'.':process.argv[i+1]);assert(['check','verify'].includes(mode),'Use check or verify');const b=process.argv.indexOf('--base');const report=mode==='verify'?await verifyProject(root,{base:b<0?undefined:process.argv[b+1]}):checkProject(root,{configurationOnly:process.argv.includes('--configuration-only')});console.log(JSON.stringify(report,null,2));if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,`### Shared policy conformance\n\nConfiguration: ${report.configuration}; behavior: ${report.behavior}; GitHub execution: ${report.github}.\n`);assert(!report.failures.length,'Shared policy conformance failed');}catch(error){console.error(error.message);process.exitCode=1;}}
+
+export function checkReleaseEvidence(project,adapter){
+ const errors=[],check=(ok,message)=>{if(!ok)errors.push(message);},proof=project.publish.sourceEvidence;
+ const separate=['fresh-two-root','authenticated-two-root'].includes(proof?.mode);
+ if(proof)check(separate&&/^scripts\/[a-zA-Z0-9/_-]+\.mjs$/.test(proof.script),'Unknown source evidence adapter');
+ for(const phase of ['verify','stage','complete']){
+  const job=project.publish.jobs[phase];check(!job['continue-on-error'],'Release evidence failure cannot be ignored in '+phase);const command=separate?`node ../control/${proof.script} ${phase==='verify'?'fresh':'writer'}`:'node scripts/workflow-supply/public/quality.mjs require-source';
+  check(job.steps.some(s=>s.run===command&&!s.if&&!s['continue-on-error']),'Exact source evidence missing from '+phase);
+  check(job.permissions?.actions==='read','Source artifact read permission missing from '+phase);
+  if(separate){
+   const checkouts=job.steps.filter(s=>s.uses?.startsWith('actions/checkout@'));
+   check(checkouts.length===2&&checkouts[0].with?.path==='control'&&checkouts[0].with.ref==='${{ github.sha }}'&&checkouts[1].with?.path==='source'&&checkouts[1].with.ref,'Separate control/source checkout missing from '+phase);
+   check(job.env?.PUBLISH_PACKAGE_ROOT==='${{ github.workspace }}/source','Fixed package checkout missing from '+phase);
+   if(phase==='verify'){
+    let node;const checked=[];for(const step of job.steps){if(step.uses?.startsWith('actions/setup-node@'))node=step.with?.['node-version'];if(step.run===command&&!step.if&&!step['continue-on-error'])checked.push(node);}
+    check(JSON.stringify(checked.toSorted())===JSON.stringify(adapter.runtime.nodeVersions.toSorted()),'Source evidence verification must cover every declared runtime exactly once');
+   }
+  }
+ }
+ return errors;
+}

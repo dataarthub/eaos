@@ -25,11 +25,67 @@ test('GitHub credentials never follow signed storage redirects',async()=>{
  await assert.rejects(client.readArtifact({id:8,digest:'sha256:'+'0'.repeat(64)}),/digest mismatch/);assert.equal(calls[0].options.headers.Authorization,'Bearer fixture-token');assert.equal(calls[1].options.headers,undefined);
 });
 test('digest-bound signed-storage download reads one sanitized JSON member and rejects extra archive members',async()=>{
- const {mkdtempSync,writeFileSync,readFileSync,rmSync,mkdirSync}=await import('node:fs');const {tmpdir}=await import('node:os');const {join}=await import('node:path');const {execFileSync}=await import('node:child_process');const {createHash}=await import('node:crypto');
- const root=mkdtempSync(join(tmpdir(),'evidence-zip-'));try{
-  const proof={status:'passed',fixture:true};writeFileSync(join(root,'source.json'),JSON.stringify(proof));execFileSync('zip',['-q','receipt.zip','source.json'],{cwd:root});
-  let bytes=readFileSync(join(root,'receipt.zip')),calls=0;const client=github(repository,{token:'fixture-token',fetchImpl:async()=>++calls%2?{status:302,headers:{get:()=> 'https://fixture.blob.core.windows.net/receipt'}}:{ok:true,arrayBuffer:async()=>bytes}});
-  const artifact=()=>({id:8,digest:'sha256:'+createHash('sha256').update(bytes).digest('hex')});assert.deepEqual(await client.readArtifact(artifact()),proof);
-  writeFileSync(join(root,'extra.json'),'{}');execFileSync('zip',['-q','receipt.zip','extra.json'],{cwd:root});bytes=readFileSync(join(root,'receipt.zip'));await assert.rejects(client.readArtifact(artifact()),/members/);
+ const {createHash}=await import('node:crypto');
+ // Fixed deflated ZIPs: source.json contains the proof below; the second also has extra.json = {}.
+ // Archive creation is deliberately independent of installed command-line tools.
+ const archives=[
+  Buffer.from('UEsDBBQAAAAIAAAAIQBtcm6hJAAAACIAAAALAAAAc291cmNlLmpzb26rViouSSwpLVayUipILC5OTVHSUUrLrCgpLUpVsiopKk2tBQBQSwECFAMUAAAACAAAACEAbXJuoSQAAAAiAAAACwAAAAAAAAAAAAAAgAEAAAAAc291cmNlLmpzb25QSwUGAAAAAAEAAQA5AAAATQAAAAAA','base64'),
+  Buffer.from('UEsDBBQAAAAIAAAAIQBtcm6hJAAAACIAAAALAAAAc291cmNlLmpzb26rViouSSwpLVayUipILC5OTVHSUUrLrCgpLUpVsiopKk2tBQBQSwMEFAAAAAgAAAAhAEO/pqMEAAAAAgAAAAoAAABleHRyYS5qc29uq64FAFBLAQIUAxQAAAAIAAAAIQBtcm6hJAAAACIAAAALAAAAAAAAAAAAAACAAQAAAABzb3VyY2UuanNvblBLAQIUAxQAAAAIAAAAIQBDv6ajBAAAAAIAAAAKAAAAAAAAAAAAAACAAU0AAABleHRyYS5qc29uUEsFBgAAAAACAAIAcQAAAHkAAAAAAA==','base64'),
+ ];
+ const proof={status:'passed',fixture:true};let bytes=archives[0],calls=0;
+ const client=github(repository,{token:'fixture-token',fetchImpl:async()=>++calls%2?{status:302,headers:{get:()=> 'https://fixture.blob.core.windows.net/receipt'}}:{ok:true,arrayBuffer:async()=>bytes}});
+ const artifact=()=>({id:8,digest:'sha256:'+createHash('sha256').update(bytes).digest('hex')});assert.deepEqual(await client.readArtifact(artifact()),proof);
+ bytes=archives[1];await assert.rejects(client.readArtifact(artifact()),/members/);
+});
+
+test('evidence fixture runs without a zip executable',async()=>{
+ const {mkdtempSync,symlinkSync,rmSync,accessSync,constants}=await import('node:fs');const {tmpdir}=await import('node:os');const {join,delimiter}=await import('node:path');const {spawnSync}=await import('node:child_process');
+ const unzip=(process.env.PATH??'').split(delimiter).map(directory=>join(directory,'unzip')).find(path=>{try{accessSync(path,constants.X_OK);return true;}catch{return false;}});
+ assert.ok(unzip,'The evidence reader requires unzip');
+ const root=mkdtempSync(join(tmpdir(),'evidence-no-zip-'));try{
+  symlinkSync(unzip,join(root,'unzip'));
+  const result=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=^digest-bound signed-storage download',import.meta.filename],{env:{...Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('NODE_TEST_'))),PATH:root},encoding:'utf8',timeout:15000});
+  assert.equal(result.status,0,result.stdout+result.stderr);assert.match(result.stdout,/# tests 1\n/);assert.match(result.stdout,/# pass 1\n/);
  }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('image drift may be authenticated for fresh release verification but never ordinary reuse',async()=>{
+ const base=fixture({head:old,exact:true});
+ const changed={...identity,image:'ubuntu24:new'};
+ const f={...base,identity:changed,readArtifact:async()=>({...await base.readArtifact(),identity:{...identity,image:'ubuntu24:old'}})};
+ await assert.rejects(sourceRun(f),/Execution environment changed/);
+ assert.equal((await sourceRun({...f,imagePolicy:'authenticate'})).run.id,4);
+ for(const key of ['node','bun','bundle','environment','arch','os']){
+  await assert.rejects(sourceRun({...f,imagePolicy:'authenticate',readArtifact:async()=>({...await f.readArtifact(),identity:{...changed,[key]:'different'}})}),/Execution environment changed/);
+ }
+ const request=base.request;
+ await assert.rejects(sourceRun({...f,imagePolicy:'authenticate',request:async p=>p.includes('/jobs?')?{total_count:0,jobs:[]}:request(p)}),/runtime job/);
+ await assert.rejects(sourceRun({...f,imagePolicy:'authenticate',readArtifact:async()=>({...await f.readArtifact(),status:'failed'})}),/did not pass/);
+ await assert.rejects(sourceRun({...f,imagePolicy:'anything'}),/image policy/);
+});
+
+test('image authentication refuses an unidentified current or recorded runner',async()=>{
+ const f=fixture({head:old,exact:true,imagePolicy:'authenticate'});
+ for(const image of ['',':','ubuntu24:'])await assert.rejects(sourceRun({...f,identity:{...identity,image},readArtifact:async()=>({...await f.readArtifact(),identity:{...identity,image:'ubuntu24:known'}})}),/Known source/);
+});
+
+test('bounded latest history remains reusable after more than one page of lifetime runs',async()=>{
+ const f=fixture({head:old,exact:true}),request=f.request;
+ const options={...f,request:async p=>p.includes('/workflows/')?{total_count:201,workflow_runs:[run()]}:request(p)};
+ assert.equal((await sourceRun(options)).run.id,4);
+ await assert.rejects(sourceRun({...options,request:async p=>p.includes('/workflows/')?{total_count:202,workflow_runs:[run({id:5,conclusion:'failure'}),run()]}:request(p)}),/Latest exact-commit/);
+});
+
+
+test('artifact authentication cannot return a superseded attempt or newer same-SHA invocation',async()=>{
+ for(const changed of [run({run_attempt:2,status:'in_progress',conclusion:null}),run({id:5,status:'in_progress',conclusion:null}),run({id:5,conclusion:'failure'})]){
+  const base=fixture({head:old,exact:true});let authenticated=false;
+  const options={...base,request:async path=>{
+   if(authenticated&&path==='/actions/runs/4'&&changed.id===4)return changed;
+   if(authenticated&&path.includes('/workflows/'))return {total_count:2,workflow_runs:[changed,run()]};
+   return base.request(path);
+  },readArtifact:async()=>{authenticated=true;return base.readArtifact();}};
+  await assert.rejects(sourceRun(options),/superseded|Latest/);
+  authenticated=false;assert.equal(await sourceRun({...options,exact:false}),null);
+ }
 });

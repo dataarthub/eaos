@@ -28,7 +28,7 @@ This checkout prepares version 0.2.0; version 0.1.0 is already published. Until 
 Use Node.js 24 or later and install the required Appkit Core 0.2.0 peer. This example defines a plugin; mounting it requires a trusted host with verified identity, current authorization and scoped data adapters. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-core@0.2.0 @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-core@0.2.0 @alneas/appkit-core@^0.2.2
 ```
 
 ```typescript
