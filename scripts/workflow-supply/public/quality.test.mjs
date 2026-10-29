@@ -113,3 +113,12 @@ test('record context binds Ready PR actual merge parents, tree and event with sa
 test('source image policy CLI option defaults exact and rejects unknown relaxation',async()=>{
  const {sourceImagePolicy}=await import('./quality.mjs');assert.equal(sourceImagePolicy('require-source',{}),'exact');assert.equal(sourceImagePolicy('require-source',{PUBLIC_SOURCE_IMAGE_POLICY:'authenticate'}),'authenticate');assert.equal(sourceImagePolicy('authenticate-source',{}),'authenticate');assert.throws(()=>sourceImagePolicy('require-source',{PUBLIC_SOURCE_IMAGE_POLICY:'ignore'}));
 });
+
+test('required change records do not force unrelated runtime suites for scoped maintenance',()=>{
+ const note='.changeset/completion-channel-propagation.md';
+ assert.equal(scopeFor(['scripts/publish/engine.mjs',note],{trusted:true}),'publication');
+ assert.equal(scopeFor(['docs/releasing.md',note],{trusted:true}),'docs');
+ assert.equal(scopeFor([note],{trusted:true}),'publication');
+ for(const files of [['packages/core/src/index.ts',note],['bun.lock',note],['.changeset/config.json'],['.changeset/nested/unknown.md']])assert.equal(scopeFor(files,{trusted:true}),'full');
+ assert.equal(scopeFor(['scripts/publish/engine.mjs',note]),'full');
+});

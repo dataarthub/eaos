@@ -23,3 +23,10 @@ test('documentation-only verification still enforces release-impact and propagat
 test('clean staged code and indexed configuration pass without rewriting source',()=>fixture(({root,git})=>{
  writeFileSync(join(root,'clean.ts'),'export const safe = true;\n');git(['add','clean.ts']);const before=git(['diff','--cached']);const result=invoke(root,'commit');assert.equal(result.status,0,result.stderr);assert.equal(git(['diff','--cached']),before);
 }));
+
+test('documentation metadata failure stops scoped verification before release impact',()=>fixture(({root})=>{
+ mkdirSync(join(root,'bin'));const log=join(root,'calls');writeFileSync(join(root,'bin/bun'),'#!/bin/sh\nprintf "%s\\n" "$2" >> "$FIXTURE_CALLS"\nif [ "$2" = "check:public" ]; then exit 19; fi\nexit 0\n',{mode:0o755});
+ const result=invoke(root,'documentation-safety',{PATH:join(root,'bin')+':'+process.env.PATH,FIXTURE_CALLS:log});
+ assert.notEqual(result.status,0);assert.match(result.stderr,/Documentation safety gate failed: check:public/);
+ assert.deepEqual(readFileSync(log,'utf8').trim().split('\n'),['lint','check:public']);
+}));
