@@ -1,31 +1,60 @@
 import assert from 'node:assert/strict'
 import {createServer} from 'node:http'
 import {existsSync} from 'node:fs'
-import {mkdtemp, mkdir, readFile, writeFile, rm} from 'node:fs/promises'
+import {mkdtemp, mkdir, readFile, writeFile, rm, realpath} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
-import {join, resolve} from 'node:path'
+import {join, resolve, isAbsolute, sep} from 'node:path'
+import {execFileSync} from 'node:child_process'
+import {fileURLToPath} from 'node:url'
+import {createHash} from 'node:crypto'
 import {randomUUID} from 'node:crypto'
 import {runGuarded} from './guarded-process.mjs'
 import {sourceHash} from './source-state.mjs'
 
-const root=resolve(import.meta.dirname,'..'),receipt=join(root,'.verification/ai-draft-browser.json')
+const root=resolve(import.meta.dirname,'..'),args=process.argv.slice(2).filter(arg=>arg!=='--guarded-child')
+assert(args.length===0||args.length===2&&args[0]==='--consumer'&&isAbsolute(args[1]),'Use test:ai-drafts:browser [--consumer /absolute/isolated-consumer]')
+const consumer=args.length?await realpath(args[1]):null,receipt=join(root,'.verification/ai-draft-browser'+(consumer?'-artifacts':'')+'.json')
+const bindings=[]
+if(consumer){
+ const lock=JSON.parse(await readFile(join(consumer,'package-lock.json'),'utf8'))
+ for(const name of ['@alneas/eaos-core','@alneas/eaos-server','@alneas/eaos-react','@alneas/eaos-cli','@alneas/eaos-plugins','@alneas/appkit-core','@alneas/appkit-react','react','react-dom']){
+  const entry=lock.packages?.['node_modules/'+name],installed=JSON.parse(await readFile(join(consumer,'node_modules',name,'package.json'),'utf8'))
+  assert(entry?.integrity&&entry.resolved,'Installed artifact must have lock integrity: '+name)
+  assert.equal(installed.name,name);assert.equal(installed.version,entry.version)
+  let sha256
+  if(entry.resolved.startsWith('file:')){const bytes=await readFile(resolve(consumer,entry.resolved.slice(5)));assert.equal(entry.integrity,'sha512-'+createHash('sha512').update(bytes).digest('base64'));sha256=createHash('sha256').update(bytes).digest('hex')}
+  else assert(entry.resolved.startsWith('https://registry.npmjs.org/'),'Only public registry or explicit candidate archives allowed')
+  bindings.push({name,version:entry.version,integrity:entry.integrity,resolved:entry.resolved,sha256,source:sha256?'explicit-candidate-archive':'public-registry'})
+ }
+}
+const resolvedImports=new Map()
+async function installedImport(spec){
+ if(!resolvedImports.has(spec))resolvedImports.set(spec,(async()=>{
+  const url=execFileSync(process.execPath,['--input-type=module','-e','console.log(import.meta.resolve('+JSON.stringify(spec)+'))'],{cwd:consumer,encoding:'utf8'}).trim()
+  assert(url.startsWith('file:'),'Browser dependency must resolve to an installed file: '+spec)
+  const path=await realpath(fileURLToPath(url));assert(path.startsWith(join(consumer,'node_modules')+sep),'Consumer import escaped installed dependencies: '+spec);return path
+ })())
+ return resolvedImports.get(spec)
+}
 const budget={memoryLimitMiB:3072,timeoutMs:180000,concurrency:1}
 if(!process.argv.includes('--guarded-child')) {
  await mkdir(join(root,'.verification'),{recursive:true})
- const initial={runId:randomUUID(),sourceHash:await sourceHash(root),status:'running',startedAt:new Date().toISOString(),storage:'in-memory workflow fixture; no database durability guarantees',cases:[],plannedCases:['1280/light','1280/dark','390/light','390/dark'],budget}
+ const initial={runId:randomUUID(),sourceHash:await sourceHash(root),status:'running',startedAt:new Date().toISOString(),storage:'in-memory workflow fixture; no database durability guarantees',mode:consumer?'installed-artifact-consumer':'built-source',artifactBindings:bindings,cases:[],plannedCases:['1280/light','1280/dark','390/light','390/dark'],budget}
  await writeFile(receipt,JSON.stringify(initial,null,2)+'\n')
- const guard=await runGuarded(process.execPath,[import.meta.filename,'--guarded-child'],{cwd:root,...budget,env:{...process.env,EAOS_AI_BROWSER_RUN:initial.runId}})
+ const guard=await runGuarded(process.execPath,[import.meta.filename,'--guarded-child',...args],{cwd:root,...budget,env:{...process.env,EAOS_AI_BROWSER_RUN:initial.runId}})
  const child=JSON.parse(await readFile(receipt,'utf8'))
- const result={...child,unexecutedCases:child.plannedCases.filter(label=>!child.cases.some(item=>`${item.viewport.width}/${item.mode}`===label)),status:guard.ok&&child.status==='passed'?'passed':'failed',guard:{...guard,...budget},completedAt:new Date().toISOString()}
+ const unchanged=(await sourceHash(root))===initial.sourceHash
+ const result={...child,unexecutedCases:child.plannedCases.filter(label=>!child.cases.some(item=>`${item.viewport.width}/${item.mode}`===label)),status:guard.ok&&child.status==='passed'&&unchanged?'passed':'failed',guard:{...guard,...budget},completedAt:new Date().toISOString()}
  if(!guard.ok)result.error=guard.reason??`Child exited ${guard.code}`
+ if(!unchanged)result.error='Source changed during AI browser verification'
  await writeFile(receipt,JSON.stringify(result,null,2)+'\n')
  console.log(`AI draft browser: ${result.status}; peak ${guard.peakMiB}/${budget.memoryLimitMiB} MiB; ${result.cases.length}/4 cases`)
  if(result.status!=='passed')process.exitCode=1
 } else {
  if(!process.env.EAOS_AI_BROWSER_RUN)throw Error('Run through the guarded parent entrypoint')
  const {build}=await import('esbuild'),{chromium,expect}=await import('@playwright/test'),{default:AxeBuilder}=await import('@axe-core/playwright')
- const {createRoutes}=await import('../plugins/dist/approval/src/index.js')
- const {approvalBindingMatches}=await import('../packages/core/dist/index.js')
+ const {createRoutes}=await import(consumer?await installedImport('@alneas/eaos-plugins/approval'):'../plugins/dist/approval/src/index.js')
+ const {approvalBindingMatches}=await import(consumer?await installedImport('@alneas/eaos-core'):'../packages/core/dist/index.js')
  const out=await mkdtemp(join(tmpdir(),'eaos-ai-draft-browser-'))
  let server,browser
  const report=JSON.parse(await readFile(receipt,'utf8'))
@@ -46,7 +75,8 @@ if(!process.argv.includes('--guarded-child')) {
  }
  let host=fixture()
  try {
-  await build({absWorkingDir:root,entryPoints:['scripts/fixtures/ai-draft-browser.tsx'],bundle:true,platform:'browser',format:'esm',outdir:out,nodePaths:[join(root,'packages/react/node_modules')],alias:{'@alneas/eaos-react/record-workspace':join(root,'packages/react/dist/record-workspace.js')},define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'})
+  const built=await build({metafile:true,absWorkingDir:root,entryPoints:['scripts/fixtures/ai-draft-browser.tsx'],bundle:true,platform:'browser',format:'esm',outdir:out,...(consumer?{plugins:[{name:'installed-consumer-only',setup(builder){builder.onResolve({filter:/^[^./]/},async({path,importer})=>importer&&(await realpath(importer)).startsWith(consumer+sep)?undefined:{path:await installedImport(path)})}}]}:{nodePaths:[join(root,'packages/react/node_modules')],alias:{'@alneas/eaos-react/record-workspace':join(root,'packages/react/dist/record-workspace.js')}}),define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'})
+  if(consumer)for(const [input,metadata] of Object.entries(built.metafile.inputs)){if(input.startsWith('(disabled):')){assert.equal(metadata.bytes,0,'Disabled browser stub must have no source bytes');continue}const path=await realpath(resolve(root,input));assert(path===join(root,'scripts/fixtures/ai-draft-browser.tsx')||path.startsWith(join(consumer,'node_modules')+sep),'Browser build escaped installed artifact consumer: '+input)}
   server=createServer(async(req,res)=>{
    try {
     const path=new URL(req.url,'http://fixture').pathname
@@ -79,7 +109,7 @@ if(!process.argv.includes('--guarded-child')) {
    page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});page.on('response',response=>{if(response.status()>=500)errors.push(`HTTP ${response.status()} ${response.url()}`)})
    await page.route('**/*',route=>route.request().url().startsWith(origin+'/')?route.continue():(errors.push('External request '+route.request().url()),route.abort()))
    const label=`${viewport.width}/${mode}`,audits=[]
-   const audit=async(stage)=>{const result=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();audits.push({stage,violations:result.violations.map(({id,nodes})=>({id,targets:nodes.map(n=>n.target),details:nodes.map(n=>n.failureSummary)})),incomplete:result.incomplete.map(({id,nodes})=>({id,targets:nodes.map(n=>n.target)}))});assert.deepEqual(audits.at(-1).violations,[],`${label}/${stage} accessibility`);assert.deepEqual(audits.at(-1).incomplete,[],`${label}/${stage} unresolved accessibility review`);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${label}/${stage} page overflows viewport`)}
+   const audit=async(stage)=>{const result=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();audits.push({stage,violations:result.violations.map(({id,nodes})=>({id,targets:nodes.map(n=>n.target),details:nodes.map(n=>n.failureSummary)})),incomplete:result.incomplete.map(({id,nodes})=>({id,targets:nodes.map(n=>n.target),details:nodes.map(n=>({html:n.html,summary:n.failureSummary,checks:[...n.any,...n.all,...n.none]}))}))});assert.deepEqual(audits.at(-1).violations,[],`${label}/${stage} accessibility`);assert.deepEqual(audits.at(-1).incomplete,[],`${label}/${stage} unresolved accessibility review`);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${label}/${stage} page overflows viewport`)}
    try {
     console.log('AI draft browser case '+label)
     assert.equal((await page.request.post(origin+'/reset')).status(),200)

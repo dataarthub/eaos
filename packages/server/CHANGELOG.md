@@ -6,16 +6,21 @@
 
 - 11f1579: Add host-injected manifest/module admission, live request authorization and safe client availability helpers through Server's extensions entry. Applications keep their membership lookups, environment policies and resource authorization.
 
-  Add verified frontend artifact acquisition/staging and selected feature registration generation through CLI's platform entry. These operations validate immutable artifacts and explicit adoption without deployment or tenant activation. CLI declaration builds now run in sequential entry batches to bound retained compiler memory.
 - 11f1579: Add the `/host` entry for standard authenticated backend startup with explicit feature adoption, injected membership/Lifecycle/entitlement capabilities and shared current-request MCP binding. Hosts retain their concrete providers, application routers and process listener. Empty adoption remains empty, tenant-scoped extensions preserve admission, and missing Lifecycle fails closed in the standard API. Existing Engine and extension APIs remain supported.
 
 ### Patch Changes
 
-- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
+- Clarify Host-owned identity and persistence bindings for shared directory and audited contract services. Add the development integration guide with verified imports and distinguish the published 0.2.0 baseline from the new 0.3.0 APIs.
+
+- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies. Require Core ^0.2.1 while preserving the Appkit Core ^0.2.2 peer and exact lockfile resolutions.
 - 11f1579: Provide common directory/person routes over normalized live identity and tenant repository ports. Keep provider membership authority separate from business people, validate explicit contact fields and enforce current write roles and browser origins.
 - 11f1579: Provide the common control-plane entitlement service and privileged administration routes. Preserve atomic command replay, revision CAS, durable audit, current authorization, tenant scope and mutation origin checks while injecting Host database and identity connections.
 - Updated dependencies [11f1579]
   - @alneas/eaos-core@0.2.1
+
+### Upgrade
+
+- Install Core 0.2.1 before Server 0.3.0. The new Host entry is opt-in: provide verified identity, live authorization, Lifecycle admission and durable provider bindings explicitly. Existing engine and extension entrypoints remain supported. Installation performs no migration or tenant activation.
 
 ## 0.2.0
 

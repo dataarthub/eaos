@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base ae1ac274494114599ea6c0de2e02c1e61f324e42 (local-reviewed).
-# Bundle SHA-256: 69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 3fe14144e92fd1e891d5933bc1dbc77364afa343 (local-reviewed).
+# Bundle SHA-256: d38d1b242e5f672a2e4fc9170216a55b93e80ae50b6c38d300cd9578fe3cd477
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Source quality"
@@ -8,7 +8,15 @@ on:
   push:
     branches:
       - "main"
-  pull_request: null
+  pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "reopened"
+      - "ready_for_review"
+  merge_group:
+    types:
+      - "checks_requested"
   workflow_dispatch:
     inputs:
       verification_mode:
@@ -28,7 +36,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    if: "${{ github.event_name != 'workflow_dispatch' || inputs.verification_mode == '' || inputs.verification_mode == 'full' }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.verification_mode == '' || inputs.verification_mode == 'full') }}"
     uses: "./.github/workflows/package-quality.yml"
   conformance:
     name: "Verify policy (Node ${{ matrix.node }})"

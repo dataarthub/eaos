@@ -90,3 +90,14 @@ disclosure. Write requests remain handoffs to the existing Action/Proposal appro
 path. Provider errors, incomplete streams, cancellation, policy revocation and
 oversized output reject before an authorized response is returned. A transport
 fixture integration test is distinct from a live model/provider acceptance test.
+
+
+## Host directory and contract connections
+
+Public Server owns the common directory validation/admission and audited contract
+update/admin factories. The Host supplies current verified identity, tenant-scoped
+repositories, control-plane storage and browser-origin policy. See the
+[Host account-service development guide](https://github.com/dataarthub/eaos/blob/main/packages/server/docs/development/host-account-services.md)
+for exact imports, relative routes and verification limits. These additions need
+the matching verified candidate until their owning release is published; existing
+Host adoption and production provider/database acceptance remain separate.

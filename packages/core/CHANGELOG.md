@@ -4,7 +4,11 @@
 
 ### Patch Changes
 
-- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies, with exact versions and integrity retained in the lockfile. Keep Appkit Core and React on their independently versioned compatible lines. Manifest and registry preflight checks now accept compatible Appkit ranges while rejecting unsupported lines. Host runtime builds preserve dynamic imports in separate chunks so optional implementations remain deferred.
+- 11f1579: Use compatible caret ranges for distributed dependencies while adopting the published Appkit Core ^0.2.2 minimum and exact lockfile resolutions. Core remains independent of Server and business plugins.
+
+### Upgrade
+
+- Refresh the application lockfile for the compatible dependency declarations. This patch changes no physical schema or tenant activation state.
 
 ## 0.2.0
 

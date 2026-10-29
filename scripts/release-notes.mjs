@@ -34,13 +34,18 @@ export function verifyReleaseNotes(pkg, {sourceChangelog,packedChangelog,notes,s
   assert.equal(createHash('sha256').update(notes).digest('hex'),sha256,'Release notes hash differs')
 }
 
-function fragmentTargets(text) {
+export function fragmentTargets(text,{minimumSummaryLength=0}={}) {
   const normalized = text.replace(/\r\n/g, '\n')
-  const frontmatter = normalized.match(/^---\n([\s\S]*?)\n---(?:\n|$)([\s\S]*)$/)
+  const frontmatter = normalized.match(/^---\n(?:([\s\S]*?)\n)?---(?:\n|$)([\s\S]*)$/)
   assert(frontmatter && meaningfulBody(frontmatter[2]), 'Expected Changeset frontmatter and consumer summary')
-  const lines = frontmatter[1].split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'))
+  assert(frontmatter[2].trim().length>minimumSummaryLength,'Explain consumer impact')
+  const lines = (frontmatter[1]??'').split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'))
   if (lines.length === 1 && lines[0] === '{}') return []
-  assert(lines.length > 0, 'Expected Changeset package map')
+  if(!lines.length) {
+    const rationale=frontmatter[2].trim()
+    assert(/^No[ -]release:/i.test(rationale)&&rationale.length>=40,'Meaningful No-release rationale required')
+    return []
+  }
   const targets = new Set()
   for (const line of lines) {
     const match = line.match(/^(?:"(@?[a-z0-9][a-z0-9._/-]*)"|'(@?[a-z0-9][a-z0-9._/-]*)'|(@?[a-z0-9][a-z0-9._/-]*))\s*:\s*(patch|minor|major)\s*(?:#.*)?$/)

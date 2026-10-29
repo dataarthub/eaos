@@ -47,7 +47,7 @@ The gate builds all five packages and checks source, tests, documentation and se
 Use Node.js 24 or later and install the required Appkit Core 0.2.0 peer. This example defines a plugin; mounting it requires a trusted host with verified identity, current authorization and scoped data adapters. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-core@0.2.0 @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-core@^0.2.1 @alneas/appkit-core@^0.2.2
 ```
 
 ```typescript

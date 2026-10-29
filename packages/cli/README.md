@@ -28,7 +28,7 @@ This checkout prepares version 0.2.0; version 0.1.0 is already published. Until 
 Use Node.js 24 or later. The baseline image inventory example needs no database, UI provider, stylesheet or OCI credentials. Appkit Core 0.2.0 is installed as a package dependency. Pulumi/OCI peers are needed only for the corresponding infrastructure entrypoints; inspect their guide before configuring a deployment. The subpath is an import target, not a separately installed package.
 
 ```bash
-bun add @alneas/eaos-cli@0.2.0
+bun add @alneas/eaos-cli@^0.3.0
 ```
 
 ```typescript

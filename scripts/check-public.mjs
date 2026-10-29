@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile,readdir } from 'node:fs/promises'
 import { resolve,join } from 'node:path'
 import { validateManifest,publicationOrder } from './release-contract.mjs'
+import {fragmentTargets} from './release-notes.mjs'
 const root=resolve(import.meta.dirname,'..')
 export async function packages() {
   const result=[]
@@ -14,6 +15,10 @@ export async function packages() {
     }
   }
   return result
+}
+export function validateChangeset(text,entries,file='change record') {
+  const targets=fragmentTargets(text,{minimumSummaryLength:30})
+  for(const name of targets)assert.ok(entries.some(pkg=>pkg.name===name),`Unknown target: ${file}`)
 }
 if(process.argv[1]===import.meta.filename) {
   const entries=await packages()
@@ -29,13 +34,7 @@ if(process.argv[1]===import.meta.filename) {
   assert.equal(config.access,'public')
   for(const file of (await readdir(join(root,'.changeset'))).filter(x=>x.endsWith('.md')&&x!=='README.md')) {
     const text=await readFile(join(root,'.changeset',file),'utf8')
-    const header=text.match(/^---\n([\s\S]+?)\n---\n([\s\S]+)$/)
-    assert.ok(header,`Invalid Changeset: ${file}`)
-    for(const line of header[1].split('\n')) {
-      const match=line.match(/^"([^"]+)": (patch|minor|major)$/)
-      assert.ok(match && entries.some(pkg=>pkg.name===match[1]),`Unknown target or increment: ${file}`)
-    }
-    assert.ok(header[2].trim().length>30,`Explain consumer impact: ${file}`)
+    validateChangeset(text,entries,file)
   }
   const lock=await readFile(join(root,'bun.lock'),'utf8')
   assert.ok(!lock.includes('@dataarthub/'),'Private lock dependency')

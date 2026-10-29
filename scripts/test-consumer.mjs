@@ -1,4 +1,4 @@
-import { appkitVersions } from './appkit-versions.mjs'
+import { dependencyConstraints,selectProfile,verifyInstalledProfile } from './consumer-dependencies.mjs'
 import assert from 'node:assert/strict'
 import { mkdtemp,readFile,writeFile,mkdir,rm,realpath } from 'node:fs/promises'
 import { tmpdir,release as osRelease } from 'node:os'
@@ -15,21 +15,123 @@ if(!process.env.EAOS_VERIFICATION_RUN)throw Error('Use bun run test:consumer for
 const root=resolve(import.meta.dirname,'..'),bundle=resolve(process.argv[2]??'')
 const manifest=JSON.parse(await readFile(join(bundle,'bundle.json'),'utf8'))
 assert.equal(manifest.sourceHash,await sourceHash(root),'Candidate source changed')
-const consumer=await mkdtemp(join(tmpdir(),'eaos-public-consumer-'))
-let server,browser
-try {
-  const dependencies={hono:'4.13.13','@types/react-dom':'19.3.0','@tanstack/react-query':'5.104.5',tailwindcss:'4.3.1',react:'19.3.1','react-dom':'19.3.1',...appkitVersions,typescript:'6.0.3','@types/react':'19.3.0','@types/node':'22.20.5'}
-  for(const item of manifest.archives) {
-    assert.ok(item.archive===item.archive.split(/[\\/]/).at(-1)&&!item.archive.includes('..'))
-    const archive=join(bundle,item.archive),bytes=await readFile(archive)
-    assert.equal(createHash('sha256').update(bytes).digest('hex'),item.sha256,'Archive changed')
-    dependencies[item.name]='file:'+archive
+const archives=[]
+for(const item of manifest.archives) {
+  assert.ok(item.archive===item.archive.split(/[\\/]/).at(-1)&&!item.archive.includes('..'))
+  const archive=join(bundle,item.archive),bytes=await readFile(archive)
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),item.sha256,'Archive changed')
+  const packed=JSON.parse(execFileSync('tar',['-xOf',archive,'package/package.json'],{encoding:'utf8'}))
+  assert.equal(packed.name,item.name);assert.equal(packed.version,item.version)
+  archives.push({...packed,archive})
+}
+assert.equal(archives.length,5,'Four foundations and one plugin collection required')
+const omitInfrastructure=['@pulumi/pulumi','@pulumi/oci']
+const harness={name:'archive-consumer-harness',dependencies:{'@types/react-dom':'19.3.0','@tanstack/react-query':'5.104.5',tailwindcss:'4.3.1',typescript:'6.0.3','@types/react':'19.3.0','@types/node':'22.20.5'}}
+const registry={}
+async function registryFor(constraints,candidates,omitted=[]) {
+  for(const name of [...new Set(constraints.map(c=>c.name))].sort()) {
+    if(candidates.some(p=>p.name===name)||omitted.includes(name)||registry[name])continue
+    const response=await fetch('https://registry.npmjs.org/'+encodeURIComponent(name),{redirect:'error',headers:{Accept:'application/vnd.npm.install-v1+json'},signal:AbortSignal.timeout(30000)})
+    assert.equal(response.status,200,'Registry metadata unavailable: '+name)
+    const chunks=[];let size=0
+    for await(const chunk of response.body){size+=chunk.byteLength;assert.ok(size<=32*1024*1024,'Registry metadata exceeds bounded matrix input: '+name);chunks.push(chunk)}
+    registry[name]=JSON.parse(Buffer.concat(chunks).toString('utf8'))
   }
-  await writeFile(join(consumer,'package.json'),JSON.stringify({name:'eaos-archive-consumer',private:true,type:'module',dependencies}))
+}
+const baseConstraints=dependencyConstraints([...archives,harness])
+await registryFor(baseConstraints,archives,omitInfrastructure)
+const profiles=[]
+for(const id of ['minimum','updated-compatible']) {
+  let profile=selectProfile(id,baseConstraints,registry,archives,{omitOptional:omitInfrastructure})
+  // The selected public Appkit package owns its React peer floor. This is
+  // registry package metadata, never the development checkout's manifest.
+  const appkit=registry['@alneas/appkit-react'].versions[profile.dependencies['@alneas/appkit-react']]
+  const hostPeers={name:appkit.name+'@'+appkit.version,peerDependencies:Object.fromEntries(Object.entries(appkit.peerDependencies??{}).filter(([name])=>baseConstraints.some(c=>c.name===name))),peerDependenciesMeta:appkit.peerDependenciesMeta}
+  const constraints=[...baseConstraints,...dependencyConstraints([hostPeers])]
+  profile=selectProfile(id,constraints,registry,archives,{omitOptional:omitInfrastructure})
+  profiles.push({...profile,label:id,archives,checks:'full'})
+}
+// Headless React/CLI consumers admit React 18 and early React 19 without the
+// optional Appkit React adapter or the plugin collection's higher UI floor.
+for(const version of ['18.3.0','19.0.0']) {
+  const candidates=archives.filter(p=>p.name!=='@alneas/eaos-plugins')
+  const omitted=[...omitInfrastructure,'@alneas/appkit-react','lucide-react']
+  // Match the runtime branch with its published declaration floor. The
+  // selector rejects unpublished exact versions before an install can pass.
+  const typeFloor=version==='18.3.0'?'18.3.0':'19.0.0'
+  const ownerHarness={...harness,name:'react-owner-branch-type-harness',dependencies:{...harness.dependencies,'@types/react':typeFloor,'@types/react-dom':typeFloor}}
+  const constraints=dependencyConstraints([...candidates,ownerHarness,{name:'react-owner-minimum-lane',peerDependencies:{react:version,'react-dom':version}}])
+  await registryFor(constraints,candidates,omitted)
+  const profile=selectProfile('minimum',constraints,registry,candidates,{omitOptional:omitted})
+  profiles.push({...profile,label:'owner-react-'+version,archives:candidates,checks:'headless',scope:'Four foundation archives; React owner branch floor with raw client, SSR provider/hook, CLI generator and NodeNext types; optional Appkit React and infrastructure absent'})
+}
+for(const version of ['0.475.0','1.57.0']) {
+  const constraints=[...profiles[0].constraints,...dependencyConstraints([{name:'react-icon-branch-minimum-lane',peerDependencies:{'lucide-react':version}}])]
+  const profile=selectProfile('minimum',constraints,registry,archives,{omitOptional:omitInfrastructure})
+  profiles.push({...profile,label:'owner-lucide-'+version,archives,checks:'icons',scope:'Five archives; direct EAOS workspace icon import and type compatibility at the selected lucide branch floor; no additional browser claim'})
+}
+// SDK import compatibility only: no resource constructors, provider lookups,
+// Pulumi commands, stack state or credentials are used by these lanes.
+for(const id of ['minimum','updated-compatible']) {
+  const candidates=archives.filter(p=>['@alneas/eaos-core','@alneas/eaos-server','@alneas/eaos-cli'].includes(p.name))
+  const omitted=['react','react-dom','@alneas/eaos-react']
+  const tooling={name:'infrastructure-import-harness',dependencies:{typescript:harness.dependencies.typescript,'@types/node':harness.dependencies['@types/node']}}
+  const constraints=dependencyConstraints([...candidates,tooling])
+  await registryFor(constraints,candidates,omitted)
+  const profile=selectProfile(id,constraints,registry,candidates,{omitOptional:omitted})
+  profiles.push({...profile,label:'owner-pulumi-'+id,archives:candidates,checks:'infrastructure-import',scope:'CLI OCI preset and infrastructure public export imports plus NodeNext types at selected optional Pulumi/OCI versions; no resource execution, provider lookups, previews, updates or deployment compatibility claim'})
+}
+const results=[]
+async function runProfile(profile) {
+const consumer=await mkdtemp(join(tmpdir(),'eaos-public-consumer-'))
+let server,browser,evidence
+try {
+  console.log('Consumer dependency profile '+profile.label)
+  const dependencies={...profile.dependencies}
+  for(const item of profile.archives)dependencies[item.name]='file:'+item.archive
+  const packageJson={name:'eaos-archive-consumer',private:true,type:'module',dependencies}
+  await writeFile(join(consumer,'package.json'),JSON.stringify(packageJson))
   const install=spawnSync('npm',['install','--ignore-scripts','--no-audit','--no-fund','--registry=https://registry.npmjs.org','--cache',join(root,'.verification/npm-cache')],{cwd:consumer,encoding:'utf8',maxBuffer:16*1024*1024})
   await mkdir(join(root,'.verification/logs'),{recursive:true})
-  await writeFile(join(root,'.verification/logs/consumer-install.log'),(install.stdout??'')+(install.stderr??''))
-  assert.equal(install.status,0,'Registry-only consumer install failed; see ignored consumer-install.log')
+  await writeFile(join(root,'.verification/logs/consumer-install-'+profile.label+'.log'),(install.stdout??'')+(install.stderr??''))
+  assert.equal(install.status,0,'Registry-only consumer install failed: '+profile.label)
+  const lock=JSON.parse(await readFile(join(consumer,'package-lock.json'),'utf8')),installedVersions={}
+  for(const name of Object.keys(profile.dependencies))installedVersions[name]=JSON.parse(await readFile(join(consumer,'node_modules',name,'package.json'),'utf8')).version
+  const installed=verifyInstalledProfile(profile,packageJson,lock,installedVersions)
+  for(const {name} of profile.omittedOptionalPeers)assert.ok(!lock.packages['node_modules/'+name],'Omitted optional peer unexpectedly installed: '+name)
+  for(const item of profile.archives) {
+    const actual=JSON.parse(await readFile(join(consumer,'node_modules',item.name,'package.json'),'utf8'))
+    assert.equal(actual.version,item.version,'Installed candidate version')
+    const entry=lock.packages['node_modules/'+item.name]
+    assert.equal(entry.version,item.version);assert.ok(entry.resolved?.startsWith('file:'),'Candidate archive must not resolve from registry')
+    const bytes=await readFile(item.archive)
+    assert.equal(entry.integrity,'sha512-'+createHash('sha512').update(bytes).digest('base64'),'Installed candidate archive integrity')
+  }
+  const installedRoots=[]
+  for(const [path,pkg] of Object.entries(lock.packages).filter(([path])=>/^node_modules\/(?:@[^/]+\/)?[^/]+$/.test(path))) {
+    const actual=JSON.parse(await readFile(join(consumer,path,'package.json'),'utf8'))
+    assert.equal(actual.version,pkg.version,'Installed root differs from lock: '+path)
+    assert.ok(pkg.integrity,'Missing installed root integrity: '+path)
+    installedRoots.push({name:path.slice(13),version:actual.version,resolved:pkg.resolved,integrity:pkg.integrity})
+  }
+  evidence={id:profile.label,selection:profile.id,scope:profile.scope,constraintScope:'Packed candidate direct runtime dependencies and peers plus declared fixture tooling. Selected Appkit React contributes only peers overlapping the requested root externals; transitive dependency minima are outside this direct scope.',constraints:profile.constraints,coverageGaps:profile.coverageGaps,omittedOptionalPeers:profile.omittedOptionalPeers,installed,installedRoots,candidates:profile.archives.map(({name,version})=>({name,version,source:'reviewed candidate archive; not publication proof'}))}
+  if(profile.checks==='infrastructure-import') {
+    const probes=['@pulumi/pulumi','@pulumi/oci','@alneas/eaos-cli/presets/oci-adb','@alneas/eaos-cli/presets/oci-adb/infra','@alneas/eaos-cli/presets/oci-adb/infra/access','@alneas/eaos-cli/presets/oci-adb/infra/database','@alneas/eaos-cli/presets/oci-adb/infra/vault','@alneas/eaos-cli/presets/oci-adb/infra/lookups']
+    await writeFile(join(consumer,'infrastructure-import.mjs'),`import assert from 'node:assert/strict';for(const spec of ${JSON.stringify(probes)})await import(spec);import {createOciAdbPreset} from '@alneas/eaos-cli/presets/oci-adb';import {createOciPrivateNetwork,createOciCompute,createOciAutonomousDatabase,createOciVault} from '@alneas/eaos-cli/presets/oci-adb/infra';for(const factory of [createOciAdbPreset,createOciPrivateNetwork,createOciCompute,createOciAutonomousDatabase,createOciVault])assert.equal(typeof factory,'function');`)
+    execFileSync(process.execPath,['infrastructure-import.mjs'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+    await writeFile(join(consumer,'infrastructure-import.ts'),`import type * as pulumi from '@pulumi/pulumi';import type * as oci from '@pulumi/oci';import {createOciAdbPreset,type OciAdbPresetArgs} from '@alneas/eaos-cli/presets/oci-adb';import {createOciPrivateNetwork,type OciPrivateNetworkArgs} from '@alneas/eaos-cli/presets/oci-adb/infra';export type PresetFactory=(name:string,args:OciAdbPresetArgs,options?:pulumi.CustomResourceOptions)=>ReturnType<typeof createOciAdbPreset>;export type NetworkFactory=(name:string,args:OciPrivateNetworkArgs,options?:pulumi.CustomResourceOptions)=>ReturnType<typeof createOciPrivateNetwork>;export type NativeProvider=oci.Provider;export const presetFactory:PresetFactory=createOciAdbPreset;export const networkFactory:NetworkFactory=createOciPrivateNetwork;`)
+    execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--types','node','infrastructure-import.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+    return {...evidence,status:'passed',entries:probes.length,typescript:'NodeNext',browser:{cases:[],scope:'Optional infrastructure SDK public imports/types only; no browser or deployed infrastructure claim'}}
+  }
+  if(profile.checks!=='full') {
+    const probes=profile.checks==='headless'?['@alneas/eaos-react','@alneas/eaos-react/client','@alneas/eaos-cli/version','@alneas/eaos-cli/plugin-tools']:['@alneas/eaos-react/workspace-layout']
+    const source=`import assert from 'node:assert/strict';for(const spec of ${JSON.stringify(probes)})await import(spec);`+(profile.checks==='headless'?`import {createTenantModuleStore,TenantModuleProvider,useTenantModule} from '@alneas/eaos-react';import {createFileDownloader} from '@alneas/eaos-react/client';import {createElement} from 'react';import {renderToString} from 'react-dom/server';import {generatePlugin} from '@alneas/eaos-cli/plugin-tools';import {cliVersion,frameworkVersion} from '@alneas/eaos-cli/version';assert.equal(cliVersion,${JSON.stringify(archives.find(p=>p.name==='@alneas/eaos-cli').version)});assert.equal(frameworkVersion,${JSON.stringify(archives.find(p=>p.name==='@alneas/eaos-core').version)});await generatePlugin(import.meta.dirname,{name:'owner-minimum-check'});const store=createTenantModuleStore(async()=>({tenantId:'owner',userId:'reader',enabledModules:['reports']}));await store.refresh();function Probe(){const current=useTenantModule();return createElement('span',null,current.hasModule('reports')?'admitted':'denied')}assert.match(renderToString(createElement(TenantModuleProvider,{store},createElement(Probe))),/admitted/);const save=createFileDownloader({web:async(bytes)=>({success:bytes.length===3})});assert.equal((await save(new Uint8Array([1,2,3]),{filename:'owner.bin'})).success,true);`:`import {WorkspaceHeader} from '@alneas/eaos-react/workspace-layout';import {Home,Users,UserRound,Building2,FileText,MessageSquare,CircleHelp,PanelLeft} from 'lucide-react';for(const icon of [Home,Users,UserRound,Building2,FileText,MessageSquare,CircleHelp,PanelLeft])assert.ok(icon);assert.equal(typeof WorkspaceHeader,'function');`)
+    await writeFile(join(consumer,'owner.mjs'),source)
+    execFileSync(process.execPath,['owner.mjs'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+    await writeFile(join(consumer,'owner.ts'),profile.checks==='headless'?`import {createTenantModuleStore} from '@alneas/eaos-react';import {createFileDownloader} from '@alneas/eaos-react/client';import {generatePlugin} from '@alneas/eaos-cli/plugin-tools';export {createTenantModuleStore,createFileDownloader,generatePlugin};`:`import {WorkspaceHeader} from '@alneas/eaos-react/workspace-layout';export {WorkspaceHeader};`)
+    execFileSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--skipLibCheck','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','owner.ts'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
+    return {...evidence,status:'passed',entries:probes.length,typescript:'NodeNext',browser:{cases:[],scope:'Bounded owner Node import/type lane; no browser compatibility claim'}}
+  }
   const entries=['@alneas/eaos-core','@alneas/eaos-server/storage','@alneas/eaos-react/client','@alneas/eaos-cli/baseline','@alneas/eaos-plugins/approval/runtime','@alneas/eaos-plugins/field-customization/runtime','@alneas/eaos-plugins/admin/runtime','@alneas/eaos-core/ai/document-parser','@alneas/eaos-core/ai/smart-ingestion','@alneas/eaos-core/ai/evidence-traceability','@alneas/eaos-core/ai/inline-completion','@alneas/eaos-core/ai/proposal-ui','@alneas/eaos-core/plugin-sdk/journal-draft','@alneas/eaos-core/plugin-sdk/immutable-ledger','@alneas/eaos-core/plugin-sdk/hybrid-document']
   await writeFile(join(consumer,'smoke.mjs'),`import assert from 'node:assert/strict';import {realpath} from 'node:fs/promises';for(const spec of ${JSON.stringify(entries)}){const path=await realpath(new URL(import.meta.resolve(spec)));assert(path.startsWith(import.meta.dirname+'/node_modules/'),spec);await import(spec)}console.log('${entries.length} archive entrypoints resolve and load inside consumer')`)
   execFileSync(process.execPath,['smoke.mjs'],{cwd:consumer,stdio:'pipe',encoding:'utf8'})
@@ -254,10 +356,20 @@ console.log('Packed CLI stages only requested collection modules with public exp
     await context.close()
   }
   const result={runId:process.env.EAOS_VERIFICATION_RUN,sourceHash:manifest.sourceHash,archives:manifest.archives.map(({name,version,sha256})=>({name,version,sha256})),node:process.version,entries:entries.length,typescript:'NodeNext',readmeExamples:readmeExamples.map(x=>x.readme),browser:{name:'Chromium',version:browser.version(),revision:chromium.executablePath().match(/(?:chromium|chromium_headless_shell)-(\d+)/)?.[1]??null,platform:process.platform,arch:process.arch,osRelease:osRelease(),cases},verifiedAt:new Date().toISOString()}
-  await writeFile(join(bundle,'consumer-result.json'),JSON.stringify(result,null,2)+'\n')
-  console.log('Registry-only isolated archive consumer passed: Node imports, declarations, README examples, browser bundle and desktop/mobile interactions')
+  return {...evidence,...result,status:'passed'}
+} catch(error) {
+  error.consumerEvidence=evidence
+  throw error
 } finally {
   await browser?.close()
   if(server)await new Promise(resolve=>server.close(resolve))
   await rm(consumer,{recursive:true,force:true})
 }
+}
+
+for(const profile of profiles) {
+  try {results.push(await runProfile(profile))}
+  catch(error) {results.push({...error.consumerEvidence,id:profile.label,status:'failed',error:error.stack,constraints:profile.constraints,coverageGaps:profile.coverageGaps});console.error('Consumer profile failed: '+profile.label+' '+error.message)}
+  await writeFile(join(bundle,'consumer-result.json'),JSON.stringify({runId:process.env.EAOS_VERIFICATION_RUN,sourceHash:manifest.sourceHash,archives:manifest.archives.map(({name,version,sha256})=>({name,version,sha256})),node:process.version,status:results.every(p=>p.status==='passed')&&results.length===profiles.length?'passed':results.some(p=>p.status==='failed')?'failed':'incomplete',plannedProfiles:profiles.map(p=>p.label),unexecutedProfiles:profiles.slice(results.length).map(p=>p.label),profiles:results,verifiedAt:new Date().toISOString()},null,2)+'\n')
+}
+assert.ok(results.every(profile=>profile.status==='passed'),'Consumer dependency profiles failed; see consumer-result.json')

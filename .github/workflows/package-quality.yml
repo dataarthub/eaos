@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base ae1ac274494114599ea6c0de2e02c1e61f324e42 (local-reviewed).
-# Bundle SHA-256: 69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 3fe14144e92fd1e891d5933bc1dbc77364afa343 (local-reviewed).
+# Bundle SHA-256: d38d1b242e5f672a2e4fc9170216a55b93e80ae50b6c38d300cd9578fe3cd477
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Shared package quality"
@@ -63,6 +63,10 @@ jobs:
         if: "steps.public-selection.outputs.scope == 'full'"
         name: "Project: Run declared project check"
       -
+        name: "Project: Verify AI draft editing, approval and save in four browser cases"
+        run: "bun run test:ai-drafts:browser"
+        if: "steps.public-selection.outputs.scope == 'full'"
+      -
         name: "Project: Prepare and test exact archives"
         run: |
           node scripts/release.mjs prepare > .verification/candidate-path.txt
@@ -72,7 +76,7 @@ jobs:
       -
         uses: "actions/upload-artifact@v7"
         with:
-          name: "verified-public-candidate"
+          name: "verified-public-candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
           path: ".verification/release-*/"
           retention-days: 14
           include-hidden-files: true
@@ -81,13 +85,13 @@ jobs:
         name: "Shared: actions/upload-artifact@v7"
       -
         name: "Shared: Record authoritative source evidence"
-        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
+        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' || success() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository }}"
         env:
           PUBLIC_SOURCE_NODE: "${{ matrix.node }}"
         run: "node scripts/workflow-supply/public/quality.mjs record"
       -
         name: "Shared: Preserve source evidence"
-        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
+        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' || success() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository }}"
         uses: "actions/upload-artifact@v7"
         with:
           name: "source-evidence-node${{ matrix.node }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"

@@ -30,7 +30,7 @@
 Node.js 24 以上を使用し、必須 peer の Appkit Core 0.2.0 を導入してください。この例はプラグインを定義します。組み込みには、検証済みの識別情報、現在の認可、スコープを限定したデータアダプターを持つ信頼できるホストが必要です。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-core@0.2.0 @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-core@^0.2.1 @alneas/appkit-core@^0.2.2
 ```
 
 ```typescript

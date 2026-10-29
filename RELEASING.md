@@ -18,11 +18,34 @@ The public source repository is https://github.com/dataarthub/eaos; all five
 packages target public npmjs. Local preparation never writes to a registry.
 Use the toolchain and checks in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Current release preparation
+
+The unpublished candidate is Core **0.2.1** and Server, React, CLI and Plugins
+**0.3.0**. Their independent versions follow the changed owned payload and API
+impact. Appkit Core 0.2.0 and React 0.3.0 remain independent prerequisites. Pending
+Server documentation is consolidated into the existing 0.3.0 entry; it does not
+create an additional 0.3.1 release.
+
+Prepare and verify all five archives, publish Core first, then React and Server,
+then CLI and Plugins after their required registry prerequisites are readable.
+Existing packages use the subsequent Actions/OIDC staging path below, with human
+npm approval. The generated manual-first-publication handoff is a bootstrap
+artifact and is not the publication path for this existing package set.
+
+Package-specific tags are `eaos-core-v0.2.1`, `eaos-react-v0.3.0`,
+`eaos-server-v0.3.0`, `eaos-cli-v0.3.0` and `eaos-plugins-v0.3.0`.
+Preparation creates none of these tags, no GitHub Release and no registry write.
+Before authorized publication, make the final source commit available on main
+and pass the required CI and exact archive checks for that source. Read-only
+preflight distinguishes pending candidate-internal prerequisites from unavailable
+external dependencies; a successful bootstrap report is not permission to stage
+all dependents before their prerequisites are public.
+
 ## Step-by-Step Implementation
 
 1. Select an explicit last-release baseline per package and inspect accumulated
-   Changesets plus runtime dependency impact. The aggregate `v0.1.0` release is the published baseline.
-   Review later changes independently for each owner; the three former plugin
+   Changesets plus runtime dependency impact. The current published baseline is each owner's `eaos-<owner>-v0.2.0` tag; the aggregate `v0.1.0` is historical.
+   Review accumulated changes independently for each owner; the three former plugin
    package names are not release targets.
 2. Run `bun run release:plan` to inspect versions, dependency order and required
    distribution tags. This plan lists the five-package candidate set; it does
@@ -57,6 +80,33 @@ not `npm publish` from a source directory. Archive checks enforce declared expor
 README/LICENSE/CHANGELOG, explicit files and private-source exclusion. Consumer
 checks never use sibling source aliases, private tarballs or a checkout fallback.
 Working-tree bundles are development evidence, not publishable releases.
+
+### Browser and dependency compatibility evidence
+
+Full source CI and Release verification run `bun run test:ai-drafts:browser`.
+Its four desktop/mobile and light/dark cases retain accessibility checks,
+approval-before-save, edited input, idempotent retry and viewport assertions under
+the existing 3 GiB / three-minute guard. Records identify source inputs and any
+explicit isolated artifact consumer; development candidate evidence does not
+certify registry availability or durable database behavior.
+
+`test:consumer` installs published declared minimums and the newest published
+compatible direct dependencies into separate isolated consumers. Both combined
+profiles run the full existing browser matrix. Additional bounded owner lanes
+cover React 18/19, both lucide major branches, and optional Pulumi/OCI imports and
+types. They do not execute cloud resources, previews or updates. Records preserve
+requested versions, actual installed versions, lockfile resolutions/integrities,
+candidate archive checksums and the specific coverage of each lane. Dependency
+owners retain responsibility for their own transitive minimums; omitted optional
+features and unexecuted lanes are not claimed as tested.
+
+The current published Appkit React 0.3.0 DataTable inserts deprecated drag-handle
+ARIA state and fails the AI draft accessibility gate. A canonical Appkit fix is
+required before this EAOS candidate can ship. A separately verified development
+archive can establish early compatibility, but a fixed Appkit release must be
+published, its minimum adopted and registry-only checks rerun before publication.
+Do not filter accessibility findings, disable dragging, patch consumer DOM or
+adopt an unpublished production dependency to bypass this prerequisite.
 
 ### Publication and external setup
 
@@ -169,20 +219,20 @@ Check current channels before writes and never move a newer channel backwards.
    `eaos-plugins-vX.Y.Z`. The initial aggregate `v0.1.0` is historical and never
    triggers package staging. Main/tag pushes do not stage; manual dispatch only
    completes an existing successful staging run.
-4. `publish.yml` runs the mandatory quality and exact-archive consumer gates on
-   Node 24 / Bun 1.4.3, then transfers only the selected archive, source-derived
+4. `publish.yml` authenticates the mandatory Source quality and exact-archive
+   consumer results on Node 24 / Bun 1.4.3, then transfers only the selected archive, source-derived
    notes and sanitized `release.json` as an immutable artifact retained 14 days.
    Its credentialed writer uses pinned npm 11.21.0 to stage those exact bytes on
    the inspection-only `staged` tag. It never rebuilds. Existing published
    versions require byte equality and are never republished.
 5. Review the npm Staged Packages entry and approve with human 2FA.
-   `complete-approved.yml` observes matching public bytes for up to 30 minutes
-   and dispatches `publish.yml` completion once. Completion revalidates the
+   Approval does not occupy a runner or dispatch another workflow; the former
+   `complete-approved.yml` observer is retired. Explicit completion revalidates the
    original successful staging run, attempt, tag, commit and artifact; verifies
    public bytes and prerequisite ranges; sets required consumer tags without
    rolling newer channels back; then records npm Deployment success against the
    original source SHA. Observer success alone is not completed publication.
-6. If approval finishes after the observation window, resume completion on `main`:
+6. After approval, resume completion on `main`:
 
    ```bash
    gh workflow run publish.yml --ref main -f staged_run=ORIGINAL_SUCCESSFUL_STAGE_RUN_ID
@@ -268,9 +318,9 @@ bytes, required tags and completion records were verified. Current main supplies
 the reviewed control code while recovery verifies and stages the original tagged
 package source. These candidates do not authorize rerunning the original attempts.
 
-### Dependency order for the prepared 0.2.0 set
+### Historical 0.2.0 delivery order
 
-The prepared targets remain the same five 0.2.0 versions. Stage Core first. After
+The historical prepared set used the same five 0.2.0 versions. Its order was Core first. After
 human approval, verify its public bytes and required tags before staging React
 and Server. After those prerequisites are public and verified, stage CLI and the
 plugin collection. Each package has its own Release, original run and human npm
@@ -334,3 +384,12 @@ from package publication and preserve successful records during recovery.
   versioned release entry. Do not silently bump versions in the publisher.
 - Missing remote trust, Git baseline or registry prerequisites: local preparation
   can finish, but publication remains blocked until those external gates are met.
+
+
+## CI evidence reuse
+
+Source quality records per-runtime immutable receipts for main and same-repository Ready PRs. Main may inherit source-suite results only after matching actual Git trees, original base/head, unchanged verifier controls, successful required jobs and the latest run/attempt. Unknown or changed evidence runs the affected source checks conservatively. Main still materializes outputs and tests its archive bundle.
+
+Each package Release downloads that exact Source bundle with its immutable digest, expiry, source, archive and guarded consumer checks. It does not repack the five owners or repeat source suites. An image-only change repeats build/runtime and exact archive/browser consumers; other incompatible or missing evidence blocks reuse. Current registry prerequisites, tag/source, permission, Release and byte checks remain fresh before writes. Historical catalogued pre-stage recovery remains a separate fixed-candidate full-verification path.
+
+Staging ends while human npm approval is pending. After approval, use the existing completion-only `publish.yml` input with the original staging run ID. The retired observer creates no approval-wait or notice job.

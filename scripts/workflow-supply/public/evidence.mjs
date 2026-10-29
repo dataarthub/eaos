@@ -22,7 +22,7 @@ export function github(repository,{token=process.env.GITHUB_TOKEN,fetchImpl=fetc
  }
  return {request,readArtifact};
 }
-export async function validateRun(run,{repository,nodeVersions,request,readArtifact,identity,now=Date.now()}){
+export async function validateRun(run,{repository,nodeVersions,request,readArtifact,identity,imagePolicy='exact',now=Date.now()}){
  assert(authoritative(run,repository)&&run.status==='completed'&&run.conclusion==='success'&&sha(run.head_sha),'Untrusted source run');
  assert(Number.isSafeInteger(run.id)&&run.id>0&&Number.isSafeInteger(run.run_attempt)&&run.run_attempt>0,'Invalid source run identity');
  const current=await request('/actions/runs/'+run.id);assert(current.id===run.id&&current.run_attempt===run.run_attempt&&current.conclusion==='success'&&current.status==='completed'&&authoritative(current,repository)&&current.head_sha===run.head_sha,'Source attempt superseded');
@@ -31,17 +31,17 @@ export async function validateRun(run,{repository,nodeVersions,request,readArtif
  const listed=await request(`/actions/runs/${run.id}/artifacts?per_page=100`);assert(Array.isArray(listed.artifacts)&&listed.total_count<=100,'Ambiguous source artifacts');
  const name=`source-evidence-node${identity.nodeMajor}-${run.head_sha}-${run.id}-${run.run_attempt}`;const found=listed.artifacts.filter(a=>a.name===name);assert.equal(found.length,1,'Missing source receipt');const a=found[0];
  assert(a.expired===false&&Date.parse(a.expires_at)>now&&a.workflow_run?.id===run.id&&a.workflow_run?.head_sha===run.head_sha,'Expired or mismatched source evidence');
- const receipt=await readArtifact(a);assert(receipt.schemaVersion===1&&receipt.repository===repository&&receipt.sha===run.head_sha&&receipt.run===run.id&&receipt.attempt===run.run_attempt,'Receipt identity mismatch');assert.deepEqual(receipt.identity,identity,'Execution environment changed');assert(receipt.status==='passed','Source evidence did not pass');return receipt;
+ const receipt=await readArtifact(a);assert(receipt.schemaVersion===1&&receipt.repository===repository&&receipt.sha===run.head_sha&&receipt.run===run.id&&receipt.attempt===run.run_attempt,'Receipt identity mismatch');assert(['exact','authenticate'].includes(imagePolicy),'Invalid source image policy');const expected={...identity},actual={...receipt.identity};if(imagePolicy==='authenticate'){assert(typeof actual.image==='string'&&/^[^:]+:[^:]+$/.test(actual.image)&&typeof expected.image==='string'&&/^[^:]+:[^:]+$/.test(expected.image),'Known source and current images required');delete actual.image;delete expected.image;}assert.deepEqual(actual,expected,'Execution environment changed');assert(receipt.status==='passed','Source evidence did not pass');const confirmed=await request('/actions/runs/'+run.id);assert(confirmed.id===run.id&&confirmed.run_attempt===run.run_attempt&&confirmed.conclusion==='success'&&confirmed.status==='completed'&&authoritative(confirmed,repository)&&confirmed.head_sha===run.head_sha,'Source attempt superseded during authentication');return receipt;
 }
-export async function sourceRun({repository,nodeVersions,identity,head,currentRun,isAncestor,exact=false,request,readArtifact}){
+export async function sourceRun({repository,nodeVersions,identity,head,currentRun,isAncestor,exact=false,imagePolicy='exact',request,readArtifact}){
  assert(sha(head),'Exact source SHA required');const query=new URLSearchParams({event:'push',branch:'main',per_page:'100',...(exact?{head_sha:head}:{})});
- const listed=await request('/actions/workflows/ci.yml/runs?'+query);assert(Array.isArray(listed.workflow_runs)&&listed.total_count<=100,'Source history exceeds bounded inspection');
+ const listed=await request('/actions/workflows/ci.yml/runs?'+query);assert(Array.isArray(listed.workflow_runs)&&listed.workflow_runs.length<=100&&Number.isSafeInteger(listed.total_count)&&listed.total_count>=listed.workflow_runs.length,'Invalid bounded source history');
  const seen=new Set();for(const run of listed.workflow_runs.filter(r=>authoritative(r,repository)).sort((a,b)=>b.id-a.id)){
   if(seen.has(run.head_sha))continue;seen.add(run.head_sha);
   if(run.id===Number(currentRun)||!sha(run.head_sha))continue;
   if(exact?run.head_sha!==head:!await isAncestor(run.head_sha))continue;
   if(run.status!=='completed'||run.conclusion!=='success'){if(exact)throw Error('Latest exact-commit Source quality did not pass');continue;}
-  try{const receipt=await validateRun(run,{repository,nodeVersions,request,readArtifact,identity});return {run,receipt};}catch(error){if(exact)throw error;}
+  try{const receipt=await validateRun(run,{repository,nodeVersions,request,readArtifact,identity,imagePolicy});const latest=await request('/actions/workflows/ci.yml/runs?'+new URLSearchParams({event:'push',branch:'main',per_page:'100',head_sha:run.head_sha}));assert(Array.isArray(latest.workflow_runs)&&latest.workflow_runs.length<=100&&Number.isSafeInteger(latest.total_count)&&latest.total_count>=latest.workflow_runs.length,'Invalid bounded source history');const owning=latest.workflow_runs.filter(r=>authoritative(r,repository)&&r.head_sha===run.head_sha).sort((a,b)=>b.id-a.id)[0];assert(owning?.id===run.id&&owning.run_attempt===run.run_attempt&&owning.status==='completed'&&owning.conclusion==='success','Latest source run superseded during authentication');return {run,receipt};}catch(error){if(exact)throw error;}
  }
  if(exact)throw Error('No authoritative exact-commit Source quality evidence');return null;
 }
