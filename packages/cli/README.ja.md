@@ -30,7 +30,7 @@
 Node.js 24 以上を使用してください。以下のベースラインイメージ一覧の例には、データベース、UI provider、stylesheet、OCI 認証情報は不要です。Appkit Core 0.2.0 はパッケージの依存関係として導入されます。Pulumi/OCI peer は対応するインフラ用 entrypoint にのみ必要です。デプロイ設定の前に該当ガイドを確認してください。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-cli@0.2.0
+bun add @alneas/eaos-cli@^0.3.0
 ```
 
 ```typescript

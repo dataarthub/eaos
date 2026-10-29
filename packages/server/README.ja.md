@@ -30,7 +30,7 @@
 Node.js 24 以上と、必須 peer の Appkit Core 0.2.0 を使用してください。以下の正規化の例は純粋な処理で、データベース接続や認証情報は不要です。Server の実行には、別途ホストが管理する識別情報、認可、永続化の接続が必要です。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-server@0.2.0 @alneas/appkit-core@^0.2.2
+bun add @alneas/eaos-server@^0.3.0 @alneas/appkit-core@^0.2.2
 ```
 
 ```typescript

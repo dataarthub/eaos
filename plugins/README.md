@@ -24,7 +24,7 @@ One optional npm package owns the three standard features and their release life
 This checkout prepares version `0.2.0`; version `0.1.0` is already published. Until 0.2.0 is published, install its checksum-verified candidate tarball. The command below is for the released 0.2.0 package. Use Node.js 24 or later and Appkit Core exactly 0.2.0 with compatible EAOS Core/Server ^0.2.0 and Hono ^4.13.13 peers. Install the package once; feature subpaths are import targets, not separate packages.
 
 ```bash
-bun add @alneas/eaos-plugins@0.2.0 @alneas/appkit-core@^0.2.2
+bun add @alneas/eaos-plugins@^0.3.0 @alneas/appkit-core@^0.2.2
 ```
 
 Bind the approval runtime to your real host adapters. This wrapper accepts verified concrete tenant IDs and typed bindings; it does not invent a store or authenticated principal.

@@ -30,7 +30,7 @@
 ツールには Node.js 24 以上を使用し、ブラウザの React ホストを用意してください。対応する Core peer と Appkit Core 0.2.0 を導入します。この UI entry には、19 系の React と React DOM 19.2.3 以上、Appkit React ちょうど 0.3.0、および Lucide React が必要です。例のとおり Appkit の stylesheet を import し、ThemeProvider と SidebarProvider の両方の内側で描画してください。ヘッダーの表示だけでは利用者の認証や認可は行いません。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-react@0.2.0 @alneas/eaos-core@^0.2.0 @alneas/appkit-core@^0.2.2 @alneas/appkit-react@^0.3.1 react@^19.2.3 react-dom@^19.2.3 lucide-react@^1.61.0
+bun add @alneas/eaos-react@^0.3.0 @alneas/eaos-core@^0.2.1 @alneas/appkit-core@^0.2.2 @alneas/appkit-react@^0.3.1 react@^19.2.3 react-dom@^19.2.3 lucide-react@^1.61.0
 ```
 
 bundler がこの CSS entry の型を宣言しない場合は、`declare module '@alneas/appkit-react/styles';` を記述した `appkit-styles.d.ts` を TypeScript プロジェクトに含めてください。ブラウザの bundler は実際の stylesheet を解決して読み込みます。

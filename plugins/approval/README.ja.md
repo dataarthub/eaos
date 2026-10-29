@@ -23,14 +23,14 @@
 
 ## Quickstart
 
-この機能は `@alneas/eaos-plugins@0.2.0` のリリース候補に含まれます。0.1.0 は公開済みです。新しいバージョンが利用可能になるまでは、チェックサムを検証した 0.2.0 の tarball を使用してください。
+この機能は `@alneas/eaos-plugins@^0.3.0` のリリース候補に含まれます。0.1.0 は公開済みです。新しいバージョンが利用可能になるまでは、チェックサムを検証した 0.2.0 の tarball を使用してください。
 
 ### 公開 API の import
 
 Node.js 24 以上を使用してください。この manifest のみを使う例はメタデータを読むもので、UI、認証情報、テナントの有効化は不要です。Appkit Core 0.2.0 は、依存する Core/Server の必須 peer です。任意の /react entry を使う場合は、@alneas/eaos-react、@alneas/appkit-react@0.3.0、React/React DOM ^19.2.3、Lucide React も導入し、@alneas/appkit-react/styles を import して、ホスト統合ガイドに記載された provider を使用してください。`@alneas/eaos-plugins` の導入は1回で、`/approval` とその下の subpath がこの機能を選びます。subpath は import の対象であり、個別にインストールするパッケージではありません。
 
 ```bash
-bun add @alneas/eaos-plugins@0.2.0 @alneas/appkit-core@0.2.0
+bun add @alneas/eaos-plugins@^0.3.0 @alneas/appkit-core@0.2.0
 ```
 
 ```typescript

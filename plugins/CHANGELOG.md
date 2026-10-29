@@ -4,11 +4,11 @@
 
 ### Minor Changes
 
-- 11f1579: Add connected workspace factories for approval, field customization and the audit journal through additive `/workspace-binding` entries. Hosts provide verified browser capabilities and an explicit field resource catalog. Approval and field responses use the canonical document schemas through the Appkit Core 0.2 peer. Raw workspace entries remain supported.
+- 11f1579: Add connected workspace factories for approval, field customization and the audit journal through additive `/workspace-binding` entries. Hosts provide verified browser capabilities and an explicit field resource catalog. Approval and field responses use the canonical document schemas through the Appkit Core ^0.2.2 peer. Raw workspace entries remain supported.
 
 ### Patch Changes
 
-- 11f1579: Use compatible caret ranges for the Core ^0.2.1, Server ^0.3.0 and React ^0.3.0 contracts and the independent Appkit peers. Lockfiles retain exact resolved versions and integrity.
+- 11f1579: Use compatible caret ranges for the Core ^0.2.1, Server ^0.3.0 and React ^0.3.0 contracts and published Appkit Core ^0.2.2 / React ^0.3.1 peers. Lockfiles retain exact resolved versions and integrity.
 - Updated dependencies [11f1579]
   - @alneas/eaos-core@0.2.1
   - @alneas/eaos-server@0.3.0

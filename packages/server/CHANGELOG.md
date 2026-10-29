@@ -12,7 +12,7 @@
 
 - Clarify Host-owned identity and persistence bindings for shared directory and audited contract services. Add the development integration guide with verified imports and distinguish the published 0.2.0 baseline from the new 0.3.0 APIs.
 
-- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies. Require Core ^0.2.1 while preserving the Appkit Core ^0.2.0 peer and exact lockfile resolutions.
+- 11f1579: Use compatible caret ranges for distributed runtime and peer dependencies. Require Core ^0.2.1 while preserving the Appkit Core ^0.2.2 peer and exact lockfile resolutions.
 - 11f1579: Provide common directory/person routes over normalized live identity and tenant repository ports. Keep provider membership authority separate from business people, validate explicit contact fields and enforce current write roles and browser origins.
 - 11f1579: Provide the common control-plane entitlement service and privileged administration routes. Preserve atomic command replay, revision CAS, durable audit, current authorization, tenant scope and mutation origin checks while injecting Host database and identity connections.
 - Updated dependencies [11f1579]
