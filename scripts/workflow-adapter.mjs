@@ -6,7 +6,7 @@ import {join,resolve,dirname} from 'node:path';
 const root=resolve(import.meta.dirname,'..'),phase=process.argv[2];
 const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',env:Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.startsWith('GIT_')))});
 if(phase==='hooks-status'){console.log('Configured hooks path: '+(spawnSync('git',['config','--get','core.hooksPath'],{cwd:root,encoding:'utf8'}).stdout.trim()||'default (.git/hooks)'));console.log('Hooks are not installed by workflow adoption. Run quality:commit / quality:push explicitly.');}
-else if(phase==='documentation-safety'){for(const script of ['lint','check:release-impact']){const r=spawnSync('bun',['run',script],{cwd:root,stdio:'inherit'});assert.equal(r.status,0,'Documentation safety gate failed: '+script);}}
+else if(phase==='documentation-safety'){for(const script of ['lint','check:public','check:release-impact']){const r=spawnSync('bun',['run',script],{cwd:root,stdio:'inherit'});assert.equal(r.status,0,'Documentation safety gate failed: '+script);}}
 else if(phase==='commit'){
  for(const file of ['biome.json','.gitleaks.toml'])assert.equal(git(['show',':'+file]),readFileSync(join(root,file),'utf8'),'Staged verifier configuration differs: '+file);
  const {localGitleaks,gitleaksVersion}=await import('./quality-tools.mjs');assert.equal(execFileSync(localGitleaks,['version'],{encoding:'utf8'}).trim(),gitleaksVersion,'Run secrets:setup explicitly');

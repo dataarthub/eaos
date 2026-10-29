@@ -9,6 +9,7 @@ import {assertWriteEnvironment,npm,npmWriteArgs,executeStage,executeRelease,publ
 import {verifyArtifact} from './registry.mjs'
 import {recordDeployments} from './deployments.mjs'
 import {recoveryContext,assertRecoveryBundle} from './recovery.mjs'
+let releaseStep='resolve-original-evidence'
 async function main(){
  const phase=process.argv[2];assert(['stage','recover-stage','complete'].includes(phase));assertWriteEnvironment(process.env,phase)
  const root=resolve(import.meta.dirname,'../..'),directory=resolve('.verification/handoff')
@@ -30,7 +31,7 @@ async function main(){
   assert.deepEqual(manifest.recovery,evidence.recovery,'Recovery producer metadata differs')
  }
  assert.equal(npm(['--version']).trim(),'11.21.0','Use reviewed OIDC npm CLI');assert.equal(process.versions.node.split('.')[0],'24')
- const options={readState:name=>publicJson(encodeURIComponent(name)),verifyArtifact,checkPrerequisite:async()=>{
+ const options={readState:(name,timeout)=>publicJson(encodeURIComponent(name),timeout),verifyArtifact,checkPrerequisite:async()=>{
   const deps={...target.meta.dependencies,...target.meta.peerDependencies,...target.meta.optionalDependencies}
   for(const [name,range] of Object.entries(deps)){
    const version=JSON.parse(npm(['view',name+'@'+range,'version','--json','--registry='+registry]))
@@ -43,8 +44,9 @@ async function main(){
   npm(npmWriteArgs(action,artifact,tag,directory,process.env.RELEASE_REPOSITORY_PRIVATE))
   console.log(`${action}: ${artifact.name}@${artifact.version} (${tag})`)
  }}
+ releaseStep=phase==='complete'?'verify-approved-bytes-and-channels':'submit-staging'
  if(phase==='stage'||phase==='recover-stage')await executeStage(manifest,options)
- else{await executeRelease(manifest,options);await recordDeployments(manifest)}
+ else{await executeRelease(manifest,options);releaseStep='record-original-source-deployment';await recordDeployments(manifest)}
  console.log(phase!=='complete'?'Staging submitted; human npm approval required.':'Public bytes, consumer channels and original-SHA Deployment verified.')
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)main().catch(e=>{console.error('Release state: '+failureState(e)+'. Stop writes and inspect evidence/public registry before retrying.');process.exitCode=1})
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)main().catch(e=>{console.error('Release step: '+releaseStep+'; state: '+failureState(e)+'. Stop writes and inspect evidence/public registry before retrying.');process.exitCode=1})

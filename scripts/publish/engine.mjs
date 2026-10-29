@@ -69,7 +69,7 @@ export async function executeStage(manifest,{readState,verifyArtifact,write,chec
   }else await verifyArtifact(artifact);
  }
 }
-export async function executeRelease(manifest,{readState,verifyArtifact,write,checkPrerequisite}) {
+export async function executeRelease(manifest,{readState,verifyArtifact,write,checkPrerequisite,channelWait={}}) {
  const targets=selectedTargets(manifest);
  // Approval and exact public bytes for ALL targets precede any consumer-channel mutation.
  for(const artifact of targets){
@@ -84,9 +84,19 @@ export async function executeRelease(manifest,{readState,verifyArtifact,write,ch
    assert(!fresh.publish,'Approved version disappeared');
    if(fresh.tags.includes(tag))await write('tag',artifact,tag);
   }
-  const final=planTarget(artifact,await readState(artifact.name));
-  assert(!final.publish&&final.tags.length===0,'Release channels remain incomplete');
+  await waitForRequiredChannels(artifact,readState,channelWait);
  }
+}
+export async function waitForRequiredChannels(artifact,readState,{now=()=>performance.now(),sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),timeout=60000,interval=2000}={}){
+ assert(Number.isFinite(timeout)&&timeout>0&&timeout<=60000&&Number.isFinite(interval)&&interval>0,'Bounded channel verification required');
+ const deadline=now()+timeout;
+ while(now()<deadline){
+  const remaining=deadline-now(),current=planTarget(artifact,await readState(artifact.name,remaining));
+  assert(!current.publish,'Approved version disappeared during channel verification');
+  if(current.tags.length===0)return;
+  const delay=Math.min(interval,deadline-now());if(delay>0)await sleep(delay);
+ }
+ throw Error('Release channels remain incomplete after bounded propagation wait');
 }
 export function npmWriteArgs(action,artifact,tag,directory,repositoryPrivate){
  if(action==='stage'){
