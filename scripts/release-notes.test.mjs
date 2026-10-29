@@ -42,3 +42,12 @@ test('malformed pending records fail closed even when no selected package can be
     assert.match(errors[0], /malformed.*pending-sdk\.md/i)
   }
 })
+
+test('final preparation accepts explicit meaningful no-release records used by shared CI policy',()=>{
+ assert.deepEqual(notes.pendingReleaseErrors([pkg],[fragment('---\n---\n\nNo release: maintain verification orchestration without changing published runtime contracts.\n')]),[])
+ for(const body of ['No release.','No release: short','Unrelated prose that does not explicitly explain the no-release decision.'])assert.equal(notes.pendingReleaseErrors([pkg],[fragment('---\n---\n\n'+body)]).length,1)
+})
+
+test('a nonempty Changeset header requires a closing fence on a separate line',()=>{
+ assert.equal(notes.pendingReleaseErrors([pkg],[fragment('---\n"@alneas/eaos-core": patch---\n\nAdopt the dependency fix and refresh the application lockfile.')]).length,1)
+})

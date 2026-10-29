@@ -12,3 +12,11 @@ test('release records retain owner and semantic increment validation',()=>{
  assert.doesNotThrow(()=>validateChangeset('---\n"@alneas/eaos-core": patch\n---\n\nAdopt the published dependency fix and refresh the application lockfile.\n',owners))
  for(const header of ['"unknown": patch','"@alneas/eaos-core": invalid'])assert.throws(()=>validateChangeset('---\n'+header+'\n---\n\nMeaningful consumer release notes remain mandatory for every owner.\n',owners))
 })
+
+test('metadata retains meaningful consumer summary length for release targets',()=>{
+ assert.throws(()=>validateChangeset('---\n"@alneas/eaos-core": patch\n---\nFix.',owners),/consumer impact/)
+})
+
+test('metadata rejects concatenated Changeset impact and closing fence',()=>{
+ assert.throws(()=>validateChangeset('---\n"@alneas/eaos-core": patch---\n\nAdopt the dependency fix and refresh the application lockfile.',owners))
+})

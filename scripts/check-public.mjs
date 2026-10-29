@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile,readdir } from 'node:fs/promises'
 import { resolve,join } from 'node:path'
 import { validateManifest,publicationOrder } from './release-contract.mjs'
+import {fragmentTargets} from './release-notes.mjs'
 const root=resolve(import.meta.dirname,'..')
 export async function packages() {
   const result=[]
@@ -16,18 +17,8 @@ export async function packages() {
   return result
 }
 export function validateChangeset(text,entries,file='change record') {
-  const header=text.match(/^---\n([\s\S]*?)\n?---\n([\s\S]+)$/)
-  assert.ok(header,`Invalid Changeset: ${file}`)
-  const targetLines=header[1].trim()
-  if(!targetLines) {
-    assert.ok(/^No[ -]release:/i.test(header[2].trim()) && header[2].trim().length>=40,`Meaningful No-release rationale required: ${file}`)
-    return
-  }
-  for(const line of targetLines.split('\n')) {
-    const match=line.match(/^"([^"]+)": (patch|minor|major)$/)
-    assert.ok(match && entries.some(pkg=>pkg.name===match[1]),`Unknown target or increment: ${file}`)
-  }
-  assert.ok(header[2].trim().length>30,`Explain consumer impact: ${file}`)
+  const targets=fragmentTargets(text,{minimumSummaryLength:30})
+  for(const name of targets)assert.ok(entries.some(pkg=>pkg.name===name),`Unknown target: ${file}`)
 }
 if(process.argv[1]===import.meta.filename) {
   const entries=await packages()
