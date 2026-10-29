@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {planTarget,executeStage,executeRelease,npmWriteArgs,assertWriteEnvironment,compareVersions} from './engine.mjs'
+import {planTarget,executeStage,executeRelease,npmWriteArgs,assertWriteEnvironment,compareVersions,waitForRequiredChannels} from './engine.mjs'
 const a={name:'@alneas/eaos-core',version:'0.2.0',archive:'core.tgz',integrity:'sha512-reviewed'}
 const bundle={targets:[a.name],artifacts:[a]}
 const state=()=>({name:a.name,versions:{'0.1.0':{}},'dist-tags':{latest:'0.1.0',beta:'0.1.0'}})
@@ -44,3 +44,24 @@ test('writers require exact owning workflow, OIDC, event and no static credentia
  assert.doesNotThrow(()=>assertWriteEnvironment(env))
  for(const x of [{NODE_AUTH_TOKEN:'static'},{NPM_TOKEN:'static'},{GITHUB_REPOSITORY:'fork/eaos'},{GITHUB_REF:'refs/heads/other'},{GITHUB_EVENT_NAME:'push'},{ACTIONS_ID_TOKEN_REQUEST_TOKEN:''}])assert.throws(()=>assertWriteEnvironment({...env,...x}))
 })
+
+test('completion tolerates delayed post-write channel visibility without repeating writes',async()=>{
+ const live=state();live.versions[a.version]={dist:{integrity:a.integrity}};const stale=structuredClone(live),writes=[];let now=0,lagReads=0;
+ await executeRelease(bundle,{readState:async()=>writes.length===2&&lagReads++<2?structuredClone(stale):structuredClone(live),verifyArtifact:async()=>{},checkPrerequisite:async()=>{},write:async(action,item,tag)=>{writes.push([action,tag]);live['dist-tags'][tag]=item.version},channelWait:{now:()=>now,sleep:async ms=>{now+=ms},timeout:50,interval:10}});
+ assert.deepEqual(writes,[['tag','beta'],['tag','latest']]);assert.equal(now,20);
+});
+
+
+test('channel propagation timeout does not repeat tag or publication writes',async()=>{
+ const live=state();live.versions[a.version]={dist:{integrity:a.integrity}};const stale=structuredClone(live),writes=[];let now=0;
+ await assert.rejects(executeRelease(bundle,{readState:async()=>writes.length===2?structuredClone(stale):structuredClone(live),verifyArtifact:async()=>{},checkPrerequisite:async()=>{},write:async(action,item,tag)=>{writes.push([action,tag]);live['dist-tags'][tag]=item.version},channelWait:{now:()=>now,sleep:async ms=>{now+=ms},timeout:20,interval:10}}),/bounded propagation wait/);
+ assert.deepEqual(writes,[['tag','beta'],['tag','latest']]);assert.equal(now,20);
+});
+test('a newer channel, changed bytes, disappeared version or read failure stops propagation checks',async()=>{
+ for(const mutation of [s=>{s['dist-tags'].latest='0.3.0'},s=>{s.versions[a.version].dist.integrity='other'},s=>{delete s.versions[a.version]}]){
+  let now=0,reads=0;const s=state();s.versions[a.version]={dist:{integrity:a.integrity}};
+  await assert.rejects(waitForRequiredChannels(a,async()=>{if(++reads===2)mutation(s);return structuredClone(s)},{now:()=>now,sleep:async ms=>{now+=ms},timeout:50,interval:10}));
+  assert.equal(reads,2);
+ }
+ let reads=0;await assert.rejects(waitForRequiredChannels(a,async()=>{reads++;throw Error('permission denied')}),/permission denied/);assert.equal(reads,1);
+});
