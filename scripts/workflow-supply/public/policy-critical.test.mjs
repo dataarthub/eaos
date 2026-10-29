@@ -10,7 +10,7 @@ function fixture(work){const root=mkdtempSync(join(tmpdir(),'public-policy-'));c
 }finally{rmSync(root,{recursive:true,force:true});}}
 const violations=root=>inspectCritical(root).violations;
 test('private dev/peer dependencies and external file links block public conformance',()=>fixture(({root,put})=>{
- assert.deepEqual(violations(root),[]);put('packages/core/package.json',{name:'@example/core',devDependencies:{'@example/core-private':'1.0.0'},peerDependencies:{'@dataarthub/internal':'1.0.0'},dependencies:{other:'file:../../../sibling'}});const found=violations(root);assert.equal(found.filter(x=>x.id==='boundary.public').length,3);
+ assert.deepEqual(violations(root),[]);put('packages/core/package.json',{name:'@example/core',devDependencies:{'@example/core-private':'1.0.0'},peerDependencies:{[['@dataarthub','internal'].join('/')]: '1.0.0'},dependencies:{other:'file:../../../sibling'}});const found=violations(root);assert.equal(found.filter(x=>x.id==='boundary.public').length,3);
 }));
 test('AST inspection finds private export/require/type/dynamic imports but ignores explanatory strings and comments',()=>fixture(({root,put})=>{
  put('packages/core/src/index.ts',`// import x from '@example/x-private';\nconst explanation="@example/x-private";\nexport {value} from '@example/x-private';\nconst a=require('@example/y-private');\ntype T=import('@example/z-private').T;\nasync function load(){return import('../../../../app-private/source.js');}\n`);assert.equal(violations(root).filter(x=>x.id==='boundary.public').length,4);

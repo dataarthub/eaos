@@ -118,8 +118,11 @@ commands are not prerequisites for a standalone checkout.
   `bun run docs:generated` for temporary-regeneration freshness verification.
 
 For standalone development and release preparation, follow CONTRIBUTING.md and
-RELEASING.md. Run `bun run check`, then prepare and test the exact archive bundle
-with `bun run release:prepare` and `bun run test:consumer -- <bundle-directory>`.
+RELEASING.md. Select checks from changed inputs; use `bun run check:selected` with
+a trusted plan or `bun run check` when no trustworthy baseline exists. Preserve
+required gate outcomes through authenticated evidence, without repeating unchanged
+suites. Source quality prepares and tests one archive bundle; package Releases
+reuse those exact bytes after provenance and current destination checks.
 The maintained commands enforce process-tree memory/deadline limits; record peak,
 status and unexecuted cases. Never relax limits, matrices or a11y to pass. Require
 the latest successful invocation; older success cannot override a later failure.
@@ -135,3 +138,6 @@ API generation and portal aggregation belong to the maintainer workspace;
 confirm its applicable checks when changing those inputs.
 
 Dependency manifests follow the shared compatible-range policy: runtime and peer dependencies default to caret ranges with published minimums; lockfiles retain exact resolutions and integrity. Unreleased cross-repository APIs must be tested only in disposable candidate fixtures and released in dependency order before production adoption.
+
+
+Local push verification performs fresh history/change-record and read-only workflow checks. The active pre-push driver retains clean-checkout and exact pushed-ref guards, including tags; source suites, browser consumers and archive production run in their owning CI stages. A push check never triggers product builds or repeats the full CI suite. CI-only tooling or maintainer procedure changes use affected verifier tests and generated-guidance freshness checks. Request a shared development archive only when runtime, artifact build inputs or distributed product guidance require that artifact; existing stronger gate outcomes remain mandatory and may be satisfied by authenticated compatible evidence.

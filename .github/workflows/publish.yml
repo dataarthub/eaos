@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base ae1ac274494114599ea6c0de2e02c1e61f324e42 (local-reviewed).
-# Bundle SHA-256: 69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 398c070899cc1f75fb87134893c680b6eb293c1f (local-reviewed).
+# Bundle SHA-256: 2beb37c80a8a001a5a0a146cb14a4a2aaf50cd057529f5c36bffb9e8c4d44deb
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Publish npm packages"
@@ -61,29 +61,19 @@ jobs:
         name: "Project: Require exact-commit authoritative Source quality"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
+          PUBLIC_SOURCE_IMAGE_POLICY: "authenticate"
         run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
         run: "bun run secrets:setup"
         name: "Project: Run declared project check"
       -
-        run: "bun run check"
-        env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
-          GITHUB_TOKEN: "${{ github.token }}"
-        name: "Project: Run declared project check"
-      -
         run: "bun run secrets:check -- --history"
         name: "Project: Run declared project check"
       -
-        run: "bunx playwright install --with-deps chromium"
-        name: "Project: Run declared project check"
-      -
-        name: "Project: Prepare and test exact commit-bound release archives"
-        run: |
-          node scripts/release.mjs prepare --final > .verification/candidate-path.txt
-          bun run test:consumer -- "$(cat .verification/candidate-path.txt)"
-          bun run release:verify -- "$(cat .verification/candidate-path.txt)"
-          node scripts/publish/bundle.mjs "$(cat .verification/candidate-path.txt)" .verification/handoff
+        name: "Project: Reuse exact Source archives without rebuilding"
+        run: "node scripts/publish/source-candidate.mjs"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
       -
         uses: "actions/upload-artifact@v7"
         id: "upload"
@@ -138,6 +128,7 @@ jobs:
         name: "Project: Revalidate exact original Source quality evidence"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
+          PUBLIC_SOURCE_IMAGE_POLICY: "authenticate"
         run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
         name: "Project: Submit exact verified archives for human npm approval"
@@ -217,6 +208,7 @@ jobs:
           GITHUB_TOKEN: "${{ github.token }}"
           STAGED_RUN: "${{ inputs.staged_run }}"
           PUBLISH_SOURCE_SHA: "${{ steps.recovery.outputs.commit }}"
+          PUBLIC_SOURCE_IMAGE_POLICY: "authenticate"
         run: "node scripts/workflow-supply/public/quality.mjs require-source"
         if: "startsWith(inputs.staged_run, 'recover:')"
       -
@@ -292,6 +284,7 @@ jobs:
         name: "Project: Revalidate exact original Source quality evidence"
         env:
           GITHUB_TOKEN: "${{ github.token }}"
+          PUBLIC_SOURCE_IMAGE_POLICY: "authenticate"
         run: "node scripts/workflow-supply/public/quality.mjs require-source"
       -
         name: "Project: Stage catalogued recovery or complete approved original bytes"

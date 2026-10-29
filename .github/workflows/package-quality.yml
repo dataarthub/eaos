@@ -1,5 +1,5 @@
-# Generated: github-docs/public/templates/private-actions/public; reviewed base ae1ac274494114599ea6c0de2e02c1e61f324e42 (local-reviewed).
-# Bundle SHA-256: 69111de4aafb48fb77e3d8e702b88abdd18fc357a1a4a474a9e6a1ef27dd6fb6
+# Generated: github-docs/public/templates/private-actions/public; reviewed base 398c070899cc1f75fb87134893c680b6eb293c1f (local-reviewed).
+# Bundle SHA-256: 2beb37c80a8a001a5a0a146cb14a4a2aaf50cd057529f5c36bffb9e8c4d44deb
 # Project adapter: .github/workflow-adapter.json; source: scripts/workflow-project/roles.json
 # Run workflow:generate explicitly; workflow:check never repairs output.
 name: "Shared package quality"
@@ -72,7 +72,7 @@ jobs:
       -
         uses: "actions/upload-artifact@v7"
         with:
-          name: "verified-public-candidate"
+          name: "verified-public-candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
           path: ".verification/release-*/"
           retention-days: 14
           include-hidden-files: true
@@ -81,13 +81,13 @@ jobs:
         name: "Shared: actions/upload-artifact@v7"
       -
         name: "Shared: Record authoritative source evidence"
-        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
+        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' || success() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository }}"
         env:
           PUBLIC_SOURCE_NODE: "${{ matrix.node }}"
         run: "node scripts/workflow-supply/public/quality.mjs record"
       -
         name: "Shared: Preserve source evidence"
-        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
+        if: "${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' || success() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository }}"
         uses: "actions/upload-artifact@v7"
         with:
           name: "source-evidence-node${{ matrix.node }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"

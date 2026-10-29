@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {isDeepStrictEqual} from 'node:util';
+import {github} from './workflow-supply/public/evidence.mjs';
+import {executionIdentity} from './workflow-supply/public/quality.mjs';
+export async function readySourceProof(root,{env=process.env,request,readArtifact,identity,tree,parent}={}){
+ if(env.GITHUB_ACTIONS!=='true'||env.GITHUB_EVENT_NAME!=='push'||env.GITHUB_REF!=='refs/heads/main')return null;
+ const repository='dataarthub/eaos',sha=env.GITHUB_SHA;
+ const client=github(repository);request??=client.request;readArtifact??=client.readArtifact;
+ const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
+ tree??=git(['rev-parse','HEAD^{tree}']);parent??=git(['rev-parse','HEAD^']);identity??=executionIdentity(root,env);
+ const associated=await request(`/commits/${sha}/pulls?per_page=100`);assert(Array.isArray(associated)&&associated.length<100,'Incomplete PR associations');
+ const prs=associated.filter(pr=>pr.merged===true&&pr.draft===false&&pr.merge_commit_sha===sha&&pr.base?.ref==='main'&&pr.base.repo?.full_name===repository&&pr.head?.repo?.full_name===repository);
+ if(!prs.length)return null;assert.equal(prs.length,1,'Ambiguous merged PR');const pr=prs[0];
+ const listed=await request('/actions/workflows/ci.yml/runs?event=pull_request&per_page=100');assert(Array.isArray(listed.workflow_runs)&&listed.workflow_runs.length<=100&&Number.isSafeInteger(listed.total_count)&&listed.total_count>=listed.workflow_runs.length,'Incomplete PR source history');
+ const candidates=listed.workflow_runs.filter(r=>r.path==='.github/workflows/ci.yml'&&r.name==='Source quality'&&r.event==='pull_request'&&r.head_repository?.full_name===repository&&r.pull_requests?.some(p=>p.number===pr.number)).sort((a,b)=>b.id-a.id||b.run_attempt-a.run_attempt);
+ assert(candidates.length,'No Ready PR proof');const r=candidates[0],fresh=await request('/actions/runs/'+r.id);
+ assert(fresh.id===r.id&&fresh.run_attempt===r.run_attempt&&fresh.head_sha===r.head_sha&&fresh.path===r.path&&fresh.event===r.event&&fresh.status==='completed'&&fresh.conclusion==='success','Latest Ready PR attempt changed or failed');
+ const jobs=await request(`/actions/runs/${r.id}/attempts/${r.run_attempt}/jobs?per_page=100`);assert(Array.isArray(jobs.jobs)&&jobs.total_count<=100,'Incomplete PR jobs');const required=jobs.jobs.filter(j=>j.name==='verify / Verify packages (Node 24)'||j.name==='Verify packages (Node 24)');assert(required.length===1&&required[0].status==='completed'&&required[0].conclusion==='success','Required PR runtime did not pass');
+ const artifacts=await request(`/actions/runs/${r.id}/artifacts?per_page=100`);assert(Array.isArray(artifacts.artifacts)&&artifacts.total_count<=100,'Incomplete PR artifacts');
+ assert(r.head_sha===pr.head.sha,'PR run is for an outdated head');
+ const matches=artifacts.artifacts.filter(a=>new RegExp('^source-evidence-node24-[a-f0-9]{40}-'+r.id+'-'+r.run_attempt+'$').test(a.name));assert.equal(matches.length,1,'Missing Ready PR receipt');const artifact=matches[0];assert(artifact.expired===false&&Date.parse(artifact.expires_at)>Date.now()&&artifact.workflow_run?.id===r.id&&artifact.workflow_run?.head_sha===r.head_sha,'Expired or substituted PR evidence');
+ const receipt=await readArtifact(artifact);assert(typeof receipt.sha==='string'&&/^[a-f0-9]{40}$/.test(receipt.sha)&&artifact.name===`source-evidence-node24-${receipt.sha}-${r.id}-${r.run_attempt}`,'Tested merge SHA differs from artifact');
+ const object=await request('/git/commits/'+receipt.sha);assert(object.sha===receipt.sha&&object.tree?.sha===tree&&object.parents?.length===2&&object.parents[0].sha===parent&&object.parents[1].sha===pr.head.sha,'Actual candidate Git tree or parents differ');
+ const controls=await request(`/compare/${parent}...${receipt.sha}`);assert(Array.isArray(controls.files)&&controls.files.length<300&&!controls.files.some(file=>/^(?:\.github\/|scripts\/|bun\.lock$|biome\.json$|\.gitleaks)|(?:^|\/)package\.json$/.test(file.filename)||file.previous_filename&&/^(?:\.github\/|scripts\/)|(?:^|\/)package\.json$/.test(file.previous_filename)),'Verifier controls changed');
+ assert(receipt.schemaVersion===1&&receipt.repository===repository&&receipt.run===r.id&&receipt.attempt===r.run_attempt&&receipt.status==='passed','PR receipt identity differs');assert(isDeepStrictEqual(receipt.identity,identity),'PR execution environment differs');assert(receipt.tree===tree&&receipt.pr?.number===pr.number&&receipt.pr.ready===true&&receipt.pr.base===parent&&receipt.pr.head===pr.head.sha,'PR tree, base or head changed');
+ const finalHistory=await request('/actions/workflows/ci.yml/runs?event=pull_request&per_page=100');assert(Array.isArray(finalHistory.workflow_runs)&&finalHistory.workflow_runs.length<=100,'Incomplete final PR history');const latest=finalHistory.workflow_runs.filter(run=>run.path===r.path&&run.event==='pull_request'&&run.name==='Source quality'&&run.head_repository?.full_name===repository&&run.pull_requests?.some(p=>p.number===pr.number)).sort((a,b)=>b.id-a.id||b.run_attempt-a.run_attempt)[0];assert(latest?.id===r.id&&latest.run_attempt===r.run_attempt&&latest.status==='completed'&&latest.conclusion==='success','Newer PR source invocation superseded proof');
+ const confirmed=await request('/actions/runs/'+r.id);assert(confirmed.run_attempt===r.run_attempt&&confirmed.status==='completed'&&confirmed.conclusion==='success','PR attempt changed during inspection');
+ return {run:r,receipt};
+}

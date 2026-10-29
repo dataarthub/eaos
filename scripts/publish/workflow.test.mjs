@@ -7,21 +7,21 @@ test('canonical writer separates unprivileged verification, staged writer and or
  const w=read('publish.yml'),verify=JSON.stringify(w.jobs.verify),stage=JSON.stringify(w.jobs.stage),complete=JSON.stringify(w.jobs.complete);
  assert.deepEqual(w.on.release.types,['published']);assert(!w.on.push&&!w.on.pull_request);assert.equal(w.concurrency.group,'eaos-npm-release');assert.equal(w.concurrency['cancel-in-progress'],false);
  assert.doesNotMatch(verify,/id-token.*write|NPM_TOKEN|NODE_AUTH_TOKEN/);
- for(const gate of ['bun run check','bun run secrets:check -- --history','prepare --final','bun run test:consumer','bun run release:verify','scripts/publish/bundle.mjs','quality.mjs require-source'])assert(verify.includes(gate),gate);
+ for(const gate of ['bun run secrets:check -- --history','scripts/publish/source-candidate.mjs','quality.mjs require-source'])assert(verify.includes(gate),gate);
  const upload=w.jobs.verify.steps.find(s=>s.id==='upload');assert.equal(upload.with['include-hidden-files'],true);assert.equal(upload.with['retention-days'],14);
- assert.equal(w.jobs.verify.steps.find(s=>s.run==='bun run check').env.GITHUB_TOKEN,'${{ github.token }}','Release source reuse requires authenticated artifact retrieval');
+ assert.equal(w.jobs.verify.steps.find(s=>s.run==='node scripts/publish/source-candidate.mjs').env.GITHUB_TOKEN,'${{ github.token }}','Source archive reuse requires authenticated artifact retrieval');
+ assert.doesNotMatch(verify,/bun run check|prepare --final|bun run test:consumer|bunx playwright/,'Publication reuses the tested Source archive');
  assert.deepEqual(upload.with.path.trim().split('\n'),['.verification/handoff/release.json','.verification/handoff/*.tgz','.verification/handoff/*.notes.md']);
  assert.equal(w.jobs.stage.needs,'verify');assert.equal(w.jobs.stage.permissions['id-token'],'write');
  for(const key of ['stage','complete'])assert.equal(w.jobs[key].steps.find(s=>s.uses?.startsWith('actions/download-artifact@')).with['digest-mismatch'],'error');
  assert.equal(w.jobs.complete.steps.find(s=>s.uses?.startsWith('actions/download-artifact@')).with['run-id'],'${{ needs.resolve.outputs.run }}');assert.doesNotMatch(stage+complete,/bun run|npm publish|npm stage publish/);assert.match(JSON.stringify(w),/npm@11.21.0/);
 });
-test('observer has no OIDC or npm credentials, uses default branch and excludes completion loops',()=>{
- const w=read('complete-approved.yml'),s=JSON.stringify(w);assert.deepEqual(w.on.workflow_run.workflows,['Publish npm packages']);assert.match(s,/workflow_run.event == 'release'/);
- assert.equal(w.jobs.observe.steps.find(s=>s.uses?.startsWith('actions/checkout@')).with.ref,'main');assert.equal(w.jobs.observe.permissions.actions,'write');assert.equal(w.jobs.observe['timeout-minutes'],35);
- assert.doesNotMatch(s,/id-token.*write|NODE_AUTH_TOKEN|NPM_TOKEN|npm install|npm publish|bun run/);assert.match(w.concurrency.group,/npm-approval-/);
+test('approval never occupies an observer runner; explicit completion retains the original writer',()=>{
+ assert.equal(existsSync(new URL('../../.github/workflows/complete-approved.yml',import.meta.url)),false);
+ const w=read('publish.yml');assert(w.on.workflow_dispatch.inputs.staged_run);assert.equal(w.jobs.complete.needs,'resolve');
 });
 test('source quality owns documentation once; generated docs no longer call the full source gate again',()=>{
- assert.equal(existsSync(new URL('../../.github/workflows/docs-generated.yml',import.meta.url)),false);const w=read('ci.yml');assert.deepEqual(Object.keys(w.on),['push','pull_request','workflow_dispatch']);assert.equal(w.jobs.verify.uses,'./.github/workflows/package-quality.yml');
+ assert.equal(existsSync(new URL('../../.github/workflows/docs-generated.yml',import.meta.url)),false);const w=read('ci.yml');assert.deepEqual(Object.keys(w.on),['push','pull_request','merge_group','workflow_dispatch']);assert.equal(w.jobs.verify.uses,'./.github/workflows/package-quality.yml');
  const contract=JSON.parse(readFileSync(new URL('../workflow-project/roles.json',import.meta.url)));assert.equal(contract.quality.tasks.find(t=>t.id==='source').command.join(' '),'bun run check:selected');assert.deepEqual(contract.quality.tasks.find(t=>t.id==='documentation').scopes,['docs']);
 });
 test('catalogued pre-stage recovery verifies clean original source without giving the verifier OIDC',()=>{
@@ -35,7 +35,7 @@ test('catalogued pre-stage recovery verifies clean original source without givin
  assert.equal(writer.env.PUBLISH_SOURCE_SHA,'${{ needs.resolve.outputs.commit }}');
  assert.match(JSON.stringify(writer.steps),/run.mjs recover-stage/);
  assert.match(w['run-name'],/Recover npm pre-stage candidate/);
- const observer=read('complete-approved.yml');assert.match(observer.jobs.observe.if,/Recover npm pre-stage candidate recover:/);
+
 });
 
 test('selected docs and publication scopes build declarations before API freshness checks',()=>{

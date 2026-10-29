@@ -11,6 +11,7 @@
   },
   "retiredWorkflows": [
     ".github/workflows/quality.yml",
-    ".github/workflows/docs-generated.yml"
+    ".github/workflows/docs-generated.yml",
+    ".github/workflows/complete-approved.yml"
   ]
 }

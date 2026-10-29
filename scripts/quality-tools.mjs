@@ -20,10 +20,15 @@ export function sourceVerificationEnvironment(env = process.env) {
 export async function withSourceProofEnvironment(verify, env = process.env) {
   const present = Object.hasOwn(env, 'EAOS_VERIFICATION_RUN');
   const runId = env.EAOS_VERIFICATION_RUN;
+  const nodeOptions=env.NODE_OPTIONS;
+  // Only our process-containment preload is launcher state; retain all real Node flags.
+  const containment=' --require='+JSON.stringify(path.resolve(import.meta.dirname,'browser-containment.cjs'));
+  if(env.NODE_OPTIONS?.endsWith(containment))env.NODE_OPTIONS=env.NODE_OPTIONS.slice(0,-containment.length);
   delete env.EAOS_VERIFICATION_RUN;
   try {
     return await verify();
   } finally {
+    if(nodeOptions===undefined)delete env.NODE_OPTIONS;else env.NODE_OPTIONS=nodeOptions;
     if (present) env.EAOS_VERIFICATION_RUN = runId;
     else delete env.EAOS_VERIFICATION_RUN;
   }
